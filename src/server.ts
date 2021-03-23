@@ -30,6 +30,7 @@ const start = async () => {
       username: process.env.MYSQL_USER,
       password: process.env.MYSQL_PASS,
       database: process.env.MYSQL_DB,
+      synchronize: false,
       entities: [Regulation, Ministry, LawChapter],
     });
 

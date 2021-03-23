@@ -4,7 +4,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 export class Regulation {
   @PrimaryGeneratedColumn()
   id!: number;
-  @Column({ type: 'date' })
+  @Column()
   effectiveDate!: Date;
   @Column()
   effectiveDateUnconfirmed!: boolean;
@@ -14,9 +14,9 @@ export class Regulation {
   publishedDate!: Date;
   @Column()
   publishedDateUnconfirmed!: boolean;
-  @Column({ type: 'date', nullable: true })
+  @Column({ nullable: true })
   repealedDate?: Date;
-  @Column({ type: 'date' })
+  @Column()
   signatureDate!: Date;
   @Column()
   signatureDateUnconfirmed!: boolean;

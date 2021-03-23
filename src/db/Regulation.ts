@@ -15,27 +15,43 @@ export async function getRegulationsCount() {
   const regulationRepository = connection.getRepository(Regulation);
   const regulationsCount: number = await regulationRepository
     .createQueryBuilder('allregulations')
+    // .where({ status: 'text_locked' || 'migrated' })
     .getCount();
   return regulationsCount;
 }
 
-export async function getRegulationsByPage(skip: number, take: number) {
+export async function getLatestRegulations(skip: number, take: number) {
   const connection = getConnection();
   const projects: Array<Regulation> = await connection
     .getRepository(Regulation)
     .createQueryBuilder('regulations')
+    .select(['name', 'title', 'publishedDate'])
+    // .where({ status: 'text_locked' || 'migrated' })
+    .orderBy('publishedDate', 'DESC')
     .skip(skip ?? 0)
     .take(take ?? regulationsPerPage)
-    .getMany();
+    .getRawMany();
   return projects;
 }
 
 export async function getRegulationByName(regulationName: string) {
   const connection = getConnection();
   const regulationRepository = connection.getRepository(Regulation);
-  const regulation: Regulation | null =
+  const regulation =
     (await regulationRepository.findOne({
-      name: regulationName,
+      where: { name: regulationName },
+      select: [
+        'id',
+        'name',
+        'title',
+        'text',
+        'signatureDate',
+        'publishedDate',
+        'effectiveDate',
+      ],
     })) ?? null;
-  return regulation;
+  if (regulation) {
+    const extraData = Promise.all([]);
+  }
+  return { regulation };
 }

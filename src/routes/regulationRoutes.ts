@@ -1,7 +1,7 @@
 import {
   getRegulationByName,
   getAllRegulations,
-  getRegulationsByPage,
+  getLatestRegulations,
   regulationsPerPage,
   getRegulationsCount,
 } from '../db/Regulation';
@@ -16,7 +16,7 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
 
   fastify.get('/regulations', opts, async function (request: any, reply: any) {
     const page = parseInt(request.params.page ?? 1) - 1;
-    const data = await getRegulationsByPage(
+    const data = await getLatestRegulations(
       page * regulationsPerPage,
       regulationsPerPage,
     );
