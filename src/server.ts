@@ -1,13 +1,14 @@
 import * as dotenv from 'dotenv';
+import { fastify as fast } from 'fastify';
+import fastifyRateLimiter from 'fastify-rate-limit';
+import { createConnection } from 'typeorm';
 
 import { Regulation } from './entity/Regulation';
 import { regulationRoutes } from './routes/regulationRoutes';
-import { createConnection } from 'typeorm';
-import { fastify as fast } from 'fastify';
-
-import fastifyRateLimiter from 'fastify-rate-limit';
 import { Ministry } from './entity/Ministry';
 import { ministryRoutes } from './routes/ministryRoutes';
+import { LawChapter } from './entity/LawChapter';
+import { lawChapterRoutes } from './routes/lawChapterRoutes';
 
 const fastify = fast();
 fastify.register(fastifyRateLimiter, {
@@ -17,6 +18,7 @@ fastify.register(fastifyRateLimiter, {
 
 fastify.register(regulationRoutes, { prefix: '/api/v1' });
 fastify.register(ministryRoutes, { prefix: '/api/v1' });
+fastify.register(lawChapterRoutes, { prefix: '/api/v1' });
 
 const start = async () => {
   try {
@@ -28,7 +30,7 @@ const start = async () => {
       username: process.env.MYSQL_USER,
       password: process.env.MYSQL_PASS,
       database: process.env.MYSQL_DB,
-      entities: [Regulation, Ministry],
+      entities: [Regulation, Ministry, LawChapter],
     });
 
     await fastify.listen(process.env.PORT || 3000, '0.0.0.0', (err) => {

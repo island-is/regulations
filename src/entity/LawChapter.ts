@@ -1,0 +1,13 @@
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+
+@Entity('LawChapter')
+export class LawChapter {
+  @PrimaryGeneratedColumn()
+  id!: number;
+  @Column()
+  slug!: string;
+  @Column()
+  title!: string;
+  @Column({ nullable: true })
+  parentId?: number;
+}
