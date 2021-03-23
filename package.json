@@ -1,0 +1,76 @@
+{
+  "name": "reglugerdir-api",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/server.js",
+  "author": "Hugsmiðajn ehf. (www.hugsmidjan.is)",
+  "scripts": {
+    "build": "gulp build",
+    "dev": "yarn && yarn build && yarn start",
+    "start": "node dist/server.js",
+    "lint:eslint": "eslint \"*.{js,ts,tsx}\" \"src/**/*.{js,ts,tsx}\"",
+    "lint:stylelint": "stylelint \"src/**/*.scss\"",
+    "lint": "concurrently yarn:lint:*",
+    "format:eslint": "eslint --fix  \"*.{js,ts,tsx}\" \"src/**/*.{js,ts,tsx}\"",
+    "format:prettier": "prettier --write \"*.{json,md}\" \"src/**/*.{json,md,html}\"",
+    "format:stylelint": "prettier --write \"src/**/*.{module.scss}\"  && stylelint --fix \"src/**/*.module.scss\"",
+    "format": "concurrently yarn:format:*"
+  },
+	"engines": {
+		"node": "^12",
+    "yarn": "^1"
+	},
+  "dependencies": {
+    "esm": "^3.2.25",
+    "fastify": "^3.11.0",
+    "fastify-rate-limit": "^5.0.1",
+    "mysql2": "^2.2.5",
+    "reflect-metadata": "^0.1.10",
+    "typeorm": "0.2.31",
+    "xss": "^1.0.8"
+  },
+  "devDependencies": {
+    "@hugsmidjan/gulp-rollup": "^0.8.0",
+    "@hugsmidjan/hxmstyle": "^4.1.0",
+    "@types/node": "^14.0.13",
+    "@typescript-eslint/eslint-plugin": "^4.15.0",
+    "@typescript-eslint/parser": "^4.15.0",
+    "cross-env": "^7.0.3",
+    "del": "^6.0.0",
+    "eslint": "^7.10.0",
+    "eslint-config-prettier": "^7.2.0",
+    "eslint-plugin-deprecation": "^1.2.0",
+    "eslint-plugin-destructuring": "^2.2.0",
+    "eslint-plugin-prettier": "^3.3.1",
+    "eslint-plugin-react": "^7.22.0",
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "gulp": "^4.0.2",
+    "nodemon": "^2.0.7",
+    "pg": "^8.5.1",
+    "prettier": "^2.2.1",
+    "stylelint": "^13.7.2",
+    "stylelint-config-recommended-scss": "^4.2.0",
+    "stylelint-order": "^4.1.0",
+    "stylelint-scss": "^3.18.0",
+    "ts-node": "9.1.1",
+    "typescript": "^4.2.3"
+  },
+  "hxmstyle": {
+    "options": {
+      "react": true,
+      "typescript": true
+    },
+    "dependenciesAdded": [
+      "@typescript-eslint/eslint-plugin",
+      "@typescript-eslint/parser",
+      "eslint",
+      "eslint-config-prettier",
+      "eslint-plugin-deprecation",
+      "eslint-plugin-destructuring",
+      "eslint-plugin-prettier",
+      "eslint-plugin-react",
+      "eslint-plugin-react-hooks",
+      "prettier"
+    ]
+  }
+}

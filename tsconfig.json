@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": ["dom", "esnext"],
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": false,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "newLine": "LF",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "resolveJsonModule": true,
+    "baseUrl": "src",
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "strictBindCallApply": false,
+    "noImplicitThis": false
+  },
+
+  "exclude": ["node_modules", "dist"],
+  "include": ["types/**/*.d.ts", "src/**/*.ts", "ormconfig.json"]
+}
