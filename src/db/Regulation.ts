@@ -16,7 +16,6 @@ export async function getRegulationsCount() {
   const regulationsCount: number = await regulationRepository
     .createQueryBuilder('allregulations')
     .getCount();
-  console.log(regulationsCount);
   return regulationsCount;
 }
 
@@ -31,12 +30,12 @@ export async function getRegulationsByPage(skip: number, take: number) {
   return projects;
 }
 
-export async function getRegulationById(regulationId: number) {
+export async function getRegulationByName(regulationName: string) {
   const connection = getConnection();
   const regulationRepository = connection.getRepository(Regulation);
   const regulation: Regulation | null =
     (await regulationRepository.findOne({
-      id: regulationId,
+      name: regulationName,
     })) ?? null;
   return regulation;
 }

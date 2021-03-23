@@ -1,4 +1,4 @@
-import { getAllMinistries } from '../db/ministry';
+import { getAllMinistries } from '../db/Ministry';
 import { Ministry } from 'entity/Ministry';
 
 export function ministryRoutes(fastify: any, opts: any, done: any) {

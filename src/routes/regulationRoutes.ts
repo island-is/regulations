@@ -1,10 +1,10 @@
 import {
-  getRegulationById,
+  getRegulationByName,
   getAllRegulations,
   getRegulationsByPage,
   regulationsPerPage,
   getRegulationsCount,
-} from '../db/regulation';
+} from '../db/Regulation';
 
 import { Regulation } from 'entity/Regulation';
 
@@ -30,13 +30,15 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
 
   /**
    * Gets a single regulation by id
-   * @param {number} id - ID of the Regulation to fetch
+   * @param {string} name - ID of the Regulation to fetch
    * @returns {Regulation}
    */
 
-  fastify.get('/regulation/:id', opts, async function (request: any, reply: any) {
-    if (request.params.id) {
-      const data = await getRegulationById(parseInt(request.params.id));
+  fastify.get('/regulation/:name', opts, async function (request: any, reply: any) {
+    if (request.params.name) {
+      const data = await getRegulationByName(
+        String(request.params.name).replace('-', '/'),
+      );
       reply.send(data);
     } else {
       reply.code(400).send('No Regulation id specified!');
