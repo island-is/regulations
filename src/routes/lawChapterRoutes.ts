@@ -22,8 +22,7 @@ export function lawChapterRoutes(fastify: any, opts: any, done: any) {
    */
   fastify.get('/lawchapters', opts, async function (request: any, reply: any) {
     const data = await getAllLawChapters();
-
-    reply.send({ data });
+    reply.send(data);
   });
 
   /**
@@ -34,7 +33,7 @@ export function lawChapterRoutes(fastify: any, opts: any, done: any) {
     const data = await getAllLawChapters();
     const chapterTree = _dataToChapterTree(data);
 
-    reply.send({ data: chapterTree });
+    reply.send(chapterTree);
   });
 
   done();

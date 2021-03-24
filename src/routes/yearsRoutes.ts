@@ -1,4 +1,4 @@
-import { getRegulationsYears } from '../db/Regulation';
+import { getRegulationsYears } from '../db/Regulations';
 
 export function yearsRoutes(fastify: any, opts: any, done: any) {
   /**
@@ -7,8 +7,6 @@ export function yearsRoutes(fastify: any, opts: any, done: any) {
    */
   fastify.get('/years', opts, async function (request: any, reply: any) {
     const data = await getRegulationsYears();
-    console.log(data);
-
     reply.send(data);
   });
 

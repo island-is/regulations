@@ -5,6 +5,7 @@ import { createConnection } from 'typeorm';
 
 import { Regulation } from './entity/Regulation';
 import { regulationRoutes } from './routes/regulationRoutes';
+import { regulationsRoutes } from './routes/regulationsRoutes';
 import { Ministry } from './entity/Ministry';
 import { ministryRoutes } from './routes/ministryRoutes';
 import { LawChapter } from './entity/LawChapter';
@@ -18,6 +19,7 @@ fastify.register(fastifyRateLimiter, {
 });
 
 fastify.register(regulationRoutes, { prefix: '/api/v1' });
+fastify.register(regulationsRoutes, { prefix: '/api/v1' });
 fastify.register(ministryRoutes, { prefix: '/api/v1' });
 fastify.register(lawChapterRoutes, { prefix: '/api/v1' });
 fastify.register(yearsRoutes, { prefix: '/api/v1' });
