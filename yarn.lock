@@ -231,10 +231,10 @@
     "@fastify/forwarded" "^1.0.0"
     ipaddr.js "^2.0.0"
 
-"@hugsmidjan/gulp-rollup@^0.8.0":
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/@hugsmidjan/gulp-rollup/-/gulp-rollup-0.8.0.tgz#51106d588b3740792a5a2623bf31e1d16715da5e"
-  integrity sha512-3jFLjkheiPxUlWvOl4rXZoct6ceGHV4HCaehk/MTLdOLX5SW1rOf9y0fV+9gnv8+KG+7hTziAAxO3GfmqsavlA==
+"@hugsmidjan/gulp-rollup@^0.8.1":
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/@hugsmidjan/gulp-rollup/-/gulp-rollup-0.8.1.tgz#44ef195e101552a9188580dd0cfc884700d0adb5"
+  integrity sha512-VkkDDG5qs3cXp4pLi6JKgL58VGwxzReTcLqVyA+UL2XpkMfZCn/jdWSNVcFc/lM1ZVqQypWaUhXtYXLOkQsArw==
   dependencies:
     "@hugsmidjan/gulp-utils" "^0.1.3"
     "@rollup/plugin-alias" "^3.1.0"

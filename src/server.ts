@@ -11,6 +11,9 @@ import { ministryRoutes } from './routes/ministryRoutes';
 import { LawChapter } from './entity/LawChapter';
 import { lawChapterRoutes } from './routes/lawChapterRoutes';
 import { yearsRoutes } from './routes/yearsRoutes';
+import { RegulationChange } from './entity/RegulationChange';
+import { RegulationCancel } from './entity/RegulationCancel';
+import { RegulationMinistry } from './entity/RegulationMinistry';
 
 const fastify = fast();
 fastify.register(fastifyRateLimiter, {
@@ -35,7 +38,14 @@ const start = async () => {
       password: process.env.MYSQL_PASS,
       database: process.env.MYSQL_DB,
       synchronize: false,
-      entities: [Regulation, Ministry, LawChapter],
+      entities: [
+        Regulation,
+        Ministry,
+        LawChapter,
+        RegulationChange,
+        RegulationCancel,
+        RegulationMinistry,
+      ],
     });
 
     await fastify.listen(process.env.PORT || 3000, '0.0.0.0', (err) => {
