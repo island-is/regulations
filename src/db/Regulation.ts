@@ -59,8 +59,13 @@ const augmentRegulation = async (regulation: Regulation) => {
   const extraData = {
     ministry: more[0] ?? undefined,
     repealedDate: more[1]?.date ?? undefined,
+    appendixes: 'TODO!', // TODO: add appendixes
+    lastAmendDate: 'TODO!', // TODO: add lastAmendDate
+    lawChapters: 'TODO!', // TODO: add lawChapters
   };
-  return Object.assign({}, regulation, extraData);
+  const mergedData = Object.assign({}, regulation, extraData);
+  const { id, ...rest } = mergedData;
+  return rest;
 };
 
 export async function getOriginalRegulation(regulationName: string) {
