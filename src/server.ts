@@ -9,6 +9,7 @@ import { Ministry } from './entity/Ministry';
 import { ministryRoutes } from './routes/ministryRoutes';
 import { LawChapter } from './entity/LawChapter';
 import { lawChapterRoutes } from './routes/lawChapterRoutes';
+import { yearsRoutes } from './routes/yearsRoutes';
 
 const fastify = fast();
 fastify.register(fastifyRateLimiter, {
@@ -19,6 +20,7 @@ fastify.register(fastifyRateLimiter, {
 fastify.register(regulationRoutes, { prefix: '/api/v1' });
 fastify.register(ministryRoutes, { prefix: '/api/v1' });
 fastify.register(lawChapterRoutes, { prefix: '/api/v1' });
+fastify.register(yearsRoutes, { prefix: '/api/v1' });
 
 const start = async () => {
   try {

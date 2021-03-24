@@ -1,5 +1,5 @@
 import { Regulation } from '../entity/Regulation';
-import { getConnection } from 'typeorm';
+import { getConnection, getManager } from 'typeorm';
 
 export const regulationsPerPage = 100;
 
@@ -20,9 +20,17 @@ export async function getRegulationsCount() {
   return regulationsCount;
 }
 
+export async function getRegulationsYears() {
+  const connection = getManager();
+  const years: Array<{ year: number }> = await connection.query(
+    'SELECT DISTINCT YEAR(publishedDate) as `year` from Regulation order by `year`',
+  );
+  return years.map((y) => y.year);
+}
+
 export async function getLatestRegulations(skip: number, take: number) {
   const connection = getConnection();
-  const projects: Array<Regulation> = await connection
+  const regulations: Array<Regulation> = await connection
     .getRepository(Regulation)
     .createQueryBuilder('regulations')
     .select(['name', 'title', 'publishedDate'])
@@ -30,8 +38,8 @@ export async function getLatestRegulations(skip: number, take: number) {
     .orderBy('publishedDate', 'DESC')
     .skip(skip ?? 0)
     .take(take ?? regulationsPerPage)
-    .getRawMany();
-  return projects;
+    .getMany();
+  return regulations;
 }
 
 export async function getRegulationByName(regulationName: string) {

@@ -1,7 +1,7 @@
 import { getAllLawChapters } from '../db/LawChapter';
 import { LawChapter } from 'entity/LawChapter';
 
-const _dataToChapters = (data: Array<LawChapter>) => {
+const _dataToChapterTree = (data: Array<LawChapter>) => {
   const chapters: { [key: string]: any } = {};
   data.forEach((chapter) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -22,9 +22,19 @@ export function lawChapterRoutes(fastify: any, opts: any, done: any) {
    */
   fastify.get('/lawchapters', opts, async function (request: any, reply: any) {
     const data = await getAllLawChapters();
-    const lawChapters = _dataToChapters(data);
 
-    reply.send({ data: lawChapters });
+    reply.send({ data });
+  });
+
+  /**
+   * Gets all LawChapters
+   * @returns {Array<LawChapter>}
+   */
+  fastify.get('/lawchapters/tree', opts, async function (request: any, reply: any) {
+    const data = await getAllLawChapters();
+    const chapterTree = _dataToChapterTree(data);
+
+    reply.send({ data: chapterTree });
   });
 
   done();

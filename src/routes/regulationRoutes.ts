@@ -14,7 +14,7 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
    * @returns {Array<Regulation>}
    */
 
-  fastify.get('/regulations', opts, async function (request: any, reply: any) {
+  fastify.get('/regulations/newest', opts, async function (request: any, reply: any) {
     const page = parseInt(request.params.page ?? 1) - 1;
     const data = await getLatestRegulations(
       page * regulationsPerPage,
