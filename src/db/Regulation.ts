@@ -38,7 +38,7 @@ export async function getLatestRegulations(skip: number, take: number) {
     .orderBy('publishedDate', 'DESC')
     .skip(skip ?? 0)
     .take(take ?? regulationsPerPage)
-    .getMany();
+    .getRawMany();
   return regulations;
 }
 
