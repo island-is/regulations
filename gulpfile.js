@@ -28,7 +28,7 @@ const [scriptsBundle, scriptsWatch] = rollupTaskFactory({
   ...baseOpts,
   name: 'build_server',
   dest: './dist',
-  glob: ['**/*.ts'],
+  glob: ['server.ts'],
   NODE_ENV: undefined,
   dist: distFolder,
 });
@@ -37,5 +37,6 @@ const bundle = series(cleanup, parallel(scriptsBundle));
 const watch = parallel(scriptsWatch);
 
 exports.dev = series(bundle, watch);
+exports.watch = series(watch);
 exports.build = series(bundle);
 exports.default = exports.build;

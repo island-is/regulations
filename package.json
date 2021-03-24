@@ -6,7 +6,8 @@
   "author": "Hugsmiðajn ehf. (www.hugsmidjan.is)",
   "scripts": {
     "build": "gulp build",
-    "dev": "yarn && yarn build && yarn start",
+    "dev-watch": "yarn && gulp watch",
+    "dev": "yarn && yarn build && nodemon dist/server.js",
     "start": "node dist/server.js",
     "lint:eslint": "eslint \"*.{js,ts,tsx}\" \"src/**/*.{js,ts,tsx}\"",
     "lint:stylelint": "stylelint \"src/**/*.scss\"",
@@ -16,10 +17,10 @@
     "format:stylelint": "prettier --write \"src/**/*.{module.scss}\"  && stylelint --fix \"src/**/*.module.scss\"",
     "format": "concurrently yarn:format:*"
   },
-	"engines": {
-		"node": "^12",
+  "engines": {
+    "node": "^14.16",
     "yarn": "^1"
-	},
+  },
   "dependencies": {
     "esm": "^3.2.25",
     "fastify": "^3.11.0",
