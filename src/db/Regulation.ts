@@ -1,8 +1,9 @@
 import { Regulation } from '../entity/Regulation';
 import { getConnection, getManager } from 'typeorm';
 import { RegulationChange } from '../entity/RegulationChange';
-import { getAllMinistries, getRegulationMinistry } from './Ministry';
+import { getRegulationMinistry } from './Ministry';
 import { RegulationCancel } from '../entity/RegulationCancel';
+import { getRegulationLawChapters } from './LawChapter';
 
 export async function getRegulationById(regulationId: number) {
   const regulationRepository = getConnection().getRepository(Regulation);
@@ -19,18 +20,7 @@ export async function getRegulationByName(regulationName: string, full = true) {
   const regulation =
     (await regulationRepository.findOne({
       where: { name: regulationName },
-      select: full
-        ? [
-            'id',
-            'name',
-            'title',
-            'text',
-            'signatureDate',
-            'publishedDate',
-            'effectiveDate',
-          ]
-        : ['id', 'title'],
-    })) ?? null;
+    })) ?? undefined;
   return regulation;
 }
 

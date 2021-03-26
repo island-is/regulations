@@ -30,7 +30,7 @@ export async function getRegulationsYears() {
   return years.map((y) => y.year);
 }
 
-export async function getLatestRegulations(skip: number, take: number) {
+export async function getNewestRegulations(skip: number, take: number) {
   const connection = getConnection();
   const regulations: Array<Regulation> =
     (await connection
