@@ -35,6 +35,25 @@ export async function getRegulationCancel(regulationId: number) {
   return await ministryRepository.findOne({ where: { regulationId } });
 }
 
+export async function getLatestRegulationChange(regulationId?: number, date?: Date) {
+  if (!regulationId) {
+    return;
+  }
+  const connection = getConnection();
+  const regulationChanges = await connection
+    .getRepository(RegulationChange)
+    .createQueryBuilder('changes')
+    .orderBy('date', 'DESC')
+    .addOrderBy('id', 'ASC')
+    .where('regulationId = :regulationId', { regulationId })
+    .andWhere('date <= :before')
+    .setParameters({
+      before: date ? date.toISOString() : new Date().toISOString(),
+    })
+    .getOne();
+  return regulationChanges;
+}
+
 export async function getRegulationChanges(regulationId?: number) {
   if (!regulationId) {
     return;
@@ -104,6 +123,10 @@ export async function getCurrentRegulation(regulationName: string) {
   const migrated = await isMigrated(regulation);
 
   if (regulation && migrated) {
+    const latestChange = await getLatestRegulationChange(regulation.id);
+    if (latestChange) {
+      regulation.text = latestChange.text;
+    }
     return augmentRegulation(regulation);
   } else {
     return getRegulationRedirect(regulation);
