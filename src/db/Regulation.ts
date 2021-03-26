@@ -5,6 +5,13 @@ import { getRegulationMinistry } from './Ministry';
 import { RegulationCancel } from '../entity/RegulationCancel';
 import { getRegulationLawChapters } from './LawChapter';
 
+export type RegulationHistoryItem = {
+  date: string;
+  name: string;
+  title: string;
+  reason: string;
+};
+
 export async function getRegulationById(regulationId: number) {
   if (!regulationId) {
     return;
@@ -13,12 +20,11 @@ export async function getRegulationById(regulationId: number) {
   const regulation =
     (await regulationRepository.findOne({
       where: { id: regulationId },
-      select: ['id', 'name', 'title'],
     })) ?? undefined;
   return regulation;
 }
 
-export async function getRegulationByName(regulationName?: string, full = true) {
+export async function getRegulationByName(regulationName?: string) {
   if (!regulationName) {
     return;
   }
@@ -28,6 +34,28 @@ export async function getRegulationByName(regulationName?: string, full = true) 
       where: { name: regulationName },
     })) ?? undefined;
   return regulation;
+}
+
+export async function getRegulationHistory(regulationName?: string) {
+  if (!regulationName) {
+    return;
+  }
+  const connection = getManager();
+  const historyData: Array<{ [key: string]: string }> =
+    (await connection.query('call regulationHistoryByName(?)', [regulationName]))?.[0] ??
+    [];
+  const history: Array<RegulationHistoryItem> = [];
+  historyData.forEach((h) => {
+    if (h.reason !== 'root') {
+      history.push({
+        date: h.effectiveDate,
+        name: h.name,
+        title: h.title,
+        reason: h.reason,
+      });
+    }
+  });
+  return history;
 }
 
 export async function getRegulationCancel(regulationId?: number) {
