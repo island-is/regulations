@@ -110,20 +110,46 @@ export async function getRegulationChanges(regulationId?: number) {
 }
 
 const augmentRegulation = async (regulation: Regulation) => {
-  const more = await Promise.all([
-    getRegulationMinistry(regulation.id),
+  // pick fields we want to show in api
+  const cleanRegulation = {
+    // id: regulation.id,
+    // type: regulation.type,
+    // status: regulation.status,
+    name: regulation.name,
+    title: regulation.title,
+    text: regulation.text,
+    signatureDate: regulation.signatureDate,
+    publishedDate: regulation.publishedDate,
+    effectiveDate: regulation.effectiveDate,
+  };
+  const [
+    ministry,
+    history,
+    lawChapters,
+    latestChange,
+    changes,
+    cancel,
+  ] = await Promise.all([
+    getRegulationMinistry(regulation.id) ?? undefined,
+    getRegulationHistory(regulation.name),
+    getRegulationLawChapters(regulation.id),
+    getLatestRegulationChange(regulation?.id),
+    getRegulationChanges(regulation?.id),
     getRegulationCancel(regulation.id),
   ]);
+  console.log({ changes });
+
+  // populate extradata object
   const extraData = {
-    ministry: more[0] ?? undefined,
-    repealedDate: more[1]?.date ?? undefined,
-    appendixes: 'TODO!', // TODO: add appendixes
-    lastAmendDate: 'TODO!', // TODO: add lastAmendDate
-    lawChapters: 'TODO!', // TODO: add lawChapters
+    ministry: ministry,
+    repealedDate: cancel?.date,
+    appendixes: [], // TODO: add appendixes
+    lastAmendDate: latestChange?.date,
+    lawChapters,
+    history: history,
   };
-  const mergedData = Object.assign({}, regulation, extraData);
-  const { id, ...rest } = mergedData;
-  return rest;
+  const mergedData = Object.assign({}, cleanRegulation, extraData);
+  return mergedData;
 };
 
 const getRegulationRedirect = (regulation?: Regulation) => {
