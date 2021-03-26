@@ -1,5 +1,5 @@
 import {
-  getLatestRegulations,
+  getNewestRegulations,
   regulationsPerPage,
   getRegulationsCount,
 } from '../db/Regulations';
@@ -13,12 +13,12 @@ export function regulationsRoutes(fastify: any, opts: any, done: any) {
    */
 
   fastify.get('/regulations/newest', opts, async function (request: any, reply: any) {
-    const page = Number(request.query.page) ?? 1;
+    const page = Number(request.query.page) || 1;
 
     const data =
       !page || page < 1
         ? []
-        : await getLatestRegulations((page - 1) * regulationsPerPage, regulationsPerPage);
+        : await getNewestRegulations((page - 1) * regulationsPerPage, regulationsPerPage);
     const total: number = await getRegulationsCount();
     const totalPages = Math.ceil(total / regulationsPerPage);
 
