@@ -67,14 +67,47 @@ const augmentRegulation = async (regulation: Regulation) => {
   return rest;
 };
 
+const getRegulationRedirect = (regulation?: Regulation) => {
+  return {
+    name: regulation?.name || 'Regulation name missing',
+    title: regulation?.title || 'Regulation title missing',
+    redirectUrl: regulation?.name
+      ? 'https://www.reglugerd.is/reglugerdir/allar/nr/' + regulation?.name
+      : 'https://www.reglugerd.is/',
+  };
+};
+
+async function isMigrated(regulation?: Regulation) {
+  let migrated = false;
+  if (regulation?.type === 'base') {
+    const tasks = await getRegulationTasks(regulation.id);
+    migrated = tasks?.done || false;
+  } else if (regulation?.type === 'amending') {
+    migrated = ['text_locked', 'migrated'].includes(regulation.status);
+  }
+  return migrated;
+}
+
 export async function getOriginalRegulation(regulationName: string) {
   const regulation = await getRegulationByName(regulationName);
-  return regulation ? augmentRegulation(regulation) : null;
+  const migrated = await isMigrated(regulation);
+
+  if (regulation && migrated) {
+    return augmentRegulation(regulation);
+  } else {
+    return getRegulationRedirect(regulation);
+  }
 }
 
 export async function getCurrentRegulation(regulationName: string) {
   const regulation = await getRegulationByName(regulationName);
-  return regulation ? augmentRegulation(regulation) : null;
+  const migrated = await isMigrated(regulation);
+
+  if (regulation && migrated) {
+    return augmentRegulation(regulation);
+  } else {
+    return getRegulationRedirect(regulation);
+  }
 }
 
 export async function getRegulationDiff(regulationName: string) {
