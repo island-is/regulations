@@ -4,10 +4,10 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 export class RegulationCancel {
   @PrimaryGeneratedColumn()
   id!: number;
-  @Column()
+  @Column('int')
   changingId!: number;
-  @Column()
+  @Column('date')
   date!: Date;
-  @Column()
+  @Column('int')
   regulationId!: number;
 }

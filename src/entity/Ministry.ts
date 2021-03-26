@@ -8,7 +8,7 @@ export class Ministry {
   current!: boolean;
   @Column()
   name!: string;
-  @Column({ nullable: true })
+  @Column({ type: 'int', nullable: true })
   order?: number;
   @Column()
   slug!: string;

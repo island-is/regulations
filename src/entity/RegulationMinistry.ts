@@ -4,8 +4,8 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 export class RegulationMinistry {
   @PrimaryGeneratedColumn()
   id!: number;
-  @Column()
+  @Column('int')
   ministryId!: number;
-  @Column()
+  @Column('int')
   regulationId!: number;
 }

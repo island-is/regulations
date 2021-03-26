@@ -8,6 +8,6 @@ export class LawChapter {
   slug!: string;
   @Column()
   title!: string;
-  @Column({ nullable: true })
+  @Column({ type: 'int', nullable: true })
   parentId?: number;
 }

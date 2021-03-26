@@ -4,19 +4,19 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 export class Regulation {
   @PrimaryGeneratedColumn()
   id!: number;
-  @Column()
+  @Column('date')
   effectiveDate!: Date;
   @Column()
   effectiveDateUnconfirmed!: boolean;
   @Column()
   name!: string;
-  @Column()
+  @Column('date')
   publishedDate!: Date;
   @Column()
   publishedDateUnconfirmed!: boolean;
-  @Column({ nullable: true })
+  @Column({ type: 'date', nullable: true })
   repealedDate?: Date;
-  @Column()
+  @Column('date')
   signatureDate!: Date;
   @Column()
   signatureDateUnconfirmed!: boolean;

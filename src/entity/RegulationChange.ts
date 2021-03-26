@@ -6,11 +6,11 @@ export class RegulationChange {
   id!: number;
   @Column()
   changeset!: string;
-  @Column()
+  @Column('int')
   changingId!: number;
-  @Column()
+  @Column('date')
   date!: Date;
-  @Column()
+  @Column('int')
   regulationId!: number;
   @Column()
   text!: string;
