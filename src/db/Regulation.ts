@@ -4,6 +4,7 @@ import { RegulationChange } from '../entity/RegulationChange';
 import { getRegulationMinistry } from './Ministry';
 import { RegulationCancel } from '../entity/RegulationCancel';
 import { getRegulationLawChapters } from './LawChapter';
+import { RegulationTasks } from '../entity/RegulationTasks';
 
 export type RegulationHistoryItem = {
   date: string;
@@ -34,6 +35,14 @@ export async function getRegulationByName(regulationName?: string) {
       where: { name: regulationName },
     })) ?? undefined;
   return regulation;
+}
+
+export async function getRegulationTasks(regulationId?: number) {
+  if (!regulationId) {
+    return;
+  }
+  const taskRepository = getConnection().getRepository(RegulationTasks);
+  return await taskRepository.findOne({ where: { regulationId } });
 }
 
 export async function getRegulationHistory(regulationName?: string) {

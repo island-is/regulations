@@ -15,6 +15,7 @@ import { RegulationChange } from './entity/RegulationChange';
 import { RegulationCancel } from './entity/RegulationCancel';
 import { RegulationMinistry } from './entity/RegulationMinistry';
 import { RegulationLawChapter } from './entity/RegulationLawChapter';
+import { RegulationTasks } from './entity/RegulationTasks';
 
 const fastify = fast();
 fastify.register(fastifyRateLimiter, {
@@ -47,6 +48,7 @@ const start = async () => {
         RegulationCancel,
         RegulationMinistry,
         RegulationLawChapter,
+        RegulationTasks,
       ],
     });
 
