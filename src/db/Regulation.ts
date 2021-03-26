@@ -13,7 +13,7 @@ export type RegulationHistoryItem = {
   reason: string;
 };
 
-export async function getRegulationById(regulationId: number) {
+async function getRegulationById(regulationId: number, full = true) {
   if (!regulationId) {
     return;
   }
@@ -21,11 +21,12 @@ export async function getRegulationById(regulationId: number) {
   const regulation =
     (await regulationRepository.findOne({
       where: { id: regulationId },
+      select: full ? undefined : ['id', 'name'],
     })) ?? undefined;
   return regulation;
 }
 
-export async function getRegulationByName(regulationName?: string) {
+async function getRegulationByName(regulationName?: string, full = true) {
   if (!regulationName) {
     return;
   }
@@ -33,11 +34,12 @@ export async function getRegulationByName(regulationName?: string) {
   const regulation =
     (await regulationRepository.findOne({
       where: { name: regulationName },
+      select: full ? undefined : ['id', 'name'],
     })) ?? undefined;
   return regulation;
 }
 
-export async function getRegulationTasks(regulationId?: number) {
+async function getRegulationTasks(regulationId?: number) {
   if (!regulationId) {
     return;
   }
@@ -45,7 +47,7 @@ export async function getRegulationTasks(regulationId?: number) {
   return await taskRepository.findOne({ where: { regulationId } });
 }
 
-export async function getRegulationHistory(regulationName?: string) {
+async function getRegulationHistory(regulationName?: string) {
   if (!regulationName) {
     return;
   }
@@ -67,15 +69,15 @@ export async function getRegulationHistory(regulationName?: string) {
   return history;
 }
 
-export async function getRegulationCancel(regulationId?: number) {
+async function getRegulationCancel(regulationId?: number) {
   if (!regulationId) {
     return;
   }
-  const cancelyRepository = getConnection().getRepository(RegulationCancel);
-  return await cancelyRepository.findOne({ where: { regulationId } });
+  const cancelRepository = getConnection().getRepository(RegulationCancel);
+  return await cancelRepository.findOne({ where: { regulationId } });
 }
 
-export async function getLatestRegulationChange(regulationId?: number, date?: Date) {
+async function getLatestRegulationChange(regulationId?: number, date?: Date) {
   if (!regulationId) {
     return;
   }
@@ -94,7 +96,7 @@ export async function getLatestRegulationChange(regulationId?: number, date?: Da
   return regulationChanges;
 }
 
-export async function getRegulationChanges(regulationId?: number) {
+async function getRegulationChanges(regulationId?: number) {
   if (!regulationId) {
     return;
   }
@@ -112,9 +114,6 @@ export async function getRegulationChanges(regulationId?: number) {
 const augmentRegulation = async (regulation: Regulation) => {
   // pick fields we want to show in api
   const cleanRegulation = {
-    // id: regulation.id,
-    // type: regulation.type,
-    // status: regulation.status,
     name: regulation.name,
     title: regulation.title,
     text: regulation.text,
@@ -137,16 +136,15 @@ const augmentRegulation = async (regulation: Regulation) => {
     getRegulationChanges(regulation?.id),
     getRegulationCancel(regulation.id),
   ]);
-  console.log({ changes });
 
   // populate extradata object
   const extraData = {
-    ministry: ministry,
+    ministry,
     repealedDate: cancel?.date,
     appendixes: [], // TODO: add appendixes
     lastAmendDate: latestChange?.date,
     lawChapters,
-    history: history,
+    history,
   };
   const mergedData = Object.assign({}, cleanRegulation, extraData);
   return mergedData;
@@ -172,6 +170,8 @@ async function isMigrated(regulation?: Regulation) {
   }
   return migrated;
 }
+
+// ***
 
 export async function getOriginalRegulation(regulationName: string) {
   const regulation = await getRegulationByName(regulationName);
@@ -201,9 +201,6 @@ export async function getCurrentRegulation(regulationName: string) {
 
 export async function getRegulationDiff(regulationName: string) {
   const regulation = await getRegulationByName(regulationName, false);
-  let regulationChanges = {};
-  if (regulation) {
-    regulationChanges = getRegulationChanges(regulation.id);
-  }
+  const regulationChanges = await getRegulationChanges(regulation?.id);
   return regulationChanges;
 }
