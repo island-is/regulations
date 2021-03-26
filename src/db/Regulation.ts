@@ -184,12 +184,12 @@ export async function getOriginalRegulation(regulationName: string) {
   }
 }
 
-export async function getCurrentRegulation(regulationName: string) {
+export async function getRegulationFromDate(regulationName: string, date?: Date) {
   const regulation = await getRegulationByName(regulationName);
   const migrated = await isMigrated(regulation);
 
   if (regulation && migrated) {
-    const latestChange = await getLatestRegulationChange(regulation.id);
+    const latestChange = await getLatestRegulationChange(regulation.id, date);
     if (latestChange) {
       regulation.text = latestChange.text;
     }
