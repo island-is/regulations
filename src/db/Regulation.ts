@@ -30,9 +30,12 @@ export async function getRegulationByName(regulationName?: string, full = true) 
   return regulation;
 }
 
-export async function getRegulationCancel(regulationId: number) {
-  const ministryRepository = getConnection().getRepository(RegulationCancel);
-  return await ministryRepository.findOne({ where: { regulationId } });
+export async function getRegulationCancel(regulationId?: number) {
+  if (!regulationId) {
+    return;
+  }
+  const cancelyRepository = getConnection().getRepository(RegulationCancel);
+  return await cancelyRepository.findOne({ where: { regulationId } });
 }
 
 export async function getLatestRegulationChange(regulationId?: number, date?: Date) {
