@@ -14,19 +14,26 @@ export async function getAllMinistries() {
   return ministries;
 }
 
-export async function getMinistryById(id: number) {
+export async function getMinistryById(id?: number) {
+  if (!id) {
+    return;
+  }
   const ministryRepository = getConnection().getRepository(Ministry);
   return await ministryRepository.findOne({ where: { id } });
 }
 
-export async function getRegulationMinistry(regulationId: number) {
+export async function getRegulationMinistry(regulationId?: number) {
+  if (!regulationId) {
+    return;
+  }
   const ministryRepository = getConnection().getRepository(Ministry);
   const ministryRegRepository = getConnection().getRepository(RegulationMinistry);
   const con = await ministryRegRepository.findOne({ where: { regulationId } });
-  const ministry: Ministry | null = await ministryRepository
-    .createQueryBuilder('changes')
-    .where('id = :ministryId', { ministryId: con?.ministryId })
-    .select(['name', 'slug'])
-    .getRawOne();
+  const ministry: Ministry | undefined =
+    (await ministryRepository
+      .createQueryBuilder('regulationministry')
+      .where('id = :ministryId', { ministryId: con?.ministryId })
+      .select(['name', 'slug'])
+      .getRawOne()) ?? undefined;
   return ministry;
 }

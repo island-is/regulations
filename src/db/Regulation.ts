@@ -6,16 +6,22 @@ import { RegulationCancel } from '../entity/RegulationCancel';
 import { getRegulationLawChapters } from './LawChapter';
 
 export async function getRegulationById(regulationId: number) {
+  if (!regulationId) {
+    return;
+  }
   const regulationRepository = getConnection().getRepository(Regulation);
   const regulation =
     (await regulationRepository.findOne({
       where: { id: regulationId },
       select: ['id', 'name', 'title'],
-    })) ?? null;
+    })) ?? undefined;
   return regulation;
 }
 
-export async function getRegulationByName(regulationName: string, full = true) {
+export async function getRegulationByName(regulationName?: string, full = true) {
+  if (!regulationName) {
+    return;
+  }
   const regulationRepository = getConnection().getRepository(Regulation);
   const regulation =
     (await regulationRepository.findOne({
@@ -29,13 +35,16 @@ export async function getRegulationCancel(regulationId: number) {
   return await ministryRepository.findOne({ where: { regulationId } });
 }
 
-export async function getRegulationChanges(regulationId: number) {
+export async function getRegulationChanges(regulationId?: number) {
+  if (!regulationId) {
+    return;
+  }
   const connection = getConnection();
   const regulationChanges = await connection
     .getRepository(RegulationChange)
     .createQueryBuilder('changes')
     .where('regulationId = :regulationId', { regulationId })
-    .orderBy('date', 'ASC')
+    .orderBy('date', 'DESC')
     .addOrderBy('id', 'ASC')
     .getMany();
   return regulationChanges;
@@ -76,14 +85,3 @@ export async function getRegulationDiff(regulationName: string) {
   }
   return regulationChanges;
 }
-
-/*
-  /** List of the regulation's appendixes * /
-  appendixes: ReadonlyArray<Appendix>
-  lastAmendDate?: ISODate | null
-  /** Date when (if) this regulation was repealed and became a thing of the past * /
-  repealedDate?: ISODate | null
-  /** Law chapters that this regulation is linked to * /
-  lawChapters: ReadonlyArray<LawChapter>
-  // TODO: add link to original DOC/PDF file in Stjórnartíðindi's data store.
-*/
