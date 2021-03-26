@@ -16,7 +16,7 @@ export class Regulation {
   publishedDateUnconfirmed!: boolean;
   @Column({ type: 'date', nullable: true })
   repealedDate?: Date;
-  @Column('date')
+  @Column()
   signatureDate!: Date;
   @Column()
   signatureDateUnconfirmed!: boolean;

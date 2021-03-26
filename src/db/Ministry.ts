@@ -1,6 +1,7 @@
 import { Ministry } from '../entity/Ministry';
 import { getConnection } from 'typeorm';
 import { RegulationMinistry } from '../entity/RegulationMinistry';
+import { MinistryType } from './types';
 
 export async function getAllMinistries() {
   const ministryRepository = getConnection().getRepository(Ministry);
@@ -29,11 +30,11 @@ export async function getRegulationMinistry(regulationId?: number) {
   const ministryRepository = getConnection().getRepository(Ministry);
   const ministryRegRepository = getConnection().getRepository(RegulationMinistry);
   const con = await ministryRegRepository.findOne({ where: { regulationId } });
-  const ministry: Ministry | undefined =
+  const ministry: MinistryType | undefined =
     (await ministryRepository
       .createQueryBuilder('regulationministry')
       .where('id = :ministryId', { ministryId: con?.ministryId })
-      .select(['name', 'slug'])
+      .select(['name', 'slug', 'current'])
       .getRawOne()) ?? undefined;
   return ministry;
 }

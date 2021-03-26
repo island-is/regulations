@@ -1,5 +1,6 @@
 import { Regulation } from '../entity/Regulation';
 import { getConnection, getManager } from 'typeorm';
+import { RegulationListItemType } from './types';
 
 export const regulationsPerPage = 100;
 
@@ -32,7 +33,7 @@ export async function getRegulationsYears() {
 
 export async function getNewestRegulations(skip: number, take: number) {
   const connection = getConnection();
-  const regulations: Array<Regulation> =
+  const regulations: Array<RegulationListItemType> =
     (await connection
       .getRepository(Regulation)
       .createQueryBuilder('regulations')

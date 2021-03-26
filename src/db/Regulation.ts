@@ -5,6 +5,14 @@ import { getRegulationMinistry } from './Ministry';
 import { RegulationCancel } from '../entity/RegulationCancel';
 import { getRegulationLawChapters } from './LawChapter';
 import { RegulationTasks } from '../entity/RegulationTasks';
+import {
+  ISODate,
+  RegName,
+  RegulationHistoryItemType,
+  RegulationRedirectType,
+  RegulationType,
+  toIsoDate,
+} from './types';
 
 export type RegulationHistoryItem = {
   date: string;
@@ -44,7 +52,8 @@ async function getRegulationTasks(regulationId?: number) {
     return;
   }
   const taskRepository = getConnection().getRepository(RegulationTasks);
-  return await taskRepository.findOne({ where: { regulationId } });
+  const task = await taskRepository.findOne({ where: { regulationId } });
+  return task;
 }
 
 async function getRegulationHistory(regulationName?: string) {
@@ -52,17 +61,17 @@ async function getRegulationHistory(regulationName?: string) {
     return;
   }
   const connection = getManager();
-  const historyData: Array<{ [key: string]: string }> =
+  const historyData: Array<{ [key: string]: any }> =
     (await connection.query('call regulationHistoryByName(?)', [regulationName]))?.[0] ??
     [];
-  const history: Array<RegulationHistoryItem> = [];
+  const history: Array<RegulationHistoryItemType> = [];
   historyData.forEach((h) => {
     if (h.reason !== 'root') {
       history.push({
         date: h.effectiveDate,
         name: h.name,
         title: h.title,
-        reason: h.reason,
+        effect: h.reason,
       });
     }
   });
@@ -74,6 +83,11 @@ async function getRegulationCancel(regulationId?: number) {
     return;
   }
   const cancelRepository = getConnection().getRepository(RegulationCancel);
+  // const cancelled = await cancelRepository.find();
+  // const cannedRegulation = await getRegulationById(8488);
+  // console.log({ cannedRegulation });
+  // return await cancelRepository.find();
+
   return await cancelRepository.findOne({ where: { regulationId } });
 }
 
@@ -81,6 +95,7 @@ async function getLatestRegulationChange(regulationId?: number, date?: Date) {
   if (!regulationId) {
     return;
   }
+
   const connection = getConnection();
   const regulationChanges = await connection
     .getRepository(RegulationChange)
@@ -90,7 +105,7 @@ async function getLatestRegulationChange(regulationId?: number, date?: Date) {
     .where('regulationId = :regulationId', { regulationId })
     .andWhere('date <= :before')
     .setParameters({
-      before: date ? date.toISOString() : new Date().toISOString(),
+      before: (date ? date : new Date()).toISOString(),
     })
     .getOne();
   return regulationChanges;
@@ -111,16 +126,21 @@ async function getRegulationChanges(regulationId?: number) {
   return regulationChanges;
 }
 
-const augmentRegulation = async (regulation: Regulation) => {
+const augmentRegulation = async (
+  regulation: Regulation,
+  regulationChange?: RegulationChange,
+) => {
   // pick fields we want to show in api
   const cleanRegulation = {
     name: regulation.name,
-    title: regulation.title,
-    text: regulation.text,
+    title: /* regulationChange?.title ||*/ regulation.title,
+    text: regulationChange?.text || regulation.text,
     signatureDate: regulation.signatureDate,
     publishedDate: regulation.publishedDate,
     effectiveDate: regulation.effectiveDate,
+    timelineDate: toIsoDate(regulationChange?.date),
   };
+
   const [
     ministry,
     history,
@@ -140,19 +160,19 @@ const augmentRegulation = async (regulation: Regulation) => {
   // populate extradata object
   const extraData = {
     ministry,
-    repealedDate: cancel?.date,
+    repealedDate: cancel,
     appendixes: [], // TODO: add appendixes
     lastAmendDate: latestChange?.date,
     lawChapters,
     history,
   };
   const mergedData = Object.assign({}, cleanRegulation, extraData);
-  return mergedData;
+  return (mergedData as unknown) as RegulationType;
 };
 
-const getRegulationRedirect = (regulation?: Regulation) => {
+const getRegulationRedirect = (regulation?: Regulation): RegulationRedirectType => {
   return {
-    name: regulation?.name || 'Regulation name missing',
+    name: (regulation?.name || 'Regulation name missing') as RegName,
     title: regulation?.title || 'Regulation title missing',
     redirectUrl: regulation?.name
       ? 'https://www.reglugerd.is/reglugerdir/allar/nr/' + regulation?.name
@@ -173,27 +193,13 @@ async function isMigrated(regulation?: Regulation) {
 
 // ***
 
-export async function getOriginalRegulation(regulationName: string) {
+export async function getRegulation(regulationName: string, date?: Date) {
   const regulation = await getRegulationByName(regulationName);
   const migrated = await isMigrated(regulation);
 
   if (regulation && migrated) {
-    return augmentRegulation(regulation);
-  } else {
-    return getRegulationRedirect(regulation);
-  }
-}
-
-export async function getRegulationFromDate(regulationName: string, date?: Date) {
-  const regulation = await getRegulationByName(regulationName);
-  const migrated = await isMigrated(regulation);
-
-  if (regulation && migrated) {
-    const latestChange = await getLatestRegulationChange(regulation.id, date);
-    if (latestChange) {
-      regulation.text = latestChange.text;
-    }
-    return augmentRegulation(regulation);
+    const regChange = date && (await getLatestRegulationChange(regulation.id, date));
+    return augmentRegulation(regulation, regChange);
   } else {
     return getRegulationRedirect(regulation);
   }

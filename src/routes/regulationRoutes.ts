@@ -1,15 +1,8 @@
-import {
-  getRegulationFromDate,
-  getOriginalRegulation,
-  getRegulationDiff,
-} from '../db/Regulation';
+import { getRegulation, getRegulationDiff } from '../db/Regulation';
 
 import { Regulation } from 'entity/Regulation';
 
 const urlNameToName = (name: string) => String(name).replace('-', '/');
-export function toIsoDate(date: Date | null | undefined): string | null {
-  return date ? date.toISOString().substr(0, 10) : null;
-}
 
 export function regulationRoutes(fastify: any, opts: any, done: any) {
   /**
@@ -22,7 +15,7 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
     opts,
     async function (request: any, reply: any) {
       if (request.params.name) {
-        const data = await getOriginalRegulation(urlNameToName(request.params.name));
+        const data = await getRegulation(urlNameToName(request.params.name));
         if (data) {
           reply.send(data);
         } else {
@@ -44,7 +37,7 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
     opts,
     async function (request: any, reply: any) {
       if (request.params.name) {
-        const data = await getRegulationFromDate(urlNameToName(request.params.name));
+        const data = await getRegulation(urlNameToName(request.params.name), new Date());
         if (data) {
           reply.send(data);
         } else {
@@ -88,7 +81,7 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
     opts,
     async function (request: any, reply: any) {
       if (request.params.name && request.params.date) {
-        const data = await getRegulationFromDate(
+        const data = await getRegulation(
           urlNameToName(request.params.name),
           new Date(request.params.date),
         );

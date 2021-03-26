@@ -1,6 +1,7 @@
 import { LawChapter } from '../entity/LawChapter';
 import { getConnection } from 'typeorm';
 import { RegulationLawChapter } from '../entity/RegulationLawChapter';
+import { LawChapterType } from './types';
 
 export async function getAllLawChapters() {
   const lawChaptersRepository = getConnection().getRepository(LawChapter);
@@ -26,7 +27,7 @@ export async function getRegulationLawChapters(regulationId?: number) {
       .where('id = :chapterId', { chapterId: con?.chapterId })
       .getMany()) ?? undefined;
 
-  const lawChapters: Array<{ name: string; slug: string }> = [];
+  const lawChapters: Array<LawChapterType> = [];
   lawChaptersData.forEach((c) => {
     lawChapters.push({ name: c.title, slug: c.slug });
   });

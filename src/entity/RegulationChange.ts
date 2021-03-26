@@ -8,10 +8,12 @@ export class RegulationChange {
   changeset!: string;
   @Column('int')
   changingId!: number;
-  @Column('date')
+  @Column()
   date!: Date;
   @Column('int')
   regulationId!: number;
+  // @Column()
+  // title?: string;
   @Column()
   text!: string;
 }
