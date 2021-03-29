@@ -1,6 +1,6 @@
 import { Regulation } from '../entity/Regulation';
 import { getConnection, getManager } from 'typeorm';
-import { RegulationListItemType } from './types';
+import { RegulationListItemType, toIsoDate } from './types';
 import { getRegulationMinistry } from './Ministry';
 
 export const regulationsPerPage = 14;
@@ -41,7 +41,7 @@ const augmentRegulations = async (regulations: RegulationsList) => {
     const itm: RegulationListItemType = {
       title: reg.title,
       name: reg.name,
-      publishedDate: reg.publishedDate,
+      publishedDate: toIsoDate((reg.publishedDate as unknown) as Date),
       ministry: regMinistry,
     };
     retRegulations.push(itm);

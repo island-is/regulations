@@ -46,7 +46,7 @@ export type LawChapterTreeType = Array<
 
 export type RegulationListItemType = {
   /** Publication name */
-  publishedDate: ISODate;
+  publishedDate?: ISODate;
   /** Publication name */
   name: string;
   /** The title of the Regulation */
