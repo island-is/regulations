@@ -69,7 +69,7 @@ async function getRegulationHistory(regulationName?: string) {
   historyData.forEach((h) => {
     if (h.reason !== 'root') {
       history.push({
-        date: h.effectiveDate,
+        date: toIsoDate(h.effectiveDate) as ISODate,
         name: h.name,
         title: h.title,
         effect: h.reason,
@@ -163,7 +163,7 @@ const augmentRegulation = async (
     history: history ?? [],
     effects: [], // TODO: add effects
     timelineDate:
-      regulationChange === 'original' ? regulation.publishedDate : regulationChange?.date,
+      regulationChange === 'original' ? regulation.effectiveDate : regulationChange?.date,
     showingDiff: undefined,
   };
   return returnRegulation;
