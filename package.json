@@ -22,10 +22,13 @@
     "yarn": "^1"
   },
   "dependencies": {
+    "@types/jsdom": "^16.2.9",
     "esm": "^3.2.25",
     "fastify": "^3.11.0",
     "fastify-rate-limit": "^5.0.1",
+    "jsdom": "^16.5.2",
     "mysql2": "^2.2.5",
+    "qj": "npm:@hugsmidjan/qj@^4.5.1",
     "reflect-metadata": "^0.1.10",
     "typeorm": "0.2.31",
     "xss": "^1.0.8"

@@ -14,6 +14,7 @@ import {
   RegulationType,
   toIsoDate,
 } from './types';
+import { extractAppendixesAndComments } from '../utils/extractData';
 
 export type RegulationHistoryItem = {
   date: string;
@@ -147,17 +148,22 @@ const augmentRegulation = async (
     getRegulationCancel(regulation.id),
   ]);
 
+  const textData = extractAppendixesAndComments(
+    typeof regulationChange === 'object' ? regulationChange?.text : regulation.text,
+  );
+
   const returnRegulation: RegulationType = {
     type: regulation.type,
     name: regulation.name as RegName,
     title: /* regulationChange?.title ||*/ regulation.title,
-    text: typeof regulationChange === 'object' ? regulationChange?.text : regulation.text,
+    text: textData.text,
     signatureDate: regulation.signatureDate,
     publishedDate: regulation.publishedDate,
     effectiveDate: regulation.effectiveDate,
     ministry: ministry as MinistryType,
     repealedDate: cancel?.date,
-    appendixes: [], // TODO: add appendixes
+    appendixes: textData.appendixes,
+    comments: textData.comments,
     lastAmendDate: latestChange?.date,
     lawChapters: lawChapters ?? [],
     history: history ?? [],
