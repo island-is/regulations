@@ -129,7 +129,7 @@ async function getRegulationChanges(regulationId?: number) {
 
 const augmentRegulation = async (
   regulation: Regulation,
-  regulationChange?: RegulationChange,
+  regulationChange?: RegulationChange | 'original',
 ) => {
   const [
     ministry,
@@ -151,7 +151,7 @@ const augmentRegulation = async (
     type: regulation.type,
     name: regulation.name as RegName,
     title: /* regulationChange?.title ||*/ regulation.title,
-    text: regulationChange?.text || regulation.text,
+    text: typeof regulationChange === 'object' ? regulationChange?.text : regulation.text,
     signatureDate: regulation.signatureDate,
     publishedDate: regulation.publishedDate,
     effectiveDate: regulation.effectiveDate,
@@ -162,7 +162,8 @@ const augmentRegulation = async (
     lawChapters: lawChapters ?? [],
     history: history ?? [],
     effects: [], // TODO: add effects
-    timelineDate: regulationChange?.date,
+    timelineDate:
+      regulationChange === 'original' ? regulation.publishedDate : regulationChange?.date,
     showingDiff: undefined,
   };
   return returnRegulation;
@@ -196,7 +197,9 @@ export async function getRegulation(regulationName: string, date?: Date) {
   const migrated = await isMigrated(regulation);
 
   if (regulation && migrated) {
-    const regChange = date && (await getLatestRegulationChange(regulation.id, date));
+    const regChange = date
+      ? (await getLatestRegulationChange(regulation.id, date)) ?? 'original'
+      : undefined;
     return augmentRegulation(regulation, regChange);
   } else {
     return getRegulationRedirect(regulation);
