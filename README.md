@@ -35,8 +35,9 @@ All routes can then be accessed under `localhost:3100/api/v1/[route]`
 ## Regulations
 
 `GET /api/v1/regulations/newest`
+`GET /api/v1/regulations/newest?page=2`
 
-    Returns all regulations ordered by publisheddate, 100 items per page
+    Returns all regulations ordered by publisheddate, 14 items per page
 
 ## Regulation
 

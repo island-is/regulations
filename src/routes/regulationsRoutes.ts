@@ -24,6 +24,7 @@ export function regulationsRoutes(fastify: any, opts: any, done: any) {
 
     reply.send({
       page,
+      perPage: regulationsPerPage,
       totalPages,
       data,
     });

@@ -1,8 +1,9 @@
 import { Regulation } from '../entity/Regulation';
 import { getConnection, getManager } from 'typeorm';
 import { RegulationListItemType } from './types';
+import { getRegulationMinistry } from './Ministry';
 
-export const regulationsPerPage = 100;
+export const regulationsPerPage = 14;
 
 export async function getAllRegulations() {
   const connection = getConnection();
@@ -31,17 +32,34 @@ export async function getRegulationsYears() {
   return years.map((y) => y.year);
 }
 
+type RegulationsList = Array<Pick<Regulation, 'id' | 'name' | 'title' | 'publishedDate'>>;
+
+const augmentRegulations = async (regulations: RegulationsList) => {
+  const retRegulations: Array<RegulationListItemType> = [];
+  for await (const reg of regulations) {
+    const [regMinistry] = await Promise.all([await getRegulationMinistry(reg.id)]);
+    const itm: RegulationListItemType = {
+      title: reg.title,
+      name: reg.name,
+      publishedDate: reg.publishedDate,
+      ministry: regMinistry,
+    };
+    retRegulations.push(itm);
+  }
+  return retRegulations;
+};
+
 export async function getNewestRegulations(skip: number, take: number) {
   const connection = getConnection();
-  const regulations: Array<RegulationListItemType> =
+  const regulations: RegulationsList =
     (await connection
       .getRepository(Regulation)
       .createQueryBuilder('regulations')
-      .select(['name', 'title', 'publishedDate'])
+      .select(['id', 'name', 'title', 'publishedDate'])
       // .where({ status: 'text_locked' || 'migrated' })
       .orderBy('publishedDate', 'DESC')
       .skip(skip ?? 0)
       .take(take ?? regulationsPerPage)
       .getRawMany()) ?? [];
-  return regulations;
+  return await augmentRegulations(regulations);
 }
