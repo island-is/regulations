@@ -1,3 +1,4 @@
+import { ISODate } from 'db/types';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('RegulationChange')
@@ -8,8 +9,8 @@ export class RegulationChange {
   changeset!: string;
   @Column('int')
   changingId!: number;
-  @Column()
-  date!: Date;
+  @Column('date')
+  date!: ISODate;
   @Column('int')
   regulationId!: number;
   // @Column()

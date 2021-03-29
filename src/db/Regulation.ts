@@ -7,6 +7,7 @@ import { getRegulationLawChapters } from './LawChapter';
 import { RegulationTasks } from '../entity/RegulationTasks';
 import {
   ISODate,
+  MinistryType,
   RegName,
   RegulationHistoryItemType,
   RegulationRedirectType,
@@ -130,17 +131,6 @@ const augmentRegulation = async (
   regulation: Regulation,
   regulationChange?: RegulationChange,
 ) => {
-  // pick fields we want to show in api
-  const cleanRegulation = {
-    name: regulation.name,
-    title: /* regulationChange?.title ||*/ regulation.title,
-    text: regulationChange?.text || regulation.text,
-    signatureDate: regulation.signatureDate,
-    publishedDate: regulation.publishedDate,
-    effectiveDate: regulation.effectiveDate,
-    timelineDate: toIsoDate(regulationChange?.date),
-  };
-
   const [
     ministry,
     history,
@@ -157,17 +147,25 @@ const augmentRegulation = async (
     getRegulationCancel(regulation.id),
   ]);
 
-  // populate extradata object
-  const extraData = {
-    ministry,
-    repealedDate: cancel,
+  const returnRegulation: RegulationType = {
+    type: regulation.type,
+    name: regulation.name as RegName,
+    title: /* regulationChange?.title ||*/ regulation.title,
+    text: regulationChange?.text || regulation.text,
+    signatureDate: regulation.signatureDate,
+    publishedDate: regulation.publishedDate,
+    effectiveDate: regulation.effectiveDate,
+    ministry: ministry as MinistryType,
+    repealedDate: cancel?.date,
     appendixes: [], // TODO: add appendixes
     lastAmendDate: latestChange?.date,
-    lawChapters,
-    history,
+    lawChapters: lawChapters ?? [],
+    history: history ?? [],
+    effects: [], // TODO: add effects
+    timelineDate: regulationChange?.date,
+    showingDiff: undefined,
   };
-  const mergedData = Object.assign({}, cleanRegulation, extraData);
-  return (mergedData as unknown) as RegulationType;
+  return returnRegulation;
 };
 
 const getRegulationRedirect = (regulation?: Regulation): RegulationRedirectType => {

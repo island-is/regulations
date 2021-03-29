@@ -1,3 +1,4 @@
+import { ISODate } from 'db/types';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('Regulation')
@@ -5,19 +6,19 @@ export class Regulation {
   @PrimaryGeneratedColumn()
   id!: number;
   @Column('date')
-  effectiveDate!: Date;
+  effectiveDate!: ISODate;
   @Column()
   effectiveDateUnconfirmed!: boolean;
   @Column()
   name!: string;
   @Column('date')
-  publishedDate!: Date;
+  publishedDate!: ISODate;
   @Column()
   publishedDateUnconfirmed!: boolean;
   @Column({ type: 'date', nullable: true })
-  repealedDate?: Date;
-  @Column()
-  signatureDate!: Date;
+  repealedDate?: ISODate;
+  @Column('date')
+  signatureDate!: ISODate;
   @Column()
   signatureDateUnconfirmed!: boolean;
   @Column()

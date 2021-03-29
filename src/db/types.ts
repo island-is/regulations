@@ -1,6 +1,9 @@
 // Output types for island.is graphql
 
 export function toIsoDate(date: Date | null | undefined) {
+  if (typeof date === 'string') {
+    date = new Date(date);
+  }
   return date ? (date.toISOString().substr(0, 10) as ISODate) : undefined;
 }
 
@@ -104,11 +107,11 @@ export type RegulationType = {
   /** List of the regulation's appendixes */
   appendixes: ReadonlyArray<AppendixType>;
   /** Date signed in the ministry */
-  signatureDate: ISODate;
+  signatureDate?: ISODate;
   /** Date officially published in Stjórnartíðindi */
-  publishedDate: ISODate;
+  publishedDate?: ISODate;
   /** Date when the regulation took effect for the first time */
-  effectiveDate: ISODate;
+  effectiveDate?: ISODate;
   /** Date of last amendment of this regulation
    *
    * This date is always a past date – UNLESS a future timeline Date is being
@@ -132,7 +135,7 @@ export type RegulationType = {
    * `base` = Stofnreglugerð
    * `amending` = Breytingareglugerð
    */
-  type: 'base' | 'amending';
+  type: 'base' | 'amending' | 'repealing';
 
   /** List of change events (Amendments, Repeals) over the life time of this
    * regulation – **excluding** the original base/root regulation
