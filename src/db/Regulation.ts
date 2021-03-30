@@ -1,3 +1,4 @@
+import htmldiff from 'htmldiff-js';
 import { Regulation } from '../entity/Regulation';
 import { getConnection, getManager } from 'typeorm';
 import { RegulationChange } from '../entity/RegulationChange';
@@ -165,7 +166,7 @@ const augmentRegulation = async (
     effects,
     lawChapters,
     latestChange,
-    changes,
+    // changes,
     cancel,
   ] = await Promise.all([
     getRegulationMinistry(regulation.id) ?? undefined,
@@ -175,7 +176,7 @@ const augmentRegulation = async (
       : [],
     getRegulationLawChapters(regulation.id),
     getLatestRegulationChange(regulation?.id),
-    getRegulationChanges(regulation?.id),
+    // getRegulationChanges(regulation?.id),
     getRegulationCancel(regulation.id),
   ]);
 
@@ -243,7 +244,22 @@ export async function getRegulation(regulationName: string, date?: Date) {
 }
 
 export async function getRegulationDiff(regulationName: string) {
-  const regulation = await getRegulationByName(regulationName, false);
+  const regulation = await getRegulationByName(regulationName);
   const regulationChanges = await getRegulationChanges(regulation?.id);
-  return regulationChanges;
+  if (regulation && regulation.type === 'base' && regulationChanges) {
+    const diff = htmldiff
+      .execute(regulation.text, regulationChanges[0].text)
+      .replace(/<del [^>]+>\s+<\/del>/g, '')
+      .replace(/<ins [^>]+>\s+<\/ins>/g, '');
+    regulation.text = diff;
+
+    const augmentedRegulation = await augmentRegulation(regulation);
+    augmentedRegulation.timelineDate = regulationChanges[0].date;
+    augmentedRegulation.showingDiff = {
+      from: regulation.effectiveDate,
+      to: regulationChanges[0].date,
+    };
+    return augmentedRegulation;
+  }
+  return {};
 }
