@@ -32,13 +32,16 @@ export async function getRegulationsYears() {
   return years.map((y) => y.year);
 }
 
-type RegulationsList = Array<Pick<Regulation, 'id' | 'name' | 'title' | 'publishedDate'>>;
+type RegulationsList = Array<
+  Pick<Regulation, 'id' | 'type' | 'name' | 'title' | 'publishedDate'>
+>;
 
 const augmentRegulations = async (regulations: RegulationsList) => {
   const retRegulations: Array<RegulationListItemType> = [];
   for await (const reg of regulations) {
     const [regMinistry] = await Promise.all([await getRegulationMinistry(reg.id)]);
     const itm: RegulationListItemType = {
+      type: reg.type,
       title: reg.title,
       name: reg.name,
       publishedDate: toIsoDate((reg.publishedDate as unknown) as Date),
@@ -55,8 +58,7 @@ export async function getNewestRegulations(skip: number, take: number) {
     (await connection
       .getRepository(Regulation)
       .createQueryBuilder('regulations')
-      .select(['id', 'name', 'title', 'publishedDate'])
-      // .where({ status: 'text_locked' || 'migrated' })
+      .select(['id', 'type', 'name', 'title', 'publishedDate'])
       .orderBy('publishedDate', 'DESC')
       .skip(skip ?? 0)
       .take(take ?? regulationsPerPage)

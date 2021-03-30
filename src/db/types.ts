@@ -45,6 +45,7 @@ export type LawChapterTreeType = Array<
 // ---------------------------------------------------------------------------
 
 export type RegulationListItemType = {
+  type: 'base' | 'amending' | 'repealing';
   /** Publication name */
   publishedDate?: ISODate;
   /** Publication name */

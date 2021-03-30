@@ -9,6 +9,7 @@ import {
   ISODate,
   MinistryType,
   RegName,
+  RegulationEffectType,
   RegulationHistoryItemType,
   RegulationRedirectType,
   RegulationType,
@@ -62,10 +63,10 @@ async function getRegulationHistory(regulationName?: string) {
   if (!regulationName) {
     return;
   }
-  const connection = getManager();
   const historyData: Array<{ [key: string]: any }> =
-    (await connection.query('call regulationHistoryByName(?)', [regulationName]))?.[0] ??
-    [];
+    (
+      await getManager().query('call regulationHistoryByName(?)', [regulationName])
+    )?.[0] ?? [];
   const history: Array<RegulationHistoryItemType> = [];
   historyData.forEach((h) => {
     if (h.reason !== 'root') {
@@ -78,6 +79,32 @@ async function getRegulationHistory(regulationName?: string) {
     }
   });
   return history;
+}
+
+async function getRegulationEffects(regulationId?: number) {
+  if (!regulationId) {
+    return;
+  }
+  const effectsQuery = `select name, title, date, effect from Regulation
+  join ((select regulationId, date, 'amend' as effect from RegulationChange where changingId = ${regulationId})
+  union
+  (select regulationId, date, 'repeal' as effect from RegulationCancel where changingId = ${regulationId})) as effects
+  on Regulation.id = effects.regulationId
+  order by Regulation.publishedDate, Regulation.id
+  ;`;
+  const effectsData: Array<{ [key: string]: any }> =
+    (await getManager().query(effectsQuery)) ?? [];
+
+  const effects: Array<RegulationEffectType> = [];
+  effectsData.forEach((e) => {
+    effects.push({
+      date: toIsoDate(e.date) as ISODate,
+      name: e.name,
+      title: e.title,
+      effect: e.effect,
+    });
+  });
+  return effects;
 }
 
 async function getRegulationCancel(regulationId?: number) {
@@ -130,18 +157,22 @@ async function getRegulationChanges(regulationId?: number) {
 
 const augmentRegulation = async (
   regulation: Regulation,
-  regulationChange?: RegulationChange | 'original',
+  regulationChange?: RegulationChange,
 ) => {
   const [
     ministry,
     history,
+    effects,
     lawChapters,
     latestChange,
     changes,
     cancel,
   ] = await Promise.all([
     getRegulationMinistry(regulation.id) ?? undefined,
-    getRegulationHistory(regulation.name),
+    regulation.type === 'base' ? getRegulationHistory(regulation.name) : [],
+    ['amending', 'repelling'].includes(regulation.type)
+      ? getRegulationEffects(regulation.id)
+      : [],
     getRegulationLawChapters(regulation.id),
     getLatestRegulationChange(regulation?.id),
     getRegulationChanges(regulation?.id),
@@ -149,7 +180,7 @@ const augmentRegulation = async (
   ]);
 
   const textData = extractAppendixesAndComments(
-    typeof regulationChange === 'object' ? regulationChange?.text : regulation.text,
+    regulationChange ? regulationChange?.text : regulation.text,
   );
 
   const returnRegulation: RegulationType = {
@@ -167,9 +198,8 @@ const augmentRegulation = async (
     lastAmendDate: latestChange?.date,
     lawChapters: lawChapters ?? [],
     history: history ?? [],
-    effects: [], // TODO: add effects
-    timelineDate:
-      regulationChange === 'original' ? regulation.effectiveDate : regulationChange?.date,
+    effects: effects ?? [],
+    timelineDate: regulationChange ? regulationChange?.date : undefined,
     showingDiff: undefined,
   };
   return returnRegulation;
@@ -204,7 +234,7 @@ export async function getRegulation(regulationName: string, date?: Date) {
 
   if (regulation && migrated) {
     const regChange = date
-      ? (await getLatestRegulationChange(regulation.id, date)) ?? 'original'
+      ? await getLatestRegulationChange(regulation.id, date)
       : undefined;
     return augmentRegulation(regulation, regChange);
   } else {
