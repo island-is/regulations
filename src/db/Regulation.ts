@@ -249,7 +249,9 @@ export async function getRegulation(regulationName: string, date?: Date) {
 
     // Add timelineDate if regulation is NON-CURRENT
     if (isNonCurrent(augmentedRegulation, regulationChange)) {
-      augmentedRegulation.timelineDate = augmentedRegulation.effectiveDate;
+      augmentedRegulation.timelineDate = regulationChange
+        ? regulationChange.date
+        : augmentedRegulation.effectiveDate;
     }
     return augmentedRegulation;
   } else {
