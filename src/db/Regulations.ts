@@ -65,3 +65,27 @@ export async function getNewestRegulations(skip: number, take: number) {
       .getRawMany()) ?? [];
   return await augmentRegulations(regulations);
 }
+
+export async function getAllBaseRegulations(opts: { full?: boolean } = {}) {
+  const { full = false } = opts;
+  const sql = `
+    select
+      r.id,
+      r.name,
+      r.title,
+      ${
+        full
+          ? 'COALESCE((select text from RegulationChange where regulationId = r.id and date <= now() order by date desc limit 1), text) as text,'
+          : ''
+      }
+      r.effectiveDate
+    from Regulation as r
+    where
+      r.type = 'base'
+      and (select done from Task where regulationId = r.id) = true
+      and (select date from RegulationCancel where regulationId = r.id limit 1) IS NULL
+    order by effectiveDate DESC
+    ;`;
+
+  return ((await getManager().query(sql)) ?? []) as RegulationsList;
+}

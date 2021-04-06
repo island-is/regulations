@@ -2,6 +2,7 @@ import {
   getNewestRegulations,
   regulationsPerPage,
   getRegulationsCount,
+  getAllBaseRegulations,
 } from '../db/Regulations';
 
 import { Regulation } from 'entity/Regulation';
@@ -29,6 +30,23 @@ export function regulationsRoutes(fastify: any, opts: any, done: any) {
       data,
     });
   });
+
+  fastify.get(
+    '/regulations/all/current',
+    opts,
+    async function (request: any, reply: any) {
+      const data = await getAllBaseRegulations();
+      reply.send(data);
+    },
+  );
+  fastify.get(
+    '/regulations/all/current/full',
+    opts,
+    async function (request: any, reply: any) {
+      const data = await getAllBaseRegulations({ full: true });
+      reply.send(data);
+    },
+  );
 
   done();
 }

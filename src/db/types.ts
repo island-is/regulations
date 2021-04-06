@@ -52,6 +52,8 @@ export type RegulationListItemType = {
   name: string;
   /** The title of the Regulation */
   title: string;
+  /** The contents of the Regulation */
+  text?: string;
   /** The ministry that the regulation is linked to */
   ministry?: MinistryType;
 };
