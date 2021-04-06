@@ -3,7 +3,7 @@ import { getConnection, getManager } from 'typeorm';
 import { RegulationListItemType, toIsoDate } from './types';
 import { getRegulationMinistry } from './Ministry';
 
-export const regulationsPerPage = 14;
+export const regulationsPerPage = 18;
 
 export async function getAllRegulations() {
   const connection = getConnection();
@@ -24,22 +24,22 @@ export async function getRegulationsCount() {
 }
 
 export async function getRegulationsYears() {
-  const connection = getManager();
   const years: Array<{ year: number }> =
-    (await connection.query(
+    (await getManager().query(
       'SELECT DISTINCT YEAR(publishedDate) as `year` from Regulation order by `year`',
     )) ?? [];
   return years.map((y) => y.year);
 }
 
 type RegulationsList = Array<
-  Pick<Regulation, 'id' | 'type' | 'name' | 'title' | 'publishedDate'>
+  Pick<Regulation, 'id' | 'type' | 'name' | 'title' | 'text' | 'publishedDate'>
 >;
 
 const augmentRegulations = async (regulations: RegulationsList) => {
   const retRegulations: Array<RegulationListItemType> = [];
   for await (const reg of regulations) {
-    const [regMinistry] = await Promise.all([await getRegulationMinistry(reg.id)]);
+    const regMinistry = await getRegulationMinistry(reg.id);
+
     const itm: RegulationListItemType = {
       type: reg.type,
       title: reg.title,
@@ -52,7 +52,8 @@ const augmentRegulations = async (regulations: RegulationsList) => {
   return retRegulations;
 };
 
-export async function getNewestRegulations(skip: number, take: number) {
+export async function getNewestRegulations(opts: { skip?: number; take?: number }) {
+  const { skip = 0, take = regulationsPerPage } = opts;
   const connection = getConnection();
   const regulations: RegulationsList =
     (await connection
@@ -60,8 +61,8 @@ export async function getNewestRegulations(skip: number, take: number) {
       .createQueryBuilder('regulations')
       .select(['id', 'type', 'name', 'title', 'publishedDate'])
       .orderBy('publishedDate', 'DESC')
-      .skip(skip ?? 0)
-      .take(take ?? regulationsPerPage)
+      .skip(skip)
+      .take(take)
       .getRawMany()) ?? [];
   return await augmentRegulations(regulations);
 }

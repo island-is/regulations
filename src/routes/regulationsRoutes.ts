@@ -19,7 +19,10 @@ export function regulationsRoutes(fastify: any, opts: any, done: any) {
     const data =
       !page || page < 1
         ? []
-        : await getNewestRegulations((page - 1) * regulationsPerPage, regulationsPerPage);
+        : await getNewestRegulations({
+            skip: (page - 1) * regulationsPerPage,
+            take: regulationsPerPage,
+          });
     const total: number = await getRegulationsCount();
     const totalPages = Math.ceil(total / regulationsPerPage);
 

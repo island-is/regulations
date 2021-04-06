@@ -25,7 +25,7 @@ export type RegulationHistoryItem = {
   reason: string;
 };
 
-async function getRegulationById(regulationId: number, full = true) {
+async function getRegulationById(regulationId: number) {
   if (!regulationId) {
     return;
   }
@@ -33,12 +33,11 @@ async function getRegulationById(regulationId: number, full = true) {
   const regulation =
     (await regulationRepository.findOne({
       where: { id: regulationId },
-      select: full ? undefined : ['id', 'name'],
     })) ?? undefined;
   return regulation;
 }
 
-async function getRegulationByName(regulationName?: string, full = true) {
+async function getRegulationByName(regulationName?: string) {
   if (!regulationName) {
     return;
   }
@@ -46,7 +45,6 @@ async function getRegulationByName(regulationName?: string, full = true) {
   const regulation =
     (await regulationRepository.findOne({
       where: { name: regulationName },
-      select: full ? undefined : ['id', 'name'],
     })) ?? undefined;
   return regulation;
 }
