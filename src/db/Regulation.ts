@@ -58,13 +58,24 @@ async function getRegulationTasks(regulationId?: number) {
   return task;
 }
 
-async function getRegulationHistory(regulationName?: string) {
-  if (!regulationName) {
+async function getRegulationCancel(regulationId?: number) {
+  if (!regulationId) {
+    return;
+  }
+  const regulationCancel = await getConnection()
+    .getRepository(RegulationCancel)
+    .findOne({ where: { regulationId } });
+
+  return regulationCancel;
+}
+
+async function getRegulationHistory(regulation?: Regulation) {
+  if (!regulation) {
     return;
   }
   const historyData: Array<{ [key: string]: any }> =
     (
-      await getManager().query('call regulationHistoryByName(?)', [regulationName])
+      await getManager().query('call regulationHistoryByName(?)', [regulation.name])
     )?.[0] ?? [];
   const history: Array<RegulationHistoryItemType> = [];
   historyData.forEach((h) => {
@@ -77,6 +88,16 @@ async function getRegulationHistory(regulationName?: string) {
       });
     }
   });
+
+  const repealed = await getRegulationCancel(regulation.id);
+  if (repealed) {
+    history?.push({
+      date: repealed.date,
+      name: regulation.name as RegName,
+      title: regulation.title,
+      effect: 'repeal',
+    });
+  }
   return history;
 }
 
@@ -104,17 +125,6 @@ async function getRegulationEffects(regulationId?: number) {
     });
   });
   return effects;
-}
-
-async function getRegulationCancel(regulationId?: number) {
-  if (!regulationId) {
-    return;
-  }
-  const regulationCancel = await getConnection()
-    .getRepository(RegulationCancel)
-    .findOne({ where: { regulationId } });
-
-  return regulationCancel;
 }
 
 async function getLatestRegulationChange(regulationId?: number, date?: Date) {
@@ -163,7 +173,7 @@ const augmentRegulation = async (
     repealed,
   ] = await Promise.all([
     getRegulationMinistry(regulation.id) ?? undefined,
-    regulation.type === 'base' ? getRegulationHistory(regulation.name) : [],
+    regulation.type === 'base' ? getRegulationHistory(regulation) : [],
     ['amending', 'repelling'].includes(regulation.type)
       ? getRegulationEffects(regulation.id)
       : [],
