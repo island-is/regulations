@@ -200,8 +200,8 @@ const augmentRegulation = async (
     lawChapters: lawChapters ?? [],
     history: history ?? [],
     effects: effects ?? [],
-    timelineDate: regulationChange ? regulationChange?.date : undefined,
-    showingDiff: undefined,
+    // timelineDate: undefined,
+    // showingDiff: undefined,
   };
   return returnRegulation;
 };
@@ -227,6 +227,19 @@ async function isMigrated(regulation?: Regulation) {
   return migrated;
 }
 
+function isNonCurrent(regulation: RegulationType, regulationChange?: RegulationChange) {
+  // Check if we are seeing NON-CURRENT version of 'base' regulation
+  // -- `regulationChange` is undefined but the augmentedRegulation has lastAmendDate
+  // -- or there is `regulationChange` but it does not match lastAmendDate
+  // ---- then we assume it's either past or future non current regulation and show timelineDate
+
+  return (
+    regulation.type === 'base' &&
+    ((!regulationChange && regulation.lastAmendDate) ||
+      (regulationChange && regulationChange.date !== regulation.lastAmendDate))
+  );
+}
+
 // ***
 
 export async function getRegulation(regulationName: string, date?: Date) {
@@ -234,10 +247,16 @@ export async function getRegulation(regulationName: string, date?: Date) {
   const migrated = await isMigrated(regulation);
 
   if (regulation && migrated) {
-    const regChange = date
+    const regulationChange = date
       ? await getLatestRegulationChange(regulation.id, date)
       : undefined;
-    return augmentRegulation(regulation, regChange);
+    const augmentedRegulation = await augmentRegulation(regulation, regulationChange);
+
+    // Add timelineDate if regulation is NON-CURRENT
+    if (isNonCurrent(augmentedRegulation, regulationChange)) {
+      augmentedRegulation.timelineDate = augmentedRegulation.effectiveDate;
+    }
+    return augmentedRegulation;
   } else {
     return getRegulationRedirect(regulation);
   }
