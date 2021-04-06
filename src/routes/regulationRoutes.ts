@@ -1,4 +1,4 @@
-import { getRegulation, getRegulationDiff } from '../db/Regulation';
+import { getRegulation } from '../db/Regulation';
 
 import { Regulation } from 'entity/Regulation';
 
@@ -59,7 +59,11 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
     opts,
     async function (request: any, reply: any) {
       if (request.params.name) {
-        const data = await getRegulationDiff(urlNameToName(request.params.name));
+        const data = await getRegulation(
+          urlNameToName(request.params.name),
+          undefined,
+          true,
+        );
         if (data) {
           reply.send(data);
         } else {
@@ -100,9 +104,10 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
     opts,
     async function (request: any, reply: any) {
       if (request.params.name && request.params.date) {
-        const data = await getRegulationDiff(
+        const data = await getRegulation(
           urlNameToName(request.params.name),
           new Date(request.params.date),
+          true,
         );
         if (data) {
           reply.send(data);

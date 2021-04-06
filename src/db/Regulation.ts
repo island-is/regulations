@@ -247,36 +247,19 @@ function isNonCurrent(regulation: RegulationType, regulationChange?: RegulationC
 
 // ***
 
-export async function getRegulation(regulationName: string, date?: Date) {
+export async function getRegulation(
+  regulationName: string,
+  date?: Date,
+  showDiff?: boolean,
+) {
   const regulation = await getRegulationByName(regulationName);
   const migrated = await isMigrated(regulation);
 
   if (regulation && migrated) {
-    const regulationChange = date
-      ? await getLatestRegulationChange(regulation.id, date)
-      : undefined;
-    const augmentedRegulation = await augmentRegulation(regulation, regulationChange);
-
-    // Add timelineDate if regulation is NON-CURRENT
-    if (isNonCurrent(augmentedRegulation, regulationChange)) {
-      augmentedRegulation.timelineDate = regulationChange
-        ? regulationChange.date
-        : augmentedRegulation.effectiveDate;
-    }
-    return augmentedRegulation;
-  } else {
-    return getRegulationRedirect(regulation);
-  }
-}
-
-export async function getRegulationDiff(regulationName: string, date?: Date) {
-  const regulation = await getRegulationByName(regulationName);
-  const migrated = await isMigrated(regulation);
-
-  if (regulation && migrated) {
-    const regulationChange = date
-      ? await getLatestRegulationChange(regulation.id, date)
-      : undefined;
+    const regulationChange =
+      date && regulation.type === 'base'
+        ? await getLatestRegulationChange(regulation.id, date)
+        : undefined;
     const augmentedRegulation = await augmentRegulation(regulation, regulationChange);
 
     if (regulation.type !== 'base') {
@@ -285,14 +268,17 @@ export async function getRegulationDiff(regulationName: string, date?: Date) {
 
     // Add timelineDate if regulation is NON-CURRENT
     if (isNonCurrent(augmentedRegulation, regulationChange)) {
-      augmentedRegulation.timelineDate = augmentedRegulation.effectiveDate;
+      augmentedRegulation.timelineDate = regulationChange
+        ? regulationChange.date
+        : augmentedRegulation.effectiveDate;
     }
-    if (regulationChange) {
+
+    if (showDiff && regulationChange) {
       const diff = htmldiff
         .execute(regulation.text, regulationChange.text)
         .replace(/<del [^>]+>\s+<\/del>/g, '')
         .replace(/<ins [^>]+>\s+<\/ins>/g, '');
-      regulation.text = diff;
+      augmentedRegulation.text = diff;
 
       augmentedRegulation.showingDiff = {
         from: regulation.effectiveDate,
