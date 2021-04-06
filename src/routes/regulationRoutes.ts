@@ -95,6 +95,25 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
       }
     },
   );
+  fastify.get(
+    '/regulation/nr/:name/d/:date/diff',
+    opts,
+    async function (request: any, reply: any) {
+      if (request.params.name && request.params.date) {
+        const data = await getRegulationDiff(
+          urlNameToName(request.params.name),
+          new Date(request.params.date),
+        );
+        if (data) {
+          reply.send(data);
+        } else {
+          reply.code(400).send('Regulation not found!');
+        }
+      } else {
+        reply.code(400).send('No Regulation name specified!');
+      }
+    },
+  );
 
   done();
 }
