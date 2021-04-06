@@ -259,23 +259,38 @@ export async function getRegulation(regulationName: string, date?: Date) {
   }
 }
 
-export async function getRegulationDiff(regulationName: string) {
+export async function getRegulationDiff(regulationName: string, date?: Date) {
   const regulation = await getRegulationByName(regulationName);
-  const regulationChanges = await getRegulationChanges(regulation?.id);
-  if (regulation && regulation.type === 'base' && regulationChanges) {
-    const diff = htmldiff
-      .execute(regulation.text, regulationChanges[0].text)
-      .replace(/<del [^>]+>\s+<\/del>/g, '')
-      .replace(/<ins [^>]+>\s+<\/ins>/g, '');
-    regulation.text = diff;
+  const migrated = await isMigrated(regulation);
 
-    const augmentedRegulation = await augmentRegulation(regulation);
-    augmentedRegulation.timelineDate = regulationChanges[0].date;
-    augmentedRegulation.showingDiff = {
-      from: regulation.effectiveDate,
-      to: regulationChanges[0].date,
-    };
+  if (regulation && migrated) {
+    const regulationChange = date
+      ? await getLatestRegulationChange(regulation.id, date)
+      : undefined;
+    const augmentedRegulation = await augmentRegulation(regulation, regulationChange);
+
+    if (regulation.type !== 'base') {
+      return augmentedRegulation;
+    }
+
+    // Add timelineDate if regulation is NON-CURRENT
+    if (isNonCurrent(augmentedRegulation, regulationChange)) {
+      augmentedRegulation.timelineDate = augmentedRegulation.effectiveDate;
+    }
+    if (regulationChange) {
+      const diff = htmldiff
+        .execute(regulation.text, regulationChange.text)
+        .replace(/<del [^>]+>\s+<\/del>/g, '')
+        .replace(/<ins [^>]+>\s+<\/ins>/g, '');
+      regulation.text = diff;
+
+      augmentedRegulation.showingDiff = {
+        from: regulation.effectiveDate,
+        to: regulationChange.date,
+      };
+    }
     return augmentedRegulation;
+  } else {
+    return getRegulationRedirect(regulation);
   }
-  return {};
 }
