@@ -112,22 +112,18 @@ async function getRegulationCancel(regulationId?: number) {
   if (!regulationId) {
     return;
   }
-  const cancelRepository = getConnection().getRepository(RegulationCancel);
-  // const cancelled = await cancelRepository.find();
-  // const cannedRegulation = await getRegulationById(8488);
-  // console.log({ cannedRegulation });
-  // return await cancelRepository.find();
+  const regulationCancel = await getConnection()
+    .getRepository(RegulationCancel)
+    .findOne({ where: { regulationId } });
 
-  return await cancelRepository.findOne({ where: { regulationId } });
+  return regulationCancel;
 }
 
 async function getLatestRegulationChange(regulationId?: number, date?: Date) {
   if (!regulationId) {
     return;
   }
-
-  const connection = getConnection();
-  const regulationChanges = await connection
+  const regulationChanges = await getConnection()
     .getRepository(RegulationChange)
     .createQueryBuilder('changes')
     .orderBy('date', 'DESC')
@@ -166,8 +162,7 @@ const augmentRegulation = async (
     effects,
     lawChapters,
     latestChange,
-    // changes,
-    cancel,
+    repealed,
   ] = await Promise.all([
     getRegulationMinistry(regulation.id) ?? undefined,
     regulation.type === 'base' ? getRegulationHistory(regulation.name) : [],
@@ -176,13 +171,15 @@ const augmentRegulation = async (
       : [],
     getRegulationLawChapters(regulation.id),
     getLatestRegulationChange(regulation?.id),
-    // getRegulationChanges(regulation?.id),
     getRegulationCancel(regulation.id),
   ]);
 
   const textData = extractAppendixesAndComments(
     regulationChange ? regulationChange?.text : regulation.text,
   );
+
+  // check if regulation has past repealed date
+  const isRepealed = repealed && new Date().toISOString() > repealed.date;
 
   const returnRegulation: RegulationType = {
     type: regulation.type,
@@ -193,7 +190,7 @@ const augmentRegulation = async (
     publishedDate: regulation.publishedDate,
     effectiveDate: regulation.effectiveDate,
     ministry: ministry as MinistryType,
-    repealedDate: cancel?.date,
+    repealedDate: isRepealed ? repealed?.date : undefined,
     appendixes: textData.appendixes,
     comments: textData.comments,
     lastAmendDate: latestChange?.date,
