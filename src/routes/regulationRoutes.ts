@@ -61,7 +61,7 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
       if (request.params.name) {
         const data = await getRegulation(
           urlNameToName(request.params.name),
-          undefined,
+          new Date(),
           true,
         );
         if (data) {
