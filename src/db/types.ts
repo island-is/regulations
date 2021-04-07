@@ -48,6 +48,8 @@ export type RegulationListItemType = {
   type: 'base' | 'amending' | 'repealing';
   /** Publication name */
   publishedDate?: ISODate;
+  /** Date when the regulation took effect for the first time */
+  effectiveDate?: ISODate;
   /** Publication name */
   name: string;
   /** The title of the Regulation */
@@ -56,6 +58,8 @@ export type RegulationListItemType = {
   text?: string;
   /** The ministry that the regulation is linked to */
   ministry?: MinistryType;
+  /** Law chapters that this regulation is linked to */
+  lawChapters?: ReadonlyArray<LawChapterType>;
 };
 
 // ---------------------------------------------------------------------------

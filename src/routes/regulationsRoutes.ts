@@ -50,6 +50,14 @@ export function regulationsRoutes(fastify: any, opts: any, done: any) {
       reply.send(data);
     },
   );
+  fastify.get(
+    '/regulations/all/current/extra',
+    opts,
+    async function (request: any, reply: any) {
+      const data = await getAllBaseRegulations({ full: true, extra: true });
+      reply.send(data);
+    },
+  );
 
   done();
 }

@@ -2,6 +2,7 @@ import { Regulation } from '../entity/Regulation';
 import { getConnection, getManager } from 'typeorm';
 import { RegulationListItemType, toIsoDate } from './types';
 import { getRegulationMinistry } from './Ministry';
+import { getRegulationLawChapters } from './LawChapter';
 
 export const regulationsPerPage = 18;
 
@@ -32,24 +33,37 @@ export async function getRegulationsYears() {
 }
 
 type RegulationsList = Array<
-  Pick<Regulation, 'id' | 'type' | 'name' | 'title' | 'text' | 'publishedDate'>
+  Pick<
+    Regulation,
+    'id' | 'type' | 'name' | 'title' | 'text' | 'publishedDate' | 'effectiveDate'
+  >
 >;
 
-const augmentRegulations = async (regulations: RegulationsList) => {
-  const retRegulations: Array<RegulationListItemType> = [];
-  for await (const reg of regulations) {
-    const regMinistry = await getRegulationMinistry(reg.id);
+const augmentRegulations = async (
+  regulations: RegulationsList,
+  opts: { text?: boolean; ministry?: boolean; lawChapters?: boolean } = {},
+) => {
+  const { ministry = true, text = false, lawChapters = false } = opts;
+  const regProms = regulations.map(async (reg) => {
+    const [regMinistry, regLawChapters] = await Promise.all([
+      ministry ? await getRegulationMinistry(reg.id) : undefined,
+      lawChapters ? await getRegulationLawChapters(reg.id) : undefined,
+    ]);
 
     const itm: RegulationListItemType = {
       type: reg.type,
       title: reg.title,
+      text: text ? reg.text : undefined,
       name: reg.name,
       publishedDate: toIsoDate((reg.publishedDate as unknown) as Date),
+      effectiveDate: toIsoDate((reg.effectiveDate as unknown) as Date),
       ministry: regMinistry,
+      lawChapters: regLawChapters,
     };
-    retRegulations.push(itm);
-  }
-  return retRegulations;
+    return itm;
+  });
+
+  return await Promise.all(regProms);
 };
 
 export async function getNewestRegulations(opts: { skip?: number; take?: number }) {
@@ -59,7 +73,7 @@ export async function getNewestRegulations(opts: { skip?: number; take?: number 
     (await connection
       .getRepository(Regulation)
       .createQueryBuilder('regulations')
-      .select(['id', 'type', 'name', 'title', 'publishedDate'])
+      .select(['id', 'type', 'name', 'title', 'publishedDate', 'effectiveDate'])
       .orderBy('publishedDate', 'DESC')
       .skip(skip)
       .take(take)
@@ -67,8 +81,10 @@ export async function getNewestRegulations(opts: { skip?: number; take?: number 
   return await augmentRegulations(regulations);
 }
 
-export async function getAllBaseRegulations(opts: { full?: boolean } = {}) {
-  const { full = false } = opts;
+export async function getAllBaseRegulations(
+  opts: { full?: boolean; extra?: boolean } = {},
+) {
+  const { full = false, extra = false } = opts;
   const sql = `
     select
       r.id,
@@ -79,14 +95,25 @@ export async function getAllBaseRegulations(opts: { full?: boolean } = {}) {
           ? 'COALESCE((select text from RegulationChange where regulationId = r.id and date <= now() order by date desc limit 1), text) as text,'
           : ''
       }
+      r.publishedDate,
       r.effectiveDate
     from Regulation as r
     where
       r.type = 'base'
       and (select done from Task where regulationId = r.id) = true
       and (select date from RegulationCancel where regulationId = r.id limit 1) IS NULL
-    order by effectiveDate DESC
+    order by publishedDate DESC
     ;`;
 
-  return ((await getManager().query(sql)) ?? []) as RegulationsList;
+  const regulations = ((await getManager().query(sql)) ?? []) as RegulationsList;
+
+  if (extra) {
+    return await augmentRegulations(regulations, {
+      text: true,
+      ministry: true,
+      lawChapters: true,
+    });
+  } else {
+    return regulations;
+  }
 }
