@@ -90,7 +90,7 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
           reply.code(400).send('Regulation not found!');
         }
       } else {
-        reply.code(400).send('No Regulation name specified!');
+        reply.code(400).send(!name ? 'Invalid Regulation name' : 'Invalid historic date');
       }
     },
   );
@@ -116,7 +116,7 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
           reply.code(400).send('Regulation not found!');
         }
       } else {
-        reply.code(400).send('No Regulation name specified!');
+        reply.code(400).send(!name ? 'Invalid Regulation name' : 'Invalid historic date');
       }
     },
   );
