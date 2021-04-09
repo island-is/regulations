@@ -43,24 +43,24 @@ be accessed under `localhost:3100/api/v1/[route]`
 
 ## Regulation
 
-- `GET /api/v1/regulation/nr/:name/current`  
+- `GET /api/v1/regulation/:name/current`  
   Returns current version of a regulation with all changes applied
-- `GET /api/v1/regulation/nr/:name/diff`  
+- `GET /api/v1/regulation/:name/diff`  
   Returns current version of a regulation with all changes applied, showing
   the total changes the "original" verion.
-- `GET /api/v1/regulation/nr/:name/original`  
+- `GET /api/v1/regulation/:name/original`  
   Returns original version of a regulation
-- `GET /api/v1/regulation/nr/:name/d/:date`  
+- `GET /api/v1/regulation/:name/d/:date`  
   Returns a version of a regulation as it was on a specific date
-- `GET /api/v1/regulation/nr/:name/d/:date/diff`  
+- `GET /api/v1/regulation/:name/d/:date/diff`  
   Returns a version of a regulation as it was on a specific date, showing the
   changes that occurred on that date
 
 <!--
-- `GET /api/v1/regulation/nr/:name/d/:date/diff/original`
+- `GET /api/v1/regulation/:name/d/:date/diff/original`
   Returns a version of a regulation as it was on a specific date, showing the
   total chances since the "original" verion.
-- `GET /api/v1/regulation/nr/:name/d/:date/diff/:earilerDate`
+- `GET /api/v1/regulation/:name/d/:date/diff/:earilerDate`
    Returns a version of a regulation as it was on a specific date, showing the
   total chances since `earlierDate`
 

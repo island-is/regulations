@@ -10,7 +10,7 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
    * @returns {Regulation}
    */
   fastify.get(
-    '/regulation/nr/:name/original',
+    '/regulation/:name/original',
     opts,
     async function (request: any, reply: any) {
       const name = assertNameSlug(request.params.name);
@@ -33,7 +33,7 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
    * @returns {Regulation}
    */
   fastify.get(
-    '/regulation/nr/:name/current',
+    '/regulation/:name/current',
     opts,
     async function (request: any, reply: any) {
       const name = assertNameSlug(request.params.name);
@@ -56,23 +56,19 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
    * @returns {Regulation}
    */
-  fastify.get(
-    '/regulation/nr/:name/diff',
-    opts,
-    async function (request: any, reply: any) {
-      const name = assertNameSlug(request.params.name);
-      if (name) {
-        const data = await getRegulation(slugToName(name), new Date(), true);
-        if (data) {
-          reply.send(data);
-        } else {
-          reply.code(400).send('Regulation not found!');
-        }
+  fastify.get('/regulation/:name/diff', opts, async function (request: any, reply: any) {
+    const name = assertNameSlug(request.params.name);
+    if (name) {
+      const data = await getRegulation(slugToName(name), new Date(), true);
+      if (data) {
+        reply.send(data);
       } else {
-        reply.code(400).send('No Regulation name specified!');
+        reply.code(400).send('Regulation not found!');
       }
-    },
-  );
+    } else {
+      reply.code(400).send('No Regulation name specified!');
+    }
+  });
 
   /**
    * Returns a version of a regulation as it was on a specific date
@@ -81,7 +77,7 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
    * @returns {Regulation}
    */
   fastify.get(
-    '/regulation/nr/:name/d/:date',
+    '/regulation/:name/d/:date',
     opts,
     async function (request: any, reply: any) {
       const name = assertNameSlug(request.params.name);
@@ -107,7 +103,7 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
    * @returns {Regulation}
    */
   fastify.get(
-    '/regulation/nr/:name/d/:date/diff',
+    '/regulation/:name/d/:date/diff',
     opts,
     async function (request: any, reply: any) {
       const name = assertNameSlug(request.params.name);
