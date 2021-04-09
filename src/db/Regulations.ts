@@ -1,8 +1,9 @@
 import { Regulation } from '../entity/Regulation';
 import { getConnection, getManager } from 'typeorm';
-import { RegulationListItemType, toIsoDate } from './types';
+import { RegName, RegulationListItemType } from './types';
 import { getRegulationMinistry } from './Ministry';
 import { getRegulationLawChapters } from './LawChapter';
+import { toISODate } from '../utils/misc';
 
 export const regulationsPerPage = 18;
 
@@ -32,15 +33,17 @@ export async function getRegulationsYears() {
   return years.map((y) => y.year);
 }
 
-type RegulationsList = Array<
+type SQLRegulationsList = ReadonlyArray<
   Pick<
     Regulation,
-    'id' | 'type' | 'name' | 'title' | 'text' | 'publishedDate' | 'effectiveDate'
-  >
+    'id' | 'name' | 'type' | 'title' | 'publishedDate' | 'effectiveDate'
+  > & {
+    text?: Regulation['text'];
+  }
 >;
 
 const augmentRegulations = async (
-  regulations: RegulationsList,
+  regulations: SQLRegulationsList,
   opts: { text?: boolean; ministry?: boolean; lawChapters?: boolean } = {},
 ) => {
   const { ministry = true, text = false, lawChapters = false } = opts;
@@ -61,8 +64,8 @@ const augmentRegulations = async (
         title: reg.title,
         text: text ? reg.text : undefined,
         name: reg.name,
-        publishedDate: toIsoDate((reg.publishedDate as unknown) as Date),
-        effectiveDate: toIsoDate((reg.effectiveDate as unknown) as Date),
+        publishedDate: toISODate(reg.publishedDate),
+        effectiveDate: toISODate(reg.effectiveDate),
         ministry: regMinistry,
         lawChapters: regLawChapters,
       };
@@ -81,7 +84,7 @@ const augmentRegulations = async (
 export async function getNewestRegulations(opts: { skip?: number; take?: number }) {
   const { skip = 0, take = regulationsPerPage } = opts;
   const connection = getConnection();
-  const regulations: RegulationsList =
+  const regulations: SQLRegulationsList =
     (await connection
       .getRepository(Regulation)
       .createQueryBuilder('regulations')
@@ -90,6 +93,7 @@ export async function getNewestRegulations(opts: { skip?: number; take?: number 
       .skip(skip)
       .take(take)
       .getRawMany()) ?? [];
+
   return await augmentRegulations(regulations);
 }
 
@@ -107,6 +111,7 @@ export async function getAllBaseRegulations(
           ? 'COALESCE((select text from RegulationChange where regulationId = r.id and date <= now() order by date desc limit 1), text) as text,'
           : ''
       }
+      r.type,
       r.publishedDate,
       r.effectiveDate
     from Regulation as r
@@ -117,7 +122,7 @@ export async function getAllBaseRegulations(
     order by publishedDate DESC
     ;`;
 
-  const regulations = ((await getManager().query(sql)) ?? []) as RegulationsList;
+  const regulations = ((await getManager().query(sql)) ?? []) as SQLRegulationsList;
 
   if (extra) {
     return await augmentRegulations(regulations, {

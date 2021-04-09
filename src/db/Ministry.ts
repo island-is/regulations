@@ -23,10 +23,7 @@ export async function getMinistryById(id?: number) {
   return await ministryRepository.findOne({ where: { id } });
 }
 
-export async function getRegulationMinistry(regulationId?: number) {
-  if (!regulationId) {
-    return;
-  }
+export async function getRegulationMinistry(regulationId: number) {
   const ministryRepository = getConnection().getRepository(Ministry);
   const ministryRegRepository = getConnection().getRepository(RegulationMinistry);
   const con = await ministryRegRepository.findOne({ where: { regulationId } });

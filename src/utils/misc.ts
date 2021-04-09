@@ -31,7 +31,19 @@ export const assertNameSlug = (slug: string): RegQueryName | undefined => {
 
 // ---------------------------------------------------------------------------
 
-const isISODate = (maybeISODate: string): boolean =>
+export function toISODate(date: Date | string | null | undefined) {
+  if (typeof date === 'string') {
+    date = new Date(date);
+    if (isNaN(date.getTime())) {
+      date = undefined;
+    }
+  }
+  return date ? (date.toISOString().substr(0, 10) as ISODate) : undefined;
+}
+
+// ---------------------------------------------------------------------------
+
+const smellsLikeISODate = (maybeISODate: string): boolean =>
   /\d{4}-\d{2}-\d{2}/.test(maybeISODate);
 
 /** Asserts that the incoming string is a valid ISODate.
@@ -42,7 +54,7 @@ const isISODate = (maybeISODate: string): boolean =>
  * Example: `2012-09-31` --> undefined
  */
 export const assertISODate = (maybeISODate: string): ISODate | undefined => {
-  if (isISODate(maybeISODate)) {
+  if (smellsLikeISODate(maybeISODate)) {
     const date = new Date(maybeISODate).toISOString().substr(0, 10) as ISODate;
     if (date === maybeISODate) {
       return date;

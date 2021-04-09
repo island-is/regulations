@@ -3,27 +3,38 @@ import { getConnection } from 'typeorm';
 import { RegulationLawChapter } from '../entity/RegulationLawChapter';
 import { LawChapterTreeType, LawChapterType } from './types';
 
-export const augmentLawChapters = (chapters: Array<LawChapter>) => {
-  const lawChapters: Array<LawChapterType> = [];
-  chapters.forEach((c) => {
-    lawChapters.push({ name: c.title, slug: c.slug });
-  });
-  return lawChapters;
-};
+export const augmentLawChapters = (chapters: Array<LawChapter>) =>
+  chapters.map(
+    (c): LawChapterType => ({
+      name: c.title,
+      slug: c.slug,
+    }),
+  );
 
-export const chaptersToTree = (data: Array<LawChapter>): LawChapterTreeType => {
-  const chapters: { [key: string]: any } = {};
-  data.forEach((chapter) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, parentId, title, slug } = chapter;
-    const retChapter: LawChapterType = { name: title, slug: slug };
-    if (!chapter.parentId) {
-      chapters[String(chapter.id)] = Object.assign({}, retChapter, { subChapters: [] });
+export const chaptersToTree = (chapters: Array<LawChapter>): LawChapterTreeType => {
+  const parents: {
+    [key: string]: LawChapterType & {
+      subChapters: Array<LawChapterType>;
+    };
+  } = {};
+
+  chapters.forEach((chapter) => {
+    const { parentId, title, slug } = chapter;
+    if (!parentId) {
+      parents[chapter.id] = {
+        name: title,
+        slug,
+        subChapters: [],
+      };
     } else {
-      chapters[chapter.parentId].subChapters.push(retChapter);
+      parents[parentId].subChapters.push({
+        name: title,
+        slug,
+      });
     }
   });
-  return Object.values(chapters);
+
+  return Object.values(parents);
 };
 
 export async function getAllLawChapters() {

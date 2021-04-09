@@ -1,12 +1,5 @@
 // Output types for island.is graphql
 
-export function toIsoDate(date: Date | null | undefined) {
-  if (typeof date === 'string') {
-    date = new Date(date);
-  }
-  return date ? (date.toISOString().substr(0, 10) as ISODate) : undefined;
-}
-
 // ---------------------------------------------------------------------------
 
 export type MinistryType = {

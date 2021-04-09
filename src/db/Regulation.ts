@@ -14,10 +14,9 @@ import {
   RegulationHistoryItemType,
   RegulationRedirectType,
   RegulationType,
-  toIsoDate,
 } from './types';
 import { extractAppendixesAndComments } from '../utils/extractData';
-import { nameToSlug } from '../utils/misc';
+import { nameToSlug, toISODate } from '../utils/misc';
 
 export type RegulationHistoryItem = {
   date: string;
@@ -68,58 +67,58 @@ async function getRegulationCancel(regulationId?: number) {
 }
 
 async function getRegulationHistory(regulation: Regulation) {
-  const historyData: Array<{ [key: string]: any }> =
+  const historyData: ReadonlyArray<{
+    reason: 'root' | 'amend' | 'repeal';
+    impactMissing: boolean;
+    id: number;
+    title: string;
+    name: RegName;
+    status: string;
+    type: 'base' | 'amending' | 'repealing';
+    effectiveDate: Date;
+  }> =
     (
       await getManager().query('call regulationHistoryByName(?)', [regulation.name])
     )?.[0] ?? [];
-  const history: Array<RegulationHistoryItemType> = [];
-  historyData.forEach((h) => {
-    if (h.reason !== 'root') {
-      history.push({
-        date: toIsoDate(h.effectiveDate) as ISODate,
-        name: h.name,
-        title: h.title,
-        effect: h.reason,
-      });
-    }
-  });
 
-  const repealed = await getRegulationCancel(regulation.id);
-  if (repealed) {
-    history?.push({
-      date: repealed.date,
-      name: regulation.name as RegName,
-      title: regulation.title,
-      effect: 'repeal',
-    });
-  }
-  return history;
+  return (
+    historyData
+      // strip off the 'root' item
+      .slice(1)
+      .map(
+        ({ name, title, reason, effectiveDate }): RegulationHistoryItemType => ({
+          date: toISODate(effectiveDate) as ISODate,
+          name,
+          title,
+          effect: reason as Exclude<typeof reason, 'root'>, // root has already been hacked off by slice above
+        }),
+      )
+  );
 }
 
-async function getRegulationEffects(regulationId?: number) {
-  if (!regulationId) {
-    return;
-  }
+async function getRegulationEffects(regulationId: number) {
   const effectsQuery = `select name, title, date, effect from Regulation
-  join ((select regulationId, date, 'amend' as effect from RegulationChange where changingId = ${regulationId})
+  join ((select regulationId, date, 'amend' as effect from RegulationChange where changingId = ?)
   union
-  (select regulationId, date, 'repeal' as effect from RegulationCancel where changingId = ${regulationId})) as effects
+  (select regulationId, date, 'repeal' as effect from RegulationCancel where changingId = ?)) as effects
   on Regulation.id = effects.regulationId
   order by Regulation.publishedDate, Regulation.id
   ;`;
-  const effectsData: Array<{ [key: string]: any }> =
-    (await getManager().query(effectsQuery)) ?? [];
+  const effectsData: ReadonlyArray<{
+    name: RegName;
+    title: string;
+    date: Date;
+    effect: 'amend' | 'repeal';
+  }> = (await getManager().query(effectsQuery, [regulationId, regulationId])) ?? [];
 
-  const effects: Array<RegulationEffectType> = [];
-  effectsData.forEach((e) => {
-    effects.push({
-      date: toIsoDate(e.date) as ISODate,
-      name: e.name,
-      title: e.title,
-      effect: e.effect,
-    });
-  });
-  return effects;
+  return effectsData.map(
+    ({ date, name, title, effect }): RegulationEffectType => ({
+      date: toISODate(date) as ISODate,
+      name,
+      title,
+      effect,
+    }),
+  );
 }
 
 async function getLatestRegulationChange(regulationId?: number, date?: Date) {
@@ -140,10 +139,7 @@ async function getLatestRegulationChange(regulationId?: number, date?: Date) {
   return regulationChanges;
 }
 
-async function getRegulationChanges(regulationId?: number) {
-  if (!regulationId) {
-    return;
-  }
+async function getRegulationChanges(regulationId: number) {
   const connection = getConnection();
   const regulationChanges = await connection
     .getRepository(RegulationChange)
@@ -159,6 +155,7 @@ const augmentRegulation = async (
   regulation: Regulation,
   regulationChange?: RegulationChange,
 ) => {
+  const { id, type } = regulation;
   const [
     ministry,
     history,
@@ -167,14 +164,12 @@ const augmentRegulation = async (
     latestChange,
     repealed,
   ] = await Promise.all([
-    getRegulationMinistry(regulation.id) ?? undefined,
-    regulation.type === 'base' ? getRegulationHistory(regulation) : [],
-    ['amending', 'repelling'].includes(regulation.type)
-      ? getRegulationEffects(regulation.id)
-      : [],
-    getRegulationLawChapters(regulation.id),
-    getLatestRegulationChange(regulation?.id),
-    getRegulationCancel(regulation.id),
+    getRegulationMinistry(id) ?? undefined,
+    type === 'base' ? getRegulationHistory(regulation) : [],
+    type === 'amending' ? getRegulationEffects(id) : [],
+    getRegulationLawChapters(id),
+    getLatestRegulationChange(id),
+    getRegulationCancel(id),
   ]);
 
   const textData = extractAppendixesAndComments(
