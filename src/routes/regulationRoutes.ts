@@ -6,8 +6,8 @@ const urlNameToName = (name: string) => String(name).replace('-', '/');
 
 export function regulationRoutes(fastify: any, opts: any, done: any) {
   /**
-   * Gets original version of single regulation by name
-   * @param {string} name - Name of the Regulation to fetch
+   * Returns original version of a regulation
+   * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
    * @returns {Regulation}
    */
   fastify.get(
@@ -28,8 +28,8 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
   );
 
   /**
-   * Gets current version of single regulation by name
-   * @param {string} name - Name of the Regulation to fetch
+   * Returns current version of a regulation with all changes applied
+   * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
    * @returns {Regulation}
    */
   fastify.get(
@@ -50,8 +50,9 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
   );
 
   /**
-   * Gets current version of single regulation by name with all diffs from original
-   * @param {string} name - Name of the Regulation to fetch
+   * Returns current version of a regulation with all changes applied, showing
+   * the total changes the "original" verion.
+   * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
    * @returns {Regulation}
    */
   fastify.get(
@@ -76,8 +77,9 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
   );
 
   /**
-   * Gets current version of single regulation by name with all diffs from original
-   * @param {string} name - Name of the Regulation to fetch
+   * Returns a version of a regulation as it was on a specific date
+   * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
+   * @param {string} date - ISODate (`YYYY-MM-DD`)
    * @returns {Regulation}
    */
   fastify.get(
@@ -99,6 +101,14 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
       }
     },
   );
+
+  /**
+   * Returns a version of a regulation as it was on a specific date, showing the changes
+   * that occurred on that date
+   * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
+   * @param {string} date - ISODate (`YYYY-MM-DD`)
+   * @returns {Regulation}
+   */
   fastify.get(
     '/regulation/nr/:name/d/:date/diff',
     opts,
