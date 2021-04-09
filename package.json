@@ -10,11 +10,9 @@
     "dev": "yarn && yarn build && nodemon dist/server.js",
     "start": "node dist/server.js",
     "lint:eslint": "eslint \"*.{js,ts,tsx}\" \"src/**/*.{js,ts,tsx}\"",
-    "lint:stylelint": "stylelint \"src/**/*.scss\"",
     "lint": "concurrently yarn:lint:*",
     "format:eslint": "eslint --fix  \"*.{js,ts,tsx}\" \"src/**/*.{js,ts,tsx}\"",
     "format:prettier": "prettier --write \"*.{json,md}\" \"src/**/*.{json,md,html}\"",
-    "format:stylelint": "prettier --write \"src/**/*.{module.scss}\"  && stylelint --fix \"src/**/*.module.scss\"",
     "format": "concurrently yarn:format:*"
   },
   "engines": {
@@ -54,10 +52,6 @@
     "nodemon": "^2.0.7",
     "pg": "^8.5.1",
     "prettier": "^2.2.1",
-    "stylelint": "^13.7.2",
-    "stylelint-config-recommended-scss": "^4.2.0",
-    "stylelint-order": "^4.1.0",
-    "stylelint-scss": "^3.18.0",
     "ts-node": "9.1.1",
     "typescript": "^4.2.3"
   },
