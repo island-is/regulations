@@ -51,7 +51,7 @@ export type RegulationListItemType = {
   /** Date when the regulation took effect for the first time */
   effectiveDate?: ISODate;
   /** Publication name */
-  name: string;
+  name: RegName;
   /** The title of the Regulation */
   title: string;
   /** The contents of the Regulation */
@@ -95,7 +95,7 @@ export type RegulationEffectType = {
   /** effectiveDate for this impact */
   date: ISODate;
   /** Publication name of the affected Regulation */
-  name: string;
+  name: RegName;
   /** Publication name of the affected Regulation */
   title: string;
   /** Type of effect */
