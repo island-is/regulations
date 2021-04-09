@@ -17,6 +17,7 @@ import {
   toIsoDate,
 } from './types';
 import { extractAppendixesAndComments } from '../utils/extractData';
+import { nameToSlug } from '../utils/misc';
 
 export type RegulationHistoryItem = {
   date: string;
@@ -69,10 +70,7 @@ async function getRegulationCancel(regulationId?: number) {
   return regulationCancel;
 }
 
-async function getRegulationHistory(regulation?: Regulation) {
-  if (!regulation) {
-    return;
-  }
+async function getRegulationHistory(regulation: Regulation) {
   const historyData: Array<{ [key: string]: any }> =
     (
       await getManager().query('call regulationHistoryByName(?)', [regulation.name])
@@ -211,13 +209,12 @@ const augmentRegulation = async (
   return returnRegulation;
 };
 
-const getRegulationRedirect = (regulation?: Regulation): RegulationRedirectType => {
+const getRegulationRedirect = (regulation: Regulation): RegulationRedirectType => {
+  const { name, title } = regulation;
   return {
-    name: (regulation?.name || 'Regulation name missing') as RegName,
-    title: regulation?.title || 'Regulation title missing',
-    redirectUrl: regulation?.name
-      ? 'https://www.reglugerd.is/reglugerdir/allar/nr/' + regulation?.name
-      : 'https://www.reglugerd.is/',
+    name,
+    title,
+    redirectUrl: 'https://www.reglugerd.is/reglugerdir/allar/nr/' + nameToSlug(name),
   };
 };
 
@@ -253,9 +250,14 @@ export async function getRegulation(
   showDiff?: boolean,
 ) {
   const regulation = await getRegulationByName(regulationName);
+
+  if (!regulation) {
+    return null;
+  }
+
   const migrated = await isMigrated(regulation);
 
-  if (regulation && migrated) {
+  if (migrated) {
     const regulationChange =
       date && regulation.type === 'base'
         ? await getLatestRegulationChange(regulation.id, date)

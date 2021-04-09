@@ -1,4 +1,4 @@
-import { ISODate } from 'db/types';
+import { ISODate, RegName } from 'db/types';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('Regulation')
@@ -10,7 +10,7 @@ export class Regulation {
   @Column()
   effectiveDateUnconfirmed!: boolean;
   @Column()
-  name!: string;
+  name!: RegName;
   @Column('date')
   publishedDate!: ISODate;
   @Column()
