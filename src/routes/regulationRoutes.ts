@@ -107,7 +107,7 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
     opts,
     async function (request: any, reply: any) {
       const name = assertNameSlug(request.params.name);
-      const date = assertNameSlug(request.params.date);
+      const date = assertISODate(request.params.date);
       if (name && date) {
         const data = await getRegulation(slugToName(name), new Date(date), true);
         if (data) {
