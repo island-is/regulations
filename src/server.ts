@@ -56,10 +56,10 @@ const start = async () => {
       if (err) {
         throw err;
       }
-      console.log('API up and running on port ' + (process.env.PORT ?? 3000));
+      console.info('API up and running on port ' + (process.env.PORT ?? 3000));
     });
   } catch (err) {
-    console.log(err);
+    console.info(err);
     process.exit(1);
   }
 };
