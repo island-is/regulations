@@ -59,7 +59,7 @@ All routes can then be accessed under `localhost:3100/api/v1/[route]`
 
 `GET /api/v1/regulation/nr/:name/diff`
 
-    Returns current version of a regulation with all changes applied, in diff mode
+    Returns current version of a regulation with all changes applied, showing the total changes the "original" verion.
 
 `GET /api/v1/regulation/nr/:name/d/:date`
 
@@ -67,4 +67,16 @@ All routes can then be accessed under `localhost:3100/api/v1/[route]`
 
 `GET /api/v1/regulation/nr/:name/d/:date/diff`
 
-    Returns a version of a regulation as it was on a specific date, in diff mode
+    Returns a version of a regulation as it was on a specific date, showing the changes the occurred on that date
+
+<!--
+
+`GET /api/v1/regulation/nr/:name/d/:date/diff/original`
+
+    Returns a version of a regulation as it was on a specific date, showing the total chances since the "original" verion.
+
+`GET /api/v1/regulation/nr/:name/d/:date/diff/:earilerDate`
+
+    Returns a version of a regulation as it was on a specific date, showing the total chances since `earlierDate`
+
+-->
