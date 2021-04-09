@@ -1,8 +1,7 @@
 import { getRegulation } from '../db/Regulation';
+import { assertISODate, assertNameSlug, slugToName } from '../utils/misc';
 
 import { Regulation } from 'entity/Regulation';
-
-const urlNameToName = (name: string) => String(name).replace('-', '/');
 
 export function regulationRoutes(fastify: any, opts: any, done: any) {
   /**
@@ -14,8 +13,9 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
     '/regulation/nr/:name/original',
     opts,
     async function (request: any, reply: any) {
-      if (request.params.name) {
-        const data = await getRegulation(urlNameToName(request.params.name));
+      const name = assertNameSlug(request.params.name);
+      if (name) {
+        const data = await getRegulation(slugToName(name));
         if (data) {
           reply.send(data);
         } else {
@@ -36,8 +36,9 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
     '/regulation/nr/:name/current',
     opts,
     async function (request: any, reply: any) {
-      if (request.params.name) {
-        const data = await getRegulation(urlNameToName(request.params.name), new Date());
+      const name = assertNameSlug(request.params.name);
+      if (name) {
+        const data = await getRegulation(slugToName(name), new Date());
         if (data) {
           reply.send(data);
         } else {
@@ -59,12 +60,9 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
     '/regulation/nr/:name/diff',
     opts,
     async function (request: any, reply: any) {
-      if (request.params.name) {
-        const data = await getRegulation(
-          urlNameToName(request.params.name),
-          new Date(),
-          true,
-        );
+      const name = assertNameSlug(request.params.name);
+      if (name) {
+        const data = await getRegulation(slugToName(name), new Date(), true);
         if (data) {
           reply.send(data);
         } else {
@@ -86,11 +84,10 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
     '/regulation/nr/:name/d/:date',
     opts,
     async function (request: any, reply: any) {
-      if (request.params.name && request.params.date) {
-        const data = await getRegulation(
-          urlNameToName(request.params.name),
-          new Date(request.params.date),
-        );
+      const name = assertNameSlug(request.params.name);
+      const date = assertISODate(request.params.date);
+      if (name && date) {
+        const data = await getRegulation(slugToName(name), new Date(date));
         if (data) {
           reply.send(data);
         } else {
@@ -113,12 +110,10 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
     '/regulation/nr/:name/d/:date/diff',
     opts,
     async function (request: any, reply: any) {
-      if (request.params.name && request.params.date) {
-        const data = await getRegulation(
-          urlNameToName(request.params.name),
-          new Date(request.params.date),
-          true,
-        );
+      const name = assertNameSlug(request.params.name);
+      const date = assertNameSlug(request.params.date);
+      if (name && date) {
+        const data = await getRegulation(slugToName(name), new Date(date), true);
         if (data) {
           reply.send(data);
         } else {

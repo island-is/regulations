@@ -38,14 +38,11 @@ async function getRegulationById(regulationId: number) {
   return regulation;
 }
 
-async function getRegulationByName(regulationName?: string) {
-  if (!regulationName) {
-    return;
-  }
+async function getRegulationByName(name: RegName) {
   const regulationRepository = getConnection().getRepository(Regulation);
   const regulation =
     (await regulationRepository.findOne({
-      where: { name: regulationName },
+      where: { name },
     })) ?? undefined;
   return regulation;
 }
@@ -245,7 +242,7 @@ function isNonCurrent(regulation: RegulationType, regulationChange?: RegulationC
 // ***
 
 export async function getRegulation(
-  regulationName: string,
+  regulationName: RegName,
   date?: Date,
   showDiff?: boolean,
 ) {
