@@ -27,7 +27,7 @@ export async function getRegulationsCount() {
 export async function getRegulationsYears() {
   const years: Array<{ year: number }> =
     (await getManager().query(
-      'SELECT DISTINCT YEAR(publishedDate) as `year` from Regulation order by `year`',
+      'SELECT DISTINCT YEAR(publishedDate) AS `year` FROM Regulation ORDER BY `year` DESC',
     )) ?? [];
   return years.map((y) => y.year);
 }
