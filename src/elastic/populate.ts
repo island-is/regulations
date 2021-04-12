@@ -25,6 +25,11 @@ export type RegulationsIndexBody = {
   lawChaptersSlugs: Array<string>;
 };
 
+const checkIfIndexExists = async (client: Client, index: string): Promise<boolean> => {
+  const result = await client.indices.exists({ index });
+  return result.statusCode === 200;
+};
+
 export async function populateElastic(client: Client) {
   const t0 = performance.now();
   console.info('fetching regulations...');
@@ -34,10 +39,12 @@ export async function populateElastic(client: Client) {
   })) as Array<RegulationListItemFull>;
   console.info(regulations.length + ' regulations found, ');
 
-  console.info('Deleting old index...');
-  await client.indices.delete({
-    index: 'regulations',
-  });
+  if (checkIfIndexExists(client, 'regulations')) {
+    console.info('Deleting old index...');
+    await client.indices.delete({
+      index: 'regulations',
+    });
+  }
 
   console.info('populating new regulations index...');
   for await (const reg of regulations) {
