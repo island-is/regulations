@@ -3,7 +3,9 @@ import { RegulationListItemFull } from '../db/Regulations';
 import { getAllBaseRegulations } from '../db/Regulations';
 import { Client } from '@elastic/elasticsearch';
 import { performance } from 'perf_hooks';
-import { template } from './template';
+// import { template } from './template';
+
+const INDEX_NAME = 'regulations';
 
 const analyzers = [
   'stemmer',
@@ -37,16 +39,22 @@ export async function populateElastic(client: Client) {
     full: true,
     extra: true,
   })) as Array<RegulationListItemFull>;
-  console.info(regulations.length + ' regulations found, ');
+  console.info(regulations.length + ' regulations found');
 
-  if (checkIfIndexExists(client, 'regulations')) {
+  if (await checkIfIndexExists(client, INDEX_NAME)) {
     console.info('Deleting old index...');
     await client.indices.delete({
-      index: 'regulations',
+      index: INDEX_NAME,
     });
   }
 
-  console.info('populating new regulations index...');
+  console.info('Creating new "' + INDEX_NAME + '" index...');
+  client.indices.create({
+    index: INDEX_NAME,
+    // body: template,
+  });
+
+  console.info('populating "' + INDEX_NAME + '" index...');
   for await (const reg of regulations) {
     const lawChapters: Array<string> = [];
     const lawChaptersSlugs: Array<string> = [];
@@ -66,7 +74,7 @@ export async function populateElastic(client: Client) {
     };
 
     await client.index({
-      index: 'regulations',
+      index: INDEX_NAME,
       body: indexBody,
     });
   }
@@ -78,12 +86,14 @@ export async function populateElastic(client: Client) {
     error_trace: true,
   });
 */
-  console.info('refreshing indices for regulations index...');
-  await client.indices.refresh({ index: 'regulations' });
+  console.info('refreshing indices for "' + INDEX_NAME + '" index...');
+  await client.indices.refresh({ index: INDEX_NAME });
 
   const t1 = performance.now();
-  console.info('indexing successful in ' + Math.round(t1 - t0) + 'ms.');
-  return 'success';
+  console.info(
+    'indexing "' + INDEX_NAME + '" successful in ' + Math.round(t1 - t0) + 'ms.',
+  );
+  return { success: true };
 }
 
 /*
