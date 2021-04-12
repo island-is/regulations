@@ -1,4 +1,3 @@
-import * as dotenv from 'dotenv';
 import { fastify as fast } from 'fastify';
 import fastifyRateLimiter from 'fastify-rate-limit';
 import { createConnection } from 'typeorm';
@@ -26,7 +25,7 @@ fastify.register(fastifyRateLimiter, {
   timeWindow: '1 minute',
 });
 
-fastify.register(fastifyElasticsearch, { node: 'http://localhost:9200' });
+fastify.register(fastifyElasticsearch, { node: process.env.SEARCHBOX_URL });
 fastify.register(elasticsearchRoutes, { prefix: '/api/v1' });
 
 fastify.register(regulationRoutes, { prefix: '/api/v1' });
@@ -37,7 +36,6 @@ fastify.register(yearsRoutes, { prefix: '/api/v1' });
 
 const start = async () => {
   try {
-    dotenv.config();
     await createConnection({
       type: 'mysql',
       host: process.env.MYSQL_HOST,
