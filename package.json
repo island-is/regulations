@@ -23,6 +23,7 @@
     "@types/jsdom": "^16.2.9",
     "esm": "^3.2.25",
     "fastify": "^3.11.0",
+    "fastify-elasticsearch": "^2.0.0",
     "fastify-rate-limit": "^5.0.1",
     "htmldiff-js": "^1.0.5",
     "jsdom": "^16.5.2",

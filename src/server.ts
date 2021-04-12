@@ -3,6 +3,9 @@ import { fastify as fast } from 'fastify';
 import fastifyRateLimiter from 'fastify-rate-limit';
 import { createConnection } from 'typeorm';
 
+import fastifyElasticsearch from 'fastify-elasticsearch';
+import { elasticsearchRoutes } from './elastic/routes';
+
 import { DB_Regulation } from './entity/Regulation';
 import { regulationRoutes } from './routes/regulationRoutes';
 import { regulationsRoutes } from './routes/regulationsRoutes';
@@ -22,6 +25,9 @@ fastify.register(fastifyRateLimiter, {
   max: 100,
   timeWindow: '1 minute',
 });
+
+fastify.register(fastifyElasticsearch, { node: 'http://localhost:9200' });
+fastify.register(elasticsearchRoutes, { prefix: '/api/v1' });
 
 fastify.register(regulationRoutes, { prefix: '/api/v1' });
 fastify.register(regulationsRoutes, { prefix: '/api/v1' });

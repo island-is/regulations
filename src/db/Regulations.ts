@@ -41,7 +41,7 @@ type SQLRegulationsList = ReadonlyArray<
     text?: DB_Regulation['text'];
   }
 >;
-type _RegulationListItem = RegulationListItem & {
+export type RegulationListItemFull = RegulationListItem & {
   type: 'amending' | 'base';
   text?: string;
   effectiveDate: ISODate;
@@ -53,7 +53,7 @@ const augmentRegulations = async (
   opts: { text?: boolean; ministry?: boolean; lawChapters?: boolean } = {},
 ) => {
   const chunkSize = 5;
-  let augmentedRegulations: Array<_RegulationListItem> = [];
+  let augmentedRegulations: Array<RegulationListItemFull> = [];
 
   for (let i = 0; i * chunkSize < regulations.length; i += chunkSize) {
     const regChunk = regulations.slice(i, i + chunkSize);
@@ -66,7 +66,7 @@ const augmentRegulations = async (
         opts.lawChapters ? await getRegulationLawChapters(reg.id) : undefined,
       ]);
 
-      const itm: _RegulationListItem = {
+      const itm: RegulationListItemFull = {
         type: type === 'repealing' ? 'amending' : type,
         title,
         text: opts.text ? text : undefined,
