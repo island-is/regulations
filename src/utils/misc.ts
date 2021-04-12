@@ -1,4 +1,4 @@
-import { ISODate, RegName, RegQueryName } from 'db/types';
+import { ISODate, RegName, RegQueryName } from '../routes/types';
 
 /** Converts a Regulation `name` into a URL path segment
  *

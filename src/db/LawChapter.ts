@@ -1,20 +1,20 @@
-import { LawChapter } from '../entity/LawChapter';
+import { DB_LawChapter } from '../entity/LawChapter';
 import { getConnection } from 'typeorm';
-import { RegulationLawChapter } from '../entity/RegulationLawChapter';
-import { LawChapterTreeType, LawChapterType } from './types';
+import { DB_RegulationLawChapter } from '../entity/RegulationLawChapter';
+import { LawChapterTree, LawChapter } from '../routes/types';
 
-export const augmentLawChapters = (chapters: Array<LawChapter>) =>
+export const augmentLawChapters = (chapters: Array<DB_LawChapter>) =>
   chapters.map(
-    (c): LawChapterType => ({
+    (c): LawChapter => ({
       name: c.title,
       slug: c.slug,
     }),
   );
 
-export const chaptersToTree = (chapters: Array<LawChapter>): LawChapterTreeType => {
+export const chaptersToTree = (chapters: Array<DB_LawChapter>): LawChapterTree => {
   const parents: {
-    [key: string]: LawChapterType & {
-      subChapters: Array<LawChapterType>;
+    [key: string]: LawChapter & {
+      subChapters: Array<LawChapter>;
     };
   } = {};
 
@@ -38,7 +38,7 @@ export const chaptersToTree = (chapters: Array<LawChapter>): LawChapterTreeType 
 };
 
 export async function getAllLawChapters() {
-  const lawChaptersRepository = getConnection().getRepository(LawChapter);
+  const lawChaptersRepository = getConnection().getRepository(DB_LawChapter);
   const lawChapters =
     (await lawChaptersRepository
       .createQueryBuilder('lawchapters')
@@ -51,11 +51,11 @@ export async function getRegulationLawChapters(regulationId?: number) {
   if (!regulationId) {
     return;
   }
-  const lawChaptersRepository = getConnection().getRepository(LawChapter);
-  const regulationLCRepository = getConnection().getRepository(RegulationLawChapter);
+  const lawChaptersRepository = getConnection().getRepository(DB_LawChapter);
+  const regulationLCRepository = getConnection().getRepository(DB_RegulationLawChapter);
   const con = await regulationLCRepository.findOne({ where: { regulationId } });
 
-  const lawChapters: Array<LawChapter> =
+  const lawChapters: Array<DB_LawChapter> =
     (await lawChaptersRepository
       .createQueryBuilder('regulationlawchapters')
       .where('id = :chapterId', { chapterId: con?.chapterId })

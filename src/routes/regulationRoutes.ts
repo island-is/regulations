@@ -1,52 +1,73 @@
 import { getRegulation } from '../db/Regulation';
 import { assertISODate, assertNameSlug, slugToName } from '../utils/misc';
 
-import { Regulation } from 'entity/Regulation';
+import { DB_Regulation } from '../entity/Regulation';
+import { ISODate, RegQueryName } from './types';
 
-export function regulationRoutes(fastify: any, opts: any, done: any) {
+type Request = any;
+type Response = any;
+
+const handleRequest = async (
+  res: Response,
+  opts: { name?: RegQueryName; date?: ISODate | Date; diff?: boolean },
+) => {
+  const { name, date, diff } = opts;
+  const dateMissing = 'date' in opts && !date;
+
+  if (name && !dateMissing) {
+    const data = await getRegulation(slugToName(name), {
+      date: date && new Date(date),
+      diff,
+    });
+    if (data) {
+      res.send(data);
+    } else {
+      res.code(400).send('Regulation not found!');
+    }
+  } else {
+    res
+      .code(400)
+      .send(
+        !name
+          ? 'Invalid Regulation name'
+          : dateMissing
+          ? 'Invalid historic date'
+          : undefined,
+      );
+  }
+};
+
+export const regulationRoutes = (fastify: any, opts: any, done: any) => {
   /**
    * Returns original version of a regulation
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
-   * @returns {Regulation}
+   * @returns {DB_Regulation}
    */
   fastify.get(
     '/regulation/:name/original',
     opts,
-    async function (request: any, reply: any) {
+    function (request: Request, reply: Response) {
       const name = assertNameSlug(request.params.name);
-      if (name) {
-        const data = await getRegulation(slugToName(name));
-        if (data) {
-          reply.send(data);
-        } else {
-          reply.code(400).send('Regulation not found!');
-        }
-      } else {
-        reply.code(400).send('No Regulation name specified!');
-      }
+      return handleRequest(reply, {
+        name,
+      });
     },
   );
 
   /**
    * Returns current version of a regulation with all changes applied
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
-   * @returns {Regulation}
+   * @returns {DB_Regulation}
    */
   fastify.get(
     '/regulation/:name/current',
     opts,
-    async function (request: any, reply: any) {
+    function (request: Request, reply: Response) {
       const name = assertNameSlug(request.params.name);
-      if (name) {
-        const data = await getRegulation(slugToName(name), new Date());
-        if (data) {
-          reply.send(data);
-        } else {
-          reply.code(400).send('Regulation not found!');
-        }
-      } else {
-        reply.code(400).send('No Regulation name specified!');
-      }
+      return handleRequest(reply, {
+        name,
+        date: new Date(),
+      });
     },
   );
 
@@ -54,44 +75,37 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
    * Returns current version of a regulation with all changes applied, showing
    * the total changes the "original" verion.
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
-   * @returns {Regulation}
+   * @returns {DB_Regulation}
    */
-  fastify.get('/regulation/:name/diff', opts, async function (request: any, reply: any) {
-    const name = assertNameSlug(request.params.name);
-    if (name) {
-      const data = await getRegulation(slugToName(name), new Date(), true);
-      if (data) {
-        reply.send(data);
-      } else {
-        reply.code(400).send('Regulation not found!');
-      }
-    } else {
-      reply.code(400).send('No Regulation name specified!');
-    }
-  });
+  fastify.get(
+    '/regulation/:name/diff',
+    opts,
+    function (request: Request, reply: Response) {
+      const name = assertNameSlug(request.params.name);
+      return handleRequest(reply, {
+        name,
+        date: new Date(),
+        diff: true,
+      });
+    },
+  );
 
   /**
    * Returns a version of a regulation as it was on a specific date
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
    * @param {string} date - ISODate (`YYYY-MM-DD`)
-   * @returns {Regulation}
+   * @returns {DB_Regulation}
    */
   fastify.get(
     '/regulation/:name/d/:date',
     opts,
-    async function (request: any, reply: any) {
+    function (request: Request, reply: Response) {
       const name = assertNameSlug(request.params.name);
       const date = assertISODate(request.params.date);
-      if (name && date) {
-        const data = await getRegulation(slugToName(name), new Date(date));
-        if (data) {
-          reply.send(data);
-        } else {
-          reply.code(400).send('Regulation not found!');
-        }
-      } else {
-        reply.code(400).send(!name ? 'Invalid Regulation name' : 'Invalid historic date');
-      }
+      return handleRequest(reply, {
+        name,
+        date,
+      });
     },
   );
 
@@ -100,26 +114,21 @@ export function regulationRoutes(fastify: any, opts: any, done: any) {
    * that occurred on that date
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
    * @param {string} date - ISODate (`YYYY-MM-DD`)
-   * @returns {Regulation}
+   * @returns {DB_Regulation}
    */
   fastify.get(
     '/regulation/:name/d/:date/diff',
     opts,
-    async function (request: any, reply: any) {
+    function (request: Request, reply: Response) {
       const name = assertNameSlug(request.params.name);
       const date = assertISODate(request.params.date);
-      if (name && date) {
-        const data = await getRegulation(slugToName(name), new Date(date), true);
-        if (data) {
-          reply.send(data);
-        } else {
-          reply.code(400).send('Regulation not found!');
-        }
-      } else {
-        reply.code(400).send(!name ? 'Invalid Regulation name' : 'Invalid historic date');
-      }
+      handleRequest(reply, {
+        name,
+        date,
+        diff: true,
+      });
     },
   );
 
   done();
-}
+};

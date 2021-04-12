@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('Task')
-export class RegulationTasks {
+export class DB_RegulationTasks {
   @PrimaryGeneratedColumn()
   id!: number;
   @Column('int')

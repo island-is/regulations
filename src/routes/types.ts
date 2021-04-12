@@ -1,68 +1,9 @@
-// Output types for island.is graphql
-
-// ---------------------------------------------------------------------------
-
-export type MinistryType = {
-  /** Name (title) of the ministry */
-  name: string;
-  /** Short, URL-friendly token to use for search filters, etc.  */
-  slug: string;
-  /** False if this ministry is not current */
-  current: boolean;
-};
-
-export type MinistryFullType = MinistryType & {
-  /** Custom sorting modifier – i.e. to push Forsætisráðuneytið to the top of a list. */
-  order?: number;
-};
-
-// ---------------------------------------------------------------------------
-
-export type LawChapterType = {
-  /** Name (title) of the LawChapter */
-  name: string;
-  /** Short, URL-friendly token to use for search filters, etc.  */
-  slug: string; // '01a' |'01b' |'01c' | etc.
-};
-
-export type LawChapterTreeType = Array<
-  LawChapterType & {
-    /** List of child-chapters for this top-level chapter.
-     *
-     * NOTE: The "tree" never goes more than one level down.
-     */
-    subChapters: ReadonlyArray<LawChapterType>;
-  }
->;
-
-// ---------------------------------------------------------------------------
-
-export type RegulationListItemType = {
-  type: 'base' | 'amending' | 'repealing';
-  /** Publication name */
-  publishedDate?: ISODate;
-  /** Date when the regulation took effect for the first time */
-  effectiveDate?: ISODate;
-  /** Publication name */
-  name: RegName;
-  /** The title of the Regulation */
-  title: string;
-  /** The contents of the Regulation */
-  text?: string;
-  /** The ministry that the regulation is linked to */
-  ministry?: MinistryType;
-  /** Law chapters that this regulation is linked to */
-  lawChapters?: ReadonlyArray<LawChapterType>;
-};
-
-// ---------------------------------------------------------------------------
-
 declare const _RegNameToken_: unique symbol;
-/** Regulation name – `0123/2012` */
+/** Regulation name – `0123/2012` */
 export type RegName = string & { [_RegNameToken_]: true };
 
 declare const _RegNameQueryToken_: unique symbol;
-/** Regulation name formatted for URL param insertion – `0123-2012` */
+/** Regulation name formatted for URL param insertion – `0123-2012` */
 export type RegQueryName = string & { [_RegNameQueryToken_]: true };
 
 declare const _ISODateToken_: unique symbol;
@@ -71,7 +12,53 @@ export type ISODate = string & { [_ISODateToken_]: true };
 
 // ---------------------------------------------------------------------------
 
-export type RegulationHistoryItemType = {
+// Years
+export type RegulationYears = ReadonlyArray<number>;
+
+// ---------------------------------------------------------------------------
+
+export type LawChapter = {
+  /** Name (title) of the law chapter */
+  name: string;
+  /** Short, URL-friendly token to use for search filters, etc.  */
+  slug: string; // '01a' |'01b' |'01c' | etc.
+};
+
+export type LawChapterTree = Array<
+  LawChapter & {
+    /** List of child-chapters for this top-level chapter.
+     *
+     * NOTE: The "tree" never goes more than one level down.
+     */
+    subChapters: ReadonlyArray<LawChapter>;
+  }
+>;
+
+// ---------------------------------------------------------------------------
+
+// Ministries
+export type Ministry = {
+  /** Name (title) of the ministry */
+  name: string;
+  /** Short, URL-friendly token to use for search filters, etc.  */
+  slug: string;
+  /** False if this ministry is not current */
+  current: boolean;
+};
+
+export type MinistryListItem = Ministry & {
+  /** Optional sorting weight hint.
+   *
+   * Lower numbers first, undefined/null last.
+   */
+  order?: number | null;
+};
+
+export type MinistryList = ReadonlyArray<MinistryListItem>;
+
+// ---------------------------------------------------------------------------
+
+export type RegulationHistoryItem = {
   /** The date this this history item took effect */
   date: ISODate;
   /** Publication name of the affecting Regulation */
@@ -84,7 +71,7 @@ export type RegulationHistoryItemType = {
 
 // ---------------------------------------------------------------------------
 
-export type RegulationEffectType = {
+export type RegulationEffect = {
   /** effectiveDate for this impact */
   date: ISODate;
   /** Publication name of the affected Regulation */
@@ -97,15 +84,41 @@ export type RegulationEffectType = {
 
 // ---------------------------------------------------------------------------
 
+// Regulations list
+export type RegulationListItem = {
+  /** Publication name */
+  name: RegName;
+  /** The title of the Regulation */
+  title: string;
+  /** The ministry that the regulation is linked to */
+  ministry?: Ministry;
+  /** Publication date of this regulation */
+  publishedDate: ISODate;
+};
+
+export type RegulationSearchResults = {
+  /** The number of the current page, 1-based  */
+  page: number;
+  /** Total number of pages available for this query */
+  perPage: number;
+  /** Total number of pages available for this query */
+  totalPages: number;
+  /** ReguationListItems for this page */
+  data: Array<RegulationListItem>;
+};
+
+// ---------------------------------------------------------------------------
+
 /** Regulation appendix/attachment chapter */
-export type AppendixType = {
+export type Appendix = {
   /** Title of the appendix */
   title: string;
   /** The appendix text in HTML format */
   text: string;
 };
 
-export type RegulationType = {
+// Single Regulation
+export type Regulation = {
   /** Publication name (NNNN/YYYY) of the regulation */
   name: RegName;
   /** The title of the regulation in HTML format */
@@ -113,17 +126,18 @@ export type RegulationType = {
   /* The regulation text in HTML format */
   text: string;
   /** List of the regulation's appendixes */
-  appendixes: ReadonlyArray<AppendixType>;
+  appendixes: ReadonlyArray<Appendix>;
   /** Optional HTML formatted comments from the editor pointing out
    * known errors or ambiguities in the text.
    */
   comments: string;
+
   /** Date signed in the ministry */
-  signatureDate?: ISODate;
+  signatureDate: ISODate;
   /** Date officially published in Stjórnartíðindi */
-  publishedDate?: ISODate;
+  publishedDate: ISODate;
   /** Date when the regulation took effect for the first time */
-  effectiveDate?: ISODate;
+  effectiveDate: ISODate;
   /** Date of last amendment of this regulation
    *
    * This date is always a past date – UNLESS a future timeline Date is being
@@ -135,9 +149,9 @@ export type RegulationType = {
    */
   repealedDate?: ISODate | null;
   /** The ministry this regulation is published by/linked to */
-  ministry: MinistryType;
+  ministry?: Ministry;
   /** Law chapters that this regulation is linked to */
-  lawChapters: ReadonlyArray<LawChapterType>;
+  lawChapters: ReadonlyArray<LawChapter>;
   // TODO: add link to original DOC/PDF file in Stjórnartíðindi's data store.
 
   /** Regulations are roughly classified based on whether they contain
@@ -147,17 +161,17 @@ export type RegulationType = {
    * `base` = Stofnreglugerð
    * `amending` = Breytingareglugerð
    */
-  type: 'base' | 'amending' | 'repealing';
+  type: 'base' | 'amending';
 
   /** List of change events (Amendments, Repeals) over the life time of this
    * regulation – **excluding** the original base/root regulation
    */
-  history: ReadonlyArray<RegulationHistoryItemType>;
+  history: ReadonlyArray<RegulationHistoryItem>;
 
   /** Date sorted list of effects this regulations has on other regulations
    * text-changes or cacellations
    */
-  effects: ReadonlyArray<RegulationEffectType>;
+  effects: ReadonlyArray<RegulationEffect>;
 
   /** Present if a NON-CURRENT version of the regulation is being served
    *
@@ -178,7 +192,7 @@ export type RegulationType = {
 
 // ---------------------------------------------------------------------------
 
-export type RegulationRedirectType = {
+export type RegulationRedirect = {
   /** Publication name (NNNN/YYYY) of the regulation */
   name: RegName;
   /** The title of the regulation in HTML format */

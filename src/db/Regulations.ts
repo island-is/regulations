@@ -1,6 +1,6 @@
-import { Regulation } from '../entity/Regulation';
+import { DB_Regulation } from '../entity/Regulation';
 import { getConnection, getManager } from 'typeorm';
-import { RegName, RegulationListItemType } from './types';
+import { ISODate, RegulationListItem, LawChapter } from '../routes/types';
 import { getRegulationMinistry } from './Ministry';
 import { getRegulationLawChapters } from './LawChapter';
 import { toISODate } from '../utils/misc';
@@ -9,14 +9,14 @@ export const regulationsPerPage = 18;
 
 export async function getAllRegulations() {
   const connection = getConnection();
-  const regulationRepository = connection.getRepository(Regulation);
-  const regulations: Array<Regulation> = (await regulationRepository.find()) ?? [];
+  const regulationRepository = connection.getRepository(DB_Regulation);
+  const regulations: Array<DB_Regulation> = (await regulationRepository.find()) ?? [];
   return regulations;
 }
 
 export async function getRegulationsCount() {
   const connection = getConnection();
-  const regulationRepository = connection.getRepository(Regulation);
+  const regulationRepository = connection.getRepository(DB_Regulation);
   const regulationsCount: number =
     (await regulationRepository
       .createQueryBuilder('allregulations')
@@ -35,39 +35,46 @@ export async function getRegulationsYears() {
 
 type SQLRegulationsList = ReadonlyArray<
   Pick<
-    Regulation,
+    DB_Regulation,
     'id' | 'name' | 'type' | 'title' | 'publishedDate' | 'effectiveDate'
   > & {
-    text?: Regulation['text'];
+    text?: DB_Regulation['text'];
   }
 >;
+type _RegulationListItem = RegulationListItem & {
+  type: 'amending' | 'base';
+  text?: string;
+  effectiveDate: ISODate;
+  lawChapters?: ReadonlyArray<LawChapter>;
+};
 
 const augmentRegulations = async (
   regulations: SQLRegulationsList,
   opts: { text?: boolean; ministry?: boolean; lawChapters?: boolean } = {},
 ) => {
-  const { ministry = true, text = false, lawChapters = false } = opts;
   const chunkSize = 5;
-  let augmentedRegulations: Array<RegulationListItemType> = [];
+  let augmentedRegulations: Array<_RegulationListItem> = [];
 
   for (let i = 0; i * chunkSize < regulations.length; i += chunkSize) {
     const regChunk = regulations.slice(i, i + chunkSize);
     // eslint-disable-next-line no-await-in-loop
     const regProms = regChunk.map(async (reg) => {
-      const [regMinistry, regLawChapters] = await Promise.all([
-        ministry ? await getRegulationMinistry(reg.id) : undefined,
-        lawChapters ? await getRegulationLawChapters(reg.id) : undefined,
+      const { type, name, title, text, publishedDate, effectiveDate } = reg;
+
+      const [ministry, lawChapters] = await Promise.all([
+        opts.ministry ?? true ? await getRegulationMinistry(reg.id) : undefined,
+        opts.lawChapters ? await getRegulationLawChapters(reg.id) : undefined,
       ]);
 
-      const itm: RegulationListItemType = {
-        type: reg.type,
-        title: reg.title,
-        text: text ? reg.text : undefined,
-        name: reg.name,
-        publishedDate: toISODate(reg.publishedDate),
-        effectiveDate: toISODate(reg.effectiveDate),
-        ministry: regMinistry,
-        lawChapters: regLawChapters,
+      const itm: _RegulationListItem = {
+        type: type === 'repealing' ? 'amending' : type,
+        title,
+        text: opts.text ? text : undefined,
+        name,
+        publishedDate: toISODate(publishedDate) as ISODate,
+        effectiveDate: toISODate(effectiveDate) as ISODate,
+        ministry,
+        lawChapters,
       };
       return itm;
     });
@@ -86,7 +93,7 @@ export async function getNewestRegulations(opts: { skip?: number; take?: number 
   const connection = getConnection();
   const regulations: SQLRegulationsList =
     (await connection
-      .getRepository(Regulation)
+      .getRepository(DB_Regulation)
       .createQueryBuilder('regulations')
       .select(['id', 'type', 'name', 'title', 'publishedDate', 'effectiveDate'])
       .orderBy('publishedDate', 'DESC')
@@ -131,6 +138,8 @@ export async function getAllBaseRegulations(
       lawChapters: true,
     });
   } else {
+    // FIXME: The items in this array have `publishedDate` and `effectiveDate`
+    // of type `Date` - not `ISODate`  O_o
     return regulations;
   }
 }

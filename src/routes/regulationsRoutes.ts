@@ -5,12 +5,12 @@ import {
   getAllBaseRegulations,
 } from '../db/Regulations';
 
-import { Regulation } from 'entity/Regulation';
+import { DB_Regulation } from '../entity/Regulation';
 
 export function regulationsRoutes(fastify: any, opts: any, done: any) {
   /**
    * Gets latest regulations as paged array
-   * @returns {Array<Regulation>}
+   * @returns {Array<DB_Regulation>}
    */
 
   fastify.get('/regulations/newest', opts, async function (request: any, reply: any) {

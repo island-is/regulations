@@ -1,10 +1,10 @@
 import qq from 'qj/qq';
 import { asDiv } from './serverDOM';
-import { RegulationType } from 'db/types';
+import { Regulation } from '../routes/types';
 
 export const extractAppendixesAndComments = (
   text: string,
-): Pick<RegulationType, 'text' | 'appendixes' | 'comments'> => {
+): Pick<Regulation, 'text' | 'appendixes' | 'comments'> => {
   const root = asDiv(text);
   const appendixElms = qq('.appendix', root);
   appendixElms.forEach((elm) => elm.remove());

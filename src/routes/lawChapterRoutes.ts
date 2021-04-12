@@ -15,10 +15,8 @@ export function lawChapterRoutes(fastify: any, opts: any, done: any) {
    * @returns {Array<LawChapter>}
    */
   fastify.get('/lawchapters/tree', opts, async function (request: any, reply: any) {
-    const data = await getAllLawChapters();
-    const chapterTree = chaptersToTree(data);
-
-    reply.send(chapterTree);
+    const lawChapters = await getAllLawChapters();
+    reply.send(chaptersToTree(lawChapters));
   });
 
   done();

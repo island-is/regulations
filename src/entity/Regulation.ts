@@ -1,8 +1,8 @@
-import { ISODate, RegName } from 'db/types';
+import { ISODate, RegName } from '../routes/types';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('Regulation')
-export class Regulation {
+export class DB_Regulation {
   @PrimaryGeneratedColumn()
   id!: number;
   @Column('date')
