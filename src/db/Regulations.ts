@@ -44,26 +44,38 @@ const augmentRegulations = async (
   opts: { text?: boolean; ministry?: boolean; lawChapters?: boolean } = {},
 ) => {
   const { ministry = true, text = false, lawChapters = false } = opts;
-  const regProms = regulations.map(async (reg) => {
-    const [regMinistry, regLawChapters] = await Promise.all([
-      ministry ? await getRegulationMinistry(reg.id) : undefined,
-      lawChapters ? await getRegulationLawChapters(reg.id) : undefined,
-    ]);
+  const chunkSize = 5;
+  let augmentedRegulations: Array<RegulationListItemType> = [];
 
-    const itm: RegulationListItemType = {
-      type: reg.type,
-      title: reg.title,
-      text: text ? reg.text : undefined,
-      name: reg.name,
-      publishedDate: toIsoDate((reg.publishedDate as unknown) as Date),
-      effectiveDate: toIsoDate((reg.effectiveDate as unknown) as Date),
-      ministry: regMinistry,
-      lawChapters: regLawChapters,
-    };
-    return itm;
-  });
+  for (let i = 0; i * chunkSize < regulations.length; i += chunkSize) {
+    const regChunk = regulations.slice(i, i + chunkSize);
+    // eslint-disable-next-line no-await-in-loop
+    const regProms = regChunk.map(async (reg) => {
+      const [regMinistry, regLawChapters] = await Promise.all([
+        ministry ? await getRegulationMinistry(reg.id) : undefined,
+        lawChapters ? await getRegulationLawChapters(reg.id) : undefined,
+      ]);
 
-  return await Promise.all(regProms);
+      const itm: RegulationListItemType = {
+        type: reg.type,
+        title: reg.title,
+        text: text ? reg.text : undefined,
+        name: reg.name,
+        publishedDate: toIsoDate((reg.publishedDate as unknown) as Date),
+        effectiveDate: toIsoDate((reg.effectiveDate as unknown) as Date),
+        ministry: regMinistry,
+        lawChapters: regLawChapters,
+      };
+      return itm;
+    });
+
+    // eslint-disable-next-line no-await-in-loop
+    const augmentedChunk = await Promise.all(regProms);
+
+    augmentedRegulations = augmentedRegulations.concat(augmentedChunk);
+  }
+
+  return augmentedRegulations;
 };
 
 export async function getNewestRegulations(opts: { skip?: number; take?: number }) {
