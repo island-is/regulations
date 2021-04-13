@@ -17,6 +17,7 @@ const analyzers = [
 ];
 
 export type RegulationsIndexBody = {
+  year: string;
   name: RegName;
   title: string;
   text: string;
@@ -35,6 +36,7 @@ const regulationToIndexItem = (reg: RegulationListItemFull | Regulation) => {
     lawChaptersSlugs.push(chapter.slug);
   });
   const indexBody: RegulationsIndexBody = {
+    year: reg.name.match(/\/(\d{4})/)?.[1] || '',
     name: reg.name as RegName,
     title: reg.title,
     text: reg.text ?? '',
@@ -88,14 +90,7 @@ export async function populateElastic(client: Client) {
       body: aReg,
     });
   }
-  /*
-  console.info('applying regulations index template...');
-  await client.indices.putTemplate({
-    name: 'regulations',
-    body: template,
-    error_trace: true,
-  });
-*/
+
   console.info('refreshing indices for "' + INDEX_NAME + '" index...');
   await client.indices.refresh({ index: INDEX_NAME });
 
@@ -109,7 +104,12 @@ export async function populateElastic(client: Client) {
 const _updateItem = async (client: Client, regname: RegName) => {
   const newReg = await getRegulation(regname);
 
-  if (newReg && !('redirectUrl' in newReg) && !newReg.repealedDate) {
+  if (
+    newReg &&
+    !('redirectUrl' in newReg) && // ignore RegulationRedirect
+    newReg.type === 'base' && // only add base regulations
+    !newReg.repealedDate // ignore cancelled regulations
+  ) {
     console.info('adding ' + regname + ' to index...');
     const aReg = await regulationToIndexItem(newReg);
     await client.index({
@@ -125,23 +125,31 @@ export async function updateElasticItem(client: Client, query: { name: RegName }
   if (!query.name || !/^\d{4}[-/]\d{4}$/.test(query.name)) {
     return { success: false };
   }
-  console.info('deleting ' + query.name + ' from index...');
-  await client.deleteByQuery(
-    {
-      index: INDEX_NAME,
-      body: {
-        query: {
-          query_string: {
-            query: '"' + query.name?.replace(/[-/]/, '\\/') + '"',
-            fields: ['name'],
+  try {
+    console.info('deleting ' + query.name + ' from index...');
+    await client.deleteByQuery(
+      {
+        index: INDEX_NAME,
+        body: {
+          query: {
+            query_string: {
+              query: '"' + query.name?.replace(/[-/]/, '\\/') + '"',
+              fields: ['name'],
+            },
           },
         },
       },
-    },
-    function (err, res) {
-      _updateItem(client, query.name);
-      return { success: true };
-    },
-  );
+      function (err, res) {
+        if (err) {
+          console.error(err.message);
+          return { success: false };
+        }
+        return _updateItem(client, query.name);
+      },
+    );
+  } catch (err) {
+    console.info(err);
+    return { success: false };
+  }
   return { success: true };
 }
