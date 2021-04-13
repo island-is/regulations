@@ -53,17 +53,20 @@ Set `process.env.PORT` to use a different port.
 - `GET /api/v1/regulation/:name/original`  
   Returns original version of a regulation
 - `GET /api/v1/regulation/:name/d/:date`  
-  Returns a version of a regulation as it was on a specific date
+  Returns a version of a regulation as it was on a specific `date`
 - `GET /api/v1/regulation/:name/d/:date/diff`  
-  Returns a version of a regulation as it was on a specific date, showing the
-  changes that occurred on that date
+  Returns a version of a regulation as it was on a specific `date`, showing
+  the changes that occurred on that date
+- `GET /api/v1/regulation/:name/d/:date/diff/original` Returns a version of a
+  regulation as it was on a specific `date`, showing the total chances since
+  the "original" verion.
+- `GET /api/v1/regulation/:name/d/:date/diff/:earilerDate` Returns a version
+  of a regulation as it was on a specific `date`, showing the total chances
+  since `earlierDate`
 
-<!--
-- `GET /api/v1/regulation/:name/d/:date/diff/original`
-  Returns a version of a regulation as it was on a specific date, showing the
-  total chances since the "original" verion.
-- `GET /api/v1/regulation/:name/d/:date/diff/:earilerDate`
-   Returns a version of a regulation as it was on a specific date, showing the
-  total chances since `earlierDate`
+### Param types:
 
--->
+- `name` – Regulation publication name formatted as `nnnn-yyyy`. _(Example:
+  `0221-2001`)_
+- `date` – Valid ISODate _(Example: `2020-01-01`)_
+- `earlierDate` – Valid ISODate _(Example: `2013-10-16`)_
