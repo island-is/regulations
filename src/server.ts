@@ -2,6 +2,7 @@ import { fastify as fast } from 'fastify';
 import fastifyRateLimiter from 'fastify-rate-limit';
 import { createConnection } from 'typeorm';
 
+import fastifyCompress from 'fastify-compress';
 import fastifyElasticsearch from 'fastify-elasticsearch';
 import { elasticsearchRoutes } from './elastic/routes';
 
@@ -24,6 +25,10 @@ fastify.register(fastifyRateLimiter, {
   max: 100,
   timeWindow: '1 minute',
 });
+
+if (process.env.PROXIED !== 'true') {
+  fastify.register(fastifyCompress, { global: true });
+}
 
 fastify.register(fastifyElasticsearch, { node: process.env.SEARCHBOX_URL });
 fastify.register(elasticsearchRoutes, { prefix: '/api/v1' });
