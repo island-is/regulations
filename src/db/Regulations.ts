@@ -52,10 +52,10 @@ const augmentRegulations = async (
   regulations: SQLRegulationsList,
   opts: { text?: boolean; ministry?: boolean; lawChapters?: boolean } = {},
 ) => {
-  const chunkSize = 3;
+  const chunkSize = 20;
   const augmentedRegulations: Array<RegulationListItemFull> = [];
 
-  for (let i = 0; i * chunkSize < regulations.length; i += chunkSize) {
+  for (let i = 0; i < regulations.length; i += chunkSize) {
     const regChunk = regulations.slice(i, i + chunkSize);
     // eslint-disable-next-line no-await-in-loop
     const regProms = regChunk.map(async (reg) => {
