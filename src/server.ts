@@ -65,11 +65,13 @@ const start = async () => {
       },
     });
 
-    await fastify.listen(process.env.PORT || 3000, '0.0.0.0', (err) => {
+    const serverPort = process.env.PORT || 3000;
+
+    await fastify.listen(serverPort, '0.0.0.0', (err) => {
       if (err) {
         throw err;
       }
-      console.info('API up and running on port ' + (process.env.PORT ?? 3000));
+      console.info('API up and running on port ' + serverPort);
     });
   } catch (err) {
     console.info(err);
