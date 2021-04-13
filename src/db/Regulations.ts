@@ -52,8 +52,8 @@ const augmentRegulations = async (
   regulations: SQLRegulationsList,
   opts: { text?: boolean; ministry?: boolean; lawChapters?: boolean } = {},
 ) => {
-  const chunkSize = 5;
-  let augmentedRegulations: Array<RegulationListItemFull> = [];
+  const chunkSize = 3;
+  const augmentedRegulations: Array<RegulationListItemFull> = [];
 
   for (let i = 0; i * chunkSize < regulations.length; i += chunkSize) {
     const regChunk = regulations.slice(i, i + chunkSize);
@@ -82,7 +82,7 @@ const augmentRegulations = async (
     // eslint-disable-next-line no-await-in-loop
     const augmentedChunk = await Promise.all(regProms);
 
-    augmentedRegulations = augmentedRegulations.concat(augmentedChunk);
+    augmentedRegulations.push(...augmentedChunk);
   }
 
   return augmentedRegulations;

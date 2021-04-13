@@ -41,6 +41,11 @@ export async function populateElastic(client: Client) {
   })) as Array<RegulationListItemFull>;
   console.info(regulations.length + ' regulations found');
 
+  if (!regulations.length) {
+    console.warn('Error fetching regulations');
+    return { success: false };
+  }
+
   if (await checkIfIndexExists(client, INDEX_NAME)) {
     console.info('Deleting old index...');
     await client.indices.delete({
