@@ -22,8 +22,6 @@ const handleRequest = async (
   const validEarlierDate =
     !date || !diff || !earlierDate || earlierDate === 'original' || earlierDate <= date;
 
-  console.log(opts, validEarlierDate);
-
   if (name && !dateMissing && validEarlierDate) {
     const data = await getRegulation(slugToName(name), {
       date: date && new Date(date),
