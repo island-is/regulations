@@ -7,21 +7,33 @@ import { DB_RegulationCancel } from '../entity/RegulationCancel';
 import { getRegulationLawChapters } from './LawChapter';
 import { DB_RegulationTasks } from '../entity/RegulationTasks';
 import {
+  HTMLText,
+  PlainText,
   ISODate,
   RegName,
   RegulationEffect,
   RegulationHistoryItem,
   RegulationRedirect,
   Regulation,
+  RegulationDiff,
 } from '../routes/types';
 import { extractAppendixesAndComments } from '../utils/extractData';
 import { nameToSlug, toISODate } from '../utils/misc';
 
-const getDiff = (older: string, newer: string) =>
+// ---------------------------------------------------------------------------
+
+const toHTML = (textContent: PlainText) => textContent.replace(/>/g, '&lg;') as HTMLText;
+
+const getDiff = (older: HTMLText, newer: HTMLText) =>
   htmldiff
     .execute(older, newer)
     .replace(/<del [^>]+>\s+<\/del>/g, '')
-    .replace(/<ins [^>]+>\s+<\/ins>/g, '');
+    .replace(/<ins [^>]+>\s+<\/ins>/g, '') as HTMLText;
+
+const getTextContentDiff = (older: PlainText, newer: PlainText): HTMLText =>
+  older === newer ? toHTML(newer) : getDiff(toHTML(older), toHTML(newer));
+
+// ---------------------------------------------------------------------------
 
 async function getRegulationById(regulationId: number) {
   if (!regulationId) {
@@ -267,50 +279,59 @@ export async function getRegulation(
       : augmentedRegulation.effectiveDate;
   }
 
-  if (diff) {
-    let earlierState: Pick<Regulation, 'text' | 'appendixes' | 'comments'> & {
-      date?: ISODate;
-    };
-
-    if (!regulationChange) {
-      // Here the "active" regulation is the original and any diffing should be against the empty string
-      earlierState = extractAppendixesAndComments('');
-    } else if (earlierDate === 'original') {
-      earlierState = extractAppendixesAndComments(regulation.text);
-    } else {
-      let eDate = earlierDate;
-      if (!eDate) {
-        eDate = new Date(regulationChange.date);
-        eDate.setDate(eDate.getDate() - 1);
-      }
-      const change = await getLatestRegulationChange(regulation.id, eDate);
-      earlierState = change
-        ? {
-            ...extractAppendixesAndComments(change.text),
-            date: change.date,
-          }
-        : extractAppendixesAndComments(regulation.text);
-    }
-
-    augmentedRegulation.text = getDiff(earlierState.text, augmentedRegulation.text);
-    augmentedRegulation.comments = getDiff(
-      earlierState.comments,
-      augmentedRegulation.comments,
-    );
-    augmentedRegulation.appendixes = augmentedRegulation.appendixes.map(
-      (baseAppendix, i) => {
-        const { title, text } = earlierState.appendixes[i] || {};
-        return {
-          title: getDiff(title, baseAppendix.title),
-          text: getDiff(text, baseAppendix.text),
-        };
-      },
-    );
-
-    augmentedRegulation.showingDiff = {
-      from: earlierState.date || regulation.publishedDate,
-      to: regulationChange ? regulationChange.date : regulation.effectiveDate,
-    };
+  if (!diff) {
+    return augmentedRegulation;
   }
-  return augmentedRegulation;
+
+  const diffedRegulation = (augmentedRegulation as unknown) as RegulationDiff;
+
+  let earlierState: Pick<Regulation, 'text' | 'appendixes' | 'comments'> & {
+    date?: ISODate;
+  };
+
+  if (!regulationChange) {
+    // Here the "active" regulation is the original and any diffing should be against the empty string
+    earlierState = extractAppendixesAndComments('');
+  } else if (earlierDate === 'original') {
+    earlierState = extractAppendixesAndComments(regulation.text);
+  } else {
+    let eDate = earlierDate;
+    if (!eDate) {
+      eDate = new Date(regulationChange.date);
+      eDate.setDate(eDate.getDate() - 1);
+    }
+    const change = await getLatestRegulationChange(regulation.id, eDate);
+    earlierState = change
+      ? {
+          ...extractAppendixesAndComments(change.text),
+          date: change.date,
+        }
+      : extractAppendixesAndComments(regulation.text);
+  }
+
+  diffedRegulation.title = toHTML(augmentedRegulation.title);
+  // TODO:
+  // diffedRegulation.title = getTextContentDiff(
+  //   earlierState.title,
+  //   diffedRegulation.title,
+  // );
+  diffedRegulation.text = getDiff(earlierState.text, augmentedRegulation.text);
+  diffedRegulation.comments = getDiff(
+    earlierState.comments,
+    augmentedRegulation.comments,
+  );
+  diffedRegulation.appendixes = augmentedRegulation.appendixes.map((baseAppendix, i) => {
+    const { title, text } = earlierState.appendixes[i] || {};
+    return {
+      title: getTextContentDiff(title, baseAppendix.title),
+      text: getDiff(text, baseAppendix.text),
+    };
+  });
+
+  diffedRegulation.showingDiff = {
+    from: earlierState.date || regulation.publishedDate,
+    to: regulationChange ? regulationChange.date : regulation.effectiveDate,
+  };
+
+  return diffedRegulation;
 }

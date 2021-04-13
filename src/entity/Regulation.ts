@@ -1,4 +1,4 @@
-import { ISODate, RegName } from '../routes/types';
+import { HTMLText, ISODate, RegName } from '../routes/types';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('Regulation')
@@ -24,7 +24,7 @@ export class DB_Regulation {
   @Column()
   status!: 'raw' | 'unsafe' | 'draft' | 'text_locked' | 'migrated';
   @Column()
-  text!: string;
+  text!: HTMLText;
   @Column()
   title!: string;
   @Column()

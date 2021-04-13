@@ -1,4 +1,4 @@
-import { ISODate } from '../routes/types';
+import { HTMLText, ISODate } from '../routes/types';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('RegulationChange')
@@ -16,5 +16,5 @@ export class DB_RegulationChange {
   // @Column()
   // title?: string;
   @Column()
-  text!: string;
+  text!: HTMLText;
 }

@@ -3,7 +3,6 @@ import { getConnection, getManager } from 'typeorm';
 import { ISODate, RegulationListItem, LawChapter } from '../routes/types';
 import { getRegulationMinistry } from './Ministry';
 import { getRegulationLawChapters } from './LawChapter';
-import { toISODate } from '../utils/misc';
 
 export const PER_PAGE = 18;
 
@@ -45,7 +44,7 @@ type SQLRegulationsList = ReadonlyArray<
 >;
 export type RegulationListItemFull = RegulationListItem & {
   type: 'amending' | 'base';
-  text?: string;
+  text?: DB_Regulation['text'];
   effectiveDate: ISODate;
   lawChapters?: ReadonlyArray<LawChapter>;
 };
@@ -73,8 +72,8 @@ const augmentRegulations = async (
         title,
         text: opts.text ? text : undefined,
         name,
-        publishedDate: toISODate(publishedDate) as ISODate,
-        effectiveDate: toISODate(effectiveDate) as ISODate,
+        publishedDate,
+        effectiveDate,
         ministry,
         lawChapters,
       };
