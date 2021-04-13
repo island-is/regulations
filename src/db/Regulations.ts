@@ -33,6 +33,8 @@ export async function getRegulationsYears() {
   return years.map((y) => y.year);
 }
 
+// ---------------------------------------------------------------------------
+
 type SQLRegulationsList = ReadonlyArray<
   Pick<
     DB_Regulation,
@@ -88,6 +90,8 @@ const augmentRegulations = async (
   return augmentedRegulations;
 };
 
+// ---------------------------------------------------------------------------
+
 export async function getNewestRegulations(opts: { skip?: number; take?: number }) {
   const { skip = 0, take = regulationsPerPage } = opts;
   const connection = getConnection();
@@ -126,7 +130,7 @@ export async function getAllBaseRegulations(
       r.type = 'base'
       and (select done from Task where regulationId = r.id) = true
       and (select date from RegulationCancel where regulationId = r.id limit 1) IS NULL
-    order by publishedDate DESC
+    order by publishedDate DESC, id
     ;`;
 
   const regulations = ((await getManager().query(sql)) ?? []) as SQLRegulationsList;
