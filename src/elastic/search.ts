@@ -1,5 +1,6 @@
 import { Client } from '@elastic/elasticsearch';
-import { RegulationListItem } from '../routes/types';
+import { PER_PAGE } from '../db/Regulations';
+import { RegulationListItem, RegulationSearchResults } from '../routes/types';
 // import { RegulationsIndexBody } from './populate';
 
 type QueryParams = {
@@ -23,6 +24,7 @@ export async function searchElastic(client: Client, query: QueryParams) {
   const isNameQuery = searchQuery && /^\d{4}([-/]\d{4})?$/.test(searchQuery);
   let dslQuery;
   const filters: Array<{ term: { [key: string]: string } }> = [];
+  let totalItems = 0;
 
   if (query.year) {
     filters.push({
@@ -73,7 +75,7 @@ export async function searchElastic(client: Client, query: QueryParams) {
   if (filters.length || (searchQuery && searchQuery.length > 2)) {
     const { body } = await client.search({
       index: 'regulations',
-      size: 14,
+      size: PER_PAGE,
       body: {
         query: {
           bool: {
@@ -93,7 +95,17 @@ export async function searchElastic(client: Client, query: QueryParams) {
           ministry: hit._source.ministry,
         };
       }) ?? [];
+
+    totalItems = body?.hits?.total?.value ?? 0;
   }
 
-  return regulationHits;
+  const results: RegulationSearchResults = {
+    page: 1,
+    perPage: PER_PAGE,
+    totalPages: Math.ceil(totalItems / PER_PAGE),
+    totalItems,
+    data: regulationHits,
+  };
+
+  return results;
 }

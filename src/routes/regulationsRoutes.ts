@@ -1,11 +1,9 @@
 import {
+  PER_PAGE,
   getNewestRegulations,
-  regulationsPerPage,
   getRegulationsCount,
   getAllBaseRegulations,
 } from '../db/Regulations';
-
-import { DB_Regulation } from '../entity/Regulation';
 
 export function regulationsRoutes(fastify: any, opts: any, done: any) {
   /**
@@ -20,16 +18,17 @@ export function regulationsRoutes(fastify: any, opts: any, done: any) {
       !page || page < 1
         ? []
         : await getNewestRegulations({
-            skip: (page - 1) * regulationsPerPage,
-            take: regulationsPerPage,
+            skip: (page - 1) * PER_PAGE,
+            take: PER_PAGE,
           });
-    const total: number = await getRegulationsCount();
-    const totalPages = Math.ceil(total / regulationsPerPage);
+    const totalItems: number = await getRegulationsCount();
+    const totalPages = Math.ceil(totalItems / PER_PAGE);
 
     reply.send({
       page,
-      perPage: regulationsPerPage,
+      perPage: PER_PAGE,
       totalPages,
+      totalItems,
       data,
     });
   });

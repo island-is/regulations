@@ -5,7 +5,7 @@ import { getRegulationMinistry } from './Ministry';
 import { getRegulationLawChapters } from './LawChapter';
 import { toISODate } from '../utils/misc';
 
-export const regulationsPerPage = 18;
+export const PER_PAGE = 18;
 
 export async function getAllRegulations() {
   const connection = getConnection();
@@ -93,7 +93,7 @@ const augmentRegulations = async (
 // ---------------------------------------------------------------------------
 
 export async function getNewestRegulations(opts: { skip?: number; take?: number }) {
-  const { skip = 0, take = regulationsPerPage } = opts;
+  const { skip = 0, take = PER_PAGE } = opts;
   const connection = getConnection();
   const regulations: SQLRegulationsList =
     (await connection
