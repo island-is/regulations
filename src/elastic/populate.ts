@@ -1,6 +1,6 @@
-import { ISODate, RegName } from '../routes/types';
-import { RegulationListItemFull } from '../db/Regulations';
-import { getAllBaseRegulations } from '../db/Regulations';
+import { ISODate, RegName, Regulation } from '../routes/types';
+import { getRegulation } from '../db/Regulation';
+import { RegulationListItemFull, getAllBaseRegulations } from '../db/Regulations';
 import { Client } from '@elastic/elasticsearch';
 import { performance } from 'perf_hooks';
 // import { template } from './template';
@@ -25,6 +25,26 @@ export type RegulationsIndexBody = {
   ministrySlug?: string;
   lawChapters: Array<string>;
   lawChaptersSlugs: Array<string>;
+};
+
+const regulationToIndexItem = (reg: RegulationListItemFull | Regulation) => {
+  const lawChapters: Array<string> = [];
+  const lawChaptersSlugs: Array<string> = [];
+  reg?.lawChapters?.forEach((chapter) => {
+    lawChapters.push(chapter.name);
+    lawChaptersSlugs.push(chapter.slug);
+  });
+  const indexBody: RegulationsIndexBody = {
+    name: reg.name as RegName,
+    title: reg.title,
+    text: reg.text ?? '',
+    publishedDate: reg.publishedDate,
+    ministry: reg?.ministry?.name,
+    ministrySlug: reg?.ministry?.slug,
+    lawChapters: lawChapters,
+    lawChaptersSlugs: lawChaptersSlugs,
+  };
+  return indexBody;
 };
 
 const checkIfIndexExists = async (client: Client, index: string): Promise<boolean> => {
@@ -61,26 +81,11 @@ export async function populateElastic(client: Client) {
 
   console.info('populating "' + INDEX_NAME + '" index...');
   for await (const reg of regulations) {
-    const lawChapters: Array<string> = [];
-    const lawChaptersSlugs: Array<string> = [];
-    reg?.lawChapters?.forEach((chapter) => {
-      lawChapters.push(chapter.name);
-      lawChaptersSlugs.push(chapter.slug);
-    });
-    const indexBody: RegulationsIndexBody = {
-      name: reg.name as RegName,
-      title: reg.title,
-      text: reg.text ?? '',
-      publishedDate: reg.publishedDate,
-      ministry: reg?.ministry?.name,
-      ministrySlug: reg?.ministry?.slug,
-      lawChapters: lawChapters,
-      lawChaptersSlugs: lawChaptersSlugs,
-    };
+    const aReg = await regulationToIndexItem(reg);
 
     await client.index({
       index: INDEX_NAME,
-      body: indexBody,
+      body: aReg,
     });
   }
   /*
@@ -101,50 +106,42 @@ export async function populateElastic(client: Client) {
   return { success: true };
 }
 
-/*
-export async function updateElasticItem(client: Client, item: RegName) {
-  const t0 = performance.now();
-  console.info('fetching regulations...');
-  const regulations = (await getAllBaseRegulations({
-    full: true,
-    extra: true,
-  })) as Array<RegulationListItemType>;
-  console.info(regulations.length + ' regulations found, ');
+const _updateItem = async (client: Client, regname: RegName) => {
+  const newReg = await getRegulation(regname);
 
-  console.info('Deleting old index...');
-  await client.indices.delete({
-    index: 'regulations',
-  });
-
-  console.info('populating regulations index...');
-  for await (const reg of regulations) {
-    const lawChapters: Array<string> = [];
-    const lawChaptersSlugs: Array<string> = [];
-    reg?.lawChapters?.forEach((chapter) => {
-      lawChapters.push(chapter.name);
-      lawChaptersSlugs.push(chapter.slug);
-    });
-    const indexBody: RegulationsIndexBody = {
-      name: reg.name as RegName,
-      title: reg.title,
-      text: reg.text ?? '',
-      publishedDate: reg.publishedDate,
-      ministry: reg?.ministry?.name,
-      ministrySlug: reg?.ministry?.slug,
-      lawChapters: lawChapters,
-      lawChaptersSlugs: lawChaptersSlugs,
-    };
+  if (newReg && !('redirectUrl' in newReg) && !newReg.repealedDate) {
+    console.info('adding ' + regname + ' to index...');
+    const aReg = await regulationToIndexItem(newReg);
     await client.index({
-      index: 'regulations',
-      body: indexBody,
+      index: INDEX_NAME,
+      body: aReg,
     });
   }
+  await client.indices.refresh({ index: INDEX_NAME });
+  return { success: true };
+};
 
-  console.info('refreshing indices for regulations index...');
-  await client.indices.refresh({ index: 'regulations' });
-
-  const t1 = performance.now();
-  console.info('indexing successful in ' + Math.round(t1 - t0) + 'ms.');
-  return 'success';
+export async function updateElasticItem(client: Client, query: { name: RegName }) {
+  if (!query.name || !/^\d{4}[-/]\d{4}$/.test(query.name)) {
+    return { success: false };
+  }
+  console.info('deleting ' + query.name + ' from index...');
+  await client.deleteByQuery(
+    {
+      index: INDEX_NAME,
+      body: {
+        query: {
+          query_string: {
+            query: '"' + query.name?.replace(/[-/]/, '\\/') + '"',
+            fields: ['name'],
+          },
+        },
+      },
+    },
+    function (err, res) {
+      _updateItem(client, query.name);
+      return { success: true };
+    },
+  );
+  return { success: true };
 }
-*/

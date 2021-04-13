@@ -64,6 +64,14 @@ Set `process.env.PORT` to use a different port.
   of a regulation as it was on a specific `date`, showing the total chances
   since `earlierDate`
 
+## Search
+- `GET /api/v1/search?q=query&year=YYYY&rn=ministrySlug&ch=lawChapterSlug`  
+  Searches regulations by query, year, ministry or lawchapter
+- `GET /api/v1/search/populate`  
+  Rebuilds index db
+- `GET /api/v1/search/update?name=:name`
+  Updates regulation item in index by `name`
+
 ### Param types:
 
 - `name` – Regulation publication name formatted as `nnnn-yyyy`. _(Example:

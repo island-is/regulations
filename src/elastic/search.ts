@@ -9,25 +9,39 @@ type QueryParams = {
   ch?: string; // lawchapter slug
 };
 
+const cleanQuery = (q: string | undefined) => {
+  return q
+    ? q
+        .replace(/[\r\n\s]+/g, ' ')
+        .trim()
+        .toLowerCase()
+    : q;
+};
+
 export async function searchElastic(client: Client, query: QueryParams) {
-  console.log('search!', query.q);
+  console.log('search!', query.q, query.year, query.rn, query.ch);
+  const searchQuery = cleanQuery(query.q);
+  const isNameQuery = searchQuery && /^\d{4}([-/]\d{4})?$/.test(searchQuery);
   let dslQuery: any = {};
 
-  if (query.q && (/\d{4}(-|\/)(\d{4})/.test(query.q) || /\d{4}/.test(query.q))) {
+  console.log({ searchQuery });
+
+  if (isNameQuery) {
     // exact regulation name
-    console.log('ex');
     dslQuery = {
       query_string: {
-        query: '"' + query?.q?.replace(/\//, '\\/') + '"' ?? '',
+        query: '"' + searchQuery?.replace(/[-/]/, '\\/') + '"',
         fields: ['name'],
       },
     };
-  } else {
+  } else if (searchQuery) {
     // generic search
     dslQuery = {
-      query: '*' + query.q + '*',
-      analyze_wildcard: true,
-      fields: ['name^10', 'title^6', 'text^1'],
+      query_string: {
+        query: '*' + searchQuery.replace(/[-/]/, '\\/') + '*',
+        analyze_wildcard: true,
+        fields: ['name^10', 'title^6', 'text^1'],
+      },
     };
   }
 
