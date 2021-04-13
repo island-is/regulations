@@ -54,6 +54,10 @@ const start = async () => {
         DB_RegulationLawChapter,
         DB_RegulationTasks,
       ],
+      // Options passed down to the `mysql2` driver
+      extra: {
+        connectionLimit: Number(process.env.DATABASE_CONNECTION_LIMIT) || 5,
+      },
     });
 
     await fastify.listen(process.env.PORT || 3000, '0.0.0.0', (err) => {
