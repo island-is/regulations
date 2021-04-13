@@ -74,7 +74,7 @@ export async function populateElastic(client: Client) {
   }
 
   console.info('Creating new "' + INDEX_NAME + '" index...');
-  client.indices.create({
+  await client.indices.create({
     index: INDEX_NAME,
     // body: template,
   });
