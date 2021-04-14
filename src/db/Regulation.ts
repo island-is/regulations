@@ -321,7 +321,7 @@ export async function getRegulation(
     augmentedRegulation.comments,
   );
   diffedRegulation.appendixes = augmentedRegulation.appendixes.map((baseAppendix, i) => {
-    const { title, text } = earlierState.appendixes[i] || {};
+    const { title, text } = earlierState.appendixes[i] || { title: '', text: '' };
     return {
       title: getTextContentDiff(title, baseAppendix.title),
       text: getDiff(text, baseAppendix.text),

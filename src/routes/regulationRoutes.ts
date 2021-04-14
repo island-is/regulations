@@ -26,8 +26,11 @@ const handleRequest = async (
     const data = await getRegulation(slugToName(name), {
       date: date && new Date(date),
       diff,
-      earlierDate:
-        earlierDate === 'original' ? 'original' : earlierDate && new Date(earlierDate),
+      earlierDate: !validEarlierDate
+        ? undefined
+        : earlierDate === 'original'
+        ? 'original'
+        : earlierDate && new Date(earlierDate),
     });
     if (data) {
       res.send(data);
