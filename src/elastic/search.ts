@@ -21,7 +21,7 @@ const cleanQuery = (q: string | undefined) => {
 
 export async function searchElastic(client: Client, query: QueryParams) {
   const searchQuery = cleanQuery(query.q);
-  const isNameQuery = searchQuery && /^\d{4}([-/]\d{4})?$/.test(searchQuery);
+  const isNameQuery = searchQuery && /^\d{4}([-/]\d{0,4})?$/.test(searchQuery);
   let dslQuery;
   const filters: Array<{ term: { [key: string]: string } }> = [];
   let totalItems = 0;
