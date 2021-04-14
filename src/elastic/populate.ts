@@ -3,18 +3,9 @@ import { getRegulation } from '../db/Regulation';
 import { RegulationListItemFull, getAllBaseRegulations } from '../db/Regulations';
 import { Client } from '@elastic/elasticsearch';
 import { performance } from 'perf_hooks';
-// import { template } from './template';
+import { template } from './template';
 
 const INDEX_NAME = 'regulations';
-
-const analyzers = [
-  'stemmer',
-  'keywords',
-  'synonyms',
-  'stopwords',
-  'hyphenwhitelist',
-  'autocompletestop',
-];
 
 export type RegulationsIndexBody = {
   year: string;
@@ -54,7 +45,7 @@ const checkIfIndexExists = async (client: Client, index: string): Promise<boolea
   return result.statusCode === 200;
 };
 
-export async function populateElastic(client: Client) {
+export async function populateElastic(client: Client, useTemplate?: boolean) {
   const t0 = performance.now();
   console.info('fetching regulations...');
   const regulations = (await getAllBaseRegulations({
@@ -76,10 +67,16 @@ export async function populateElastic(client: Client) {
   }
 
   console.info('Creating new "' + INDEX_NAME + '" index...');
-  await client.indices.create({
-    index: INDEX_NAME,
-    // body: template,
-  });
+  if (useTemplate) {
+    await client.indices.create({
+      index: INDEX_NAME,
+      body: template,
+    });
+  } else {
+    await client.indices.create({
+      index: INDEX_NAME,
+    });
+  }
 
   console.info('populating "' + INDEX_NAME + '" index...');
   for await (const reg of regulations) {

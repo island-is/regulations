@@ -19,7 +19,7 @@ export function elasticsearchRoutes(fastify: any, opts: any, done: any) {
    */
   fastify.get('/search/populate', opts, async function (request: any, reply: any) {
     const client = this.elastic as Client;
-    const data = await populateElastic(client);
+    const data = await populateElastic(client, !!request?.query?.template);
     reply.send(data);
   });
 
