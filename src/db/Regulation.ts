@@ -273,7 +273,23 @@ export async function getRegulation(
   const augmentedRegulation = await augmentRegulation(regulation, regulationChange);
 
   // Add timelineDate if regulation is NON-CURRENT
-  if (isNonCurrent(augmentedRegulation, regulationChange)) {
+  // or has an earlierDate that's not "original"
+  //
+  // Augmented regulation needs timelineDate:
+  //
+  //  * false === /:name/current
+  //  * false === /:name/diff
+  //  * true === /:name/original
+  //  * false === /:name/d/:lastAmendDate   (same as /:name/current)
+  //  * true === /:name/d/:lastAmendDate/diff
+  //  * false === /:name/d/:lastAmendDate/diff/original   (same as /:name/diff)
+  //  * true === /:name/d/:lastAmendDate/diff/:earlierDate
+  //  * true === /:name/d/:lastAmendDate/diff/:originalPublishedDate
+  const needsTimelineDate =
+    isNonCurrent(augmentedRegulation, regulationChange) ||
+    (diff && (!earlierDate || earlierDate !== 'original'));
+
+  if (needsTimelineDate) {
     augmentedRegulation.timelineDate = regulationChange
       ? regulationChange.date
       : augmentedRegulation.effectiveDate;
