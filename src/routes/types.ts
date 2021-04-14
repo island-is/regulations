@@ -212,6 +212,10 @@ export type RegulationDiff = Omit<Regulation, 'title' | 'appendixes' | 'showingD
 
 // ---------------------------------------------------------------------------
 
+export type RegulationMaybeDiff = Regulation | RegulationDiff;
+
+// ---------------------------------------------------------------------------
+
 export type RegulationRedirect = {
   /** Publication name (NNNN/YYYY) of the regulation */
   name: RegName;
