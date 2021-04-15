@@ -7,7 +7,7 @@ import { RegulationListItem, RegulationSearchResults } from '../routes/types';
 
 // bunch of results for infinite scrolling search results
 // - increments by 18 and needs to be dividable by 2 and 3
-const PER_SEARCH_PAGE = PER_PAGE * 5;
+const PER_SEARCH_PAGE = PER_PAGE * 10;
 
 type QueryParams = {
   q?: string; // query
