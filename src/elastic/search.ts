@@ -3,6 +3,10 @@ import { PER_PAGE } from '../db/Regulations';
 import { RegulationListItem, RegulationSearchResults } from '../routes/types';
 // import { RegulationsIndexBody } from './populate';
 
+// bunch of results for infinite scrolling search results
+// - increments by 18 and needs to be dividable by 2 and 3
+const PER_SEARCH_PAGE = PER_PAGE * 5;
+
 type QueryParams = {
   q?: string; // query
   year?: string; // regulationYear
@@ -75,7 +79,7 @@ export async function searchElastic(client: Client, query: QueryParams) {
   if (filters.length || (searchQuery && searchQuery.length > 2)) {
     const { body } = await client.search({
       index: 'regulations',
-      size: PER_PAGE,
+      size: PER_SEARCH_PAGE,
       body: {
         query: {
           bool: {
@@ -101,8 +105,8 @@ export async function searchElastic(client: Client, query: QueryParams) {
 
   const results: RegulationSearchResults = {
     page: 1,
-    perPage: PER_PAGE,
-    totalPages: Math.ceil(totalItems / PER_PAGE),
+    perPage: PER_SEARCH_PAGE,
+    totalPages: Math.ceil(totalItems / PER_SEARCH_PAGE),
     totalItems,
     data: regulationHits,
   };
