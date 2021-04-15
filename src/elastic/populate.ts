@@ -3,7 +3,7 @@ import { getRegulation } from '../db/Regulation';
 import { RegulationListItemFull, getAllBaseRegulations } from '../db/Regulations';
 import { Client } from '@elastic/elasticsearch';
 import { performance } from 'perf_hooks';
-import { template } from './template';
+import { getSettingsTemplate, mappingTemplate } from './template';
 
 const INDEX_NAME = 'regulations';
 
@@ -67,16 +67,28 @@ export async function populateElastic(client: Client, useTemplate?: boolean) {
   }
 
   console.info('Creating new "' + INDEX_NAME + '" index...');
-  if (useTemplate) {
-    await client.indices.create({
-      index: INDEX_NAME,
-      body: template,
-    });
-  } else {
-    await client.indices.create({
-      index: INDEX_NAME,
-    });
-  }
+  await client.indices.create({
+    index: INDEX_NAME,
+  });
+
+  console.info('Applying settings to "' + INDEX_NAME + '" index...');
+  await client.indices.close({
+    index: INDEX_NAME,
+  });
+  const settingsTemplate = await getSettingsTemplate('master', 'is');
+  await client.indices.putSettings({
+    index: INDEX_NAME,
+    body: settingsTemplate,
+  });
+
+  console.info('Applying mappings to "' + INDEX_NAME + '" index...');
+  await client.indices.putMapping({
+    index: INDEX_NAME,
+    body: mappingTemplate,
+  });
+  await client.indices.open({
+    index: INDEX_NAME,
+  });
 
   console.info('populating "' + INDEX_NAME + '" index...');
   for await (const reg of regulations) {
