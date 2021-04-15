@@ -104,34 +104,34 @@ export const mappingTemplate = {
   properties: {
     title: {
       type: 'text',
-      fields: {
+      /*fields: {
         sort: {
           type: 'icu_collation_keyword',
           index: false,
           language: 'is',
           country: 'is',
         },
-        stemmed: {
-          type: 'text',
-          analyzer: 'baseIcelandic',
-        },
-        /*compound: {
+        // stemmed: {
+        //   type: 'text',
+        //   analyzer: 'baseIcelandic',
+        // },
+        compound: {
           type: 'text',
           analyzer: 'compoundIcelandic',
-        },*/
+        },
         keyword: {
           type: 'keyword',
         },
-      },
+      },*/
     },
     text: {
       type: 'text',
-      fields: {
+      /*fields: {
         stemmed: {
           type: 'text',
           analyzer: 'baseIcelandic',
         },
-      },
+      },*/
     },
     type: {
       type: 'keyword',

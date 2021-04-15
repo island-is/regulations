@@ -71,15 +71,15 @@ export async function populateElastic(client: Client, useTemplate?: boolean) {
     index: INDEX_NAME,
   });
 
-  console.info('Applying settings to "' + INDEX_NAME + '" index...');
   await client.indices.close({
     index: INDEX_NAME,
   });
-  const settingsTemplate = await getSettingsTemplate('master', 'is');
+  console.info('Applying settings to "' + INDEX_NAME + '" index...');
+  /*const settingsTemplate = await getSettingsTemplate('master', 'is');
   await client.indices.putSettings({
     index: INDEX_NAME,
     body: settingsTemplate,
-  });
+  });*/
 
   console.info('Applying mappings to "' + INDEX_NAME + '" index...');
   await client.indices.putMapping({
