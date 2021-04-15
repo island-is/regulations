@@ -7,7 +7,8 @@
   "scripts": {
     "build": "gulp build",
     "dev-watch": "yarn && gulp watch",
-    "dev": "yarn && yarn build && nodemon -r dotenv/config dist/server.js",
+    "dev-server": "yarn && yarn build && nodemon -r dotenv/config dist/server.js",
+    "dev": "concurrently --kill-others \"yarn dev-watch\" \"yarn dev-server\"",
     "start": "node dist/server.js",
     "lint:eslint": "eslint \"*.{js,ts,tsx}\" \"src/**/*.{js,ts,tsx}\"",
     "lint": "concurrently yarn:lint:*",
@@ -21,6 +22,7 @@
   },
   "dependencies": {
     "@types/jsdom": "^16.2.9",
+    "elastic-builder": "^2.13.0",
     "esm": "^3.2.25",
     "fastify": "^3.11.0",
     "fastify-compress": "^3.4.2",

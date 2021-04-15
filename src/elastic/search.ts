@@ -1,4 +1,6 @@
 import { Client } from '@elastic/elasticsearch';
+import esb from 'elastic-builder';
+// import util from 'util';
 import { PER_PAGE } from '../db/Regulations';
 import { RegulationListItem, RegulationSearchResults } from '../routes/types';
 // import { RegulationsIndexBody } from './populate';
@@ -24,73 +26,58 @@ const cleanQuery = (q: string | undefined) => {
 };
 
 export async function searchElastic(client: Client, query: QueryParams) {
-  const searchQuery = cleanQuery(query.q);
-  const isNameQuery = searchQuery && /^\d{4}([-/]\d{0,4})?$/.test(searchQuery);
-  let dslQuery;
-  const filters: Array<{ term: { [key: string]: string } }> = [];
-  let totalItems = 0;
+  let searchQuery = cleanQuery(query.q);
+  const isNameQuery = searchQuery && /^\d{3,4}([-/]\d{0,4})?$/.test(searchQuery);
 
-  if (query.year) {
-    filters.push({
-      term: {
-        year: query.year,
-      },
-    });
-  }
-  if (query.rn) {
-    filters.push({
-      term: {
-        ministrySlug: query.rn,
-      },
-    });
-  }
-  if (query.ch) {
-    filters.push({
-      term: {
-        lawChaptersSlugs: query.ch,
-      },
-    });
+  // add filters
+  const filters: Array<esb.Query> = [];
+  for (const [key, value] of Object.entries(query)) {
+    if (['year', 'rn', 'ch'].includes(key)) {
+      filters.push(esb.termQuery(key, value));
+    }
   }
 
+  // build text search
+  const search: Array<esb.Query> = [];
   if (isNameQuery) {
+    if (searchQuery && /^\d{3}([-/]\d{0,4})?$/.test(searchQuery)) {
+      // zeropad 3 digit name querys
+      searchQuery = '0' + searchQuery;
+    }
     // exact regulation name search
-    dslQuery = {
-      query: '"' + searchQuery?.replace(/[-/]/, '\\/') + '"',
-      fields: ['name'],
-    };
+    search.push(esb.matchPhrasePrefixQuery('name', searchQuery));
   } else if (searchQuery) {
     // generic search
-    dslQuery = {
-      query: '*' + searchQuery.replace(/[-/]/, '\\/') + '*',
-      analyze_wildcard: true,
-      fields: ['name^10', 'title^6', 'text^1'],
-    };
+    search.push(
+      esb
+        .queryStringQuery('*' + searchQuery + '*')
+        .analyzeWildcard(true)
+        // .escape(true)
+        .fields(['name^10', 'title^4', 'text^1']),
+    );
   } else if (filters.length) {
     // wild search with filters only
-    dslQuery = {
-      query: '*',
-      analyze_wildcard: true,
-      fields: ['title^6', 'text^1'],
-    };
+    search.push(esb.queryStringQuery('*').analyzeWildcard(true).fields(['title']));
   }
 
-  let regulationHits: Array<RegulationListItem> = [];
+  // console.log(util.inspect(search, true, null));
 
-  if (filters.length || (searchQuery && searchQuery.length > 2)) {
+  // build search body
+  const requestBody = esb
+    .requestBodySearch()
+    .query(esb.boolQuery().must(search).filter(filters));
+
+  let totalItems = 0;
+  let searchHits: Array<RegulationListItem> = [];
+
+  if (filters.length || search.length) {
     const { body } = await client.search({
       index: 'regulations',
       size: PER_SEARCH_PAGE,
-      body: {
-        query: {
-          bool: {
-            must: { query_string: dslQuery },
-            filter: filters,
-          },
-        },
-      },
+      body: requestBody.toJSON(),
     });
 
-    regulationHits =
+    searchHits =
       body?.hits?.hits?.map((hit: any) => {
         return {
           name: hit._source.name,
@@ -108,7 +95,7 @@ export async function searchElastic(client: Client, query: QueryParams) {
     perPage: PER_SEARCH_PAGE,
     totalPages: Math.ceil(totalItems / PER_SEARCH_PAGE),
     totalItems,
-    data: regulationHits,
+    data: searchHits,
   };
 
   return results;
