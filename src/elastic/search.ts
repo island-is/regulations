@@ -31,10 +31,15 @@ export async function searchElastic(client: Client, query: QueryParams) {
 
   // add filters
   const filters: Array<esb.Query> = [];
-  for (const [key, value] of Object.entries(query)) {
-    if (['year', 'rn', 'ch'].includes(key)) {
-      filters.push(esb.termQuery(key, value));
-    }
+
+  if (query.year) {
+    filters.push(esb.termQuery('year', query.year));
+  }
+  if (query.rn) {
+    filters.push(esb.termQuery('ministrySlug', query.rn));
+  }
+  if (query.ch) {
+    filters.push(esb.termQuery('lawChaptersSlugs', query.ch));
   }
 
   // build text search
@@ -60,12 +65,12 @@ export async function searchElastic(client: Client, query: QueryParams) {
     search.push(esb.queryStringQuery('*').analyzeWildcard(true).fields(['title']));
   }
 
-  // console.log(util.inspect(search, true, null));
-
   // build search body
   const requestBody = esb
     .requestBodySearch()
     .query(esb.boolQuery().must(search).filter(filters));
+
+  // console.log(util.inspect(requestBody, true, null));
 
   let totalItems = 0;
   let searchHits: Array<RegulationListItem> = [];
