@@ -1,24 +1,25 @@
 import { fastify as fast } from 'fastify';
 import fastifyRateLimiter from 'fastify-rate-limit';
-import { createConnection } from 'typeorm';
+import { Sequelize } from 'sequelize-typescript';
 
 import fastifyCompress from 'fastify-compress';
 import fastifyElasticsearch from 'fastify-elasticsearch';
 import { elasticsearchRoutes } from './elastic/routes';
 
-import { DB_Regulation } from './entity/Regulation';
 import { regulationRoutes } from './routes/regulationRoutes';
 import { regulationsRoutes } from './routes/regulationsRoutes';
-import { DB_Ministry } from './entity/Ministry';
 import { ministryRoutes } from './routes/ministryRoutes';
-import { DB_LawChapter } from './entity/LawChapter';
 import { lawChapterRoutes } from './routes/lawChapterRoutes';
 import { yearsRoutes } from './routes/yearsRoutes';
-import { DB_RegulationChange } from './entity/RegulationChange';
-import { DB_RegulationCancel } from './entity/RegulationCancel';
-import { DB_RegulationMinistry } from './entity/RegulationMinistry';
-import { DB_RegulationLawChapter } from './entity/RegulationLawChapter';
-import { DB_RegulationTasks } from './entity/RegulationTasks';
+
+import { Regulation as DB_Regulation } from './models/Regulation';
+import { RegulationChange as DB_RegulationChange } from './models/RegulationChange';
+import { RegulationCancel as DB_RegulationCancel } from './models/RegulationCancel';
+import { Regulation_Ministry as DB_RegulationMinistry } from './models/Regulation_Ministry';
+import { Regulation_LawChapter as DB_RegulationLawChapter } from './models/Regulation_LawChapter';
+import { Ministry as DB_Ministry } from './models/Ministry';
+import { LawChapter as DB_LawChapter } from './models/LawChapter';
+import { Task as DB_RegulationTasks } from './models/Task';
 
 const fastify = fast();
 fastify.register(fastifyRateLimiter, {
@@ -41,15 +42,15 @@ fastify.register(yearsRoutes, { prefix: '/api/v1' });
 
 const start = async () => {
   try {
-    await createConnection({
-      type: 'mysql',
+    await new Sequelize({
+      dialect: 'mysql',
       host: process.env.MYSQL_HOST,
       port: parseInt(process.env.MYSQL_PORT ?? ''),
       username: process.env.MYSQL_USER,
       password: process.env.MYSQL_PASS,
       database: process.env.MYSQL_DB,
-      synchronize: false,
-      entities: [
+      storage: ':memory:',
+      models: [
         DB_Regulation,
         DB_Ministry,
         DB_LawChapter,
@@ -60,8 +61,11 @@ const start = async () => {
         DB_RegulationTasks,
       ],
       // Options passed down to the `mysql2` driver
-      extra: {
-        connectionLimit: Number(process.env.DATABASE_CONNECTION_LIMIT) || 5,
+      pool: {
+        max: Number(process.env.DATABASE_CONNECTION_LIMIT) || 5,
+        min: 0,
+        acquire: 30000,
+        idle: 10000,
       },
     });
 

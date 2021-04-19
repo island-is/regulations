@@ -1,4 +1,4 @@
-import { DB_LawChapter } from '../entity/LawChapter';
+import { LawChapter as DB_LawChapter } from '../models/LawChapter';
 import { getConnection } from 'typeorm';
 import { DB_RegulationLawChapter } from '../entity/RegulationLawChapter';
 import { LawChapterTree, LawChapter } from '../routes/types';
@@ -38,12 +38,7 @@ export const chaptersToTree = (chapters: Array<DB_LawChapter>): LawChapterTree =
 };
 
 export async function getAllLawChapters() {
-  const lawChaptersRepository = getConnection().getRepository(DB_LawChapter);
-  const lawChapters =
-    (await lawChaptersRepository
-      .createQueryBuilder('lawchapters')
-      .orderBy('slug', 'ASC')
-      .getMany()) ?? [];
+  const lawChapters = await DB_LawChapter.findAll({ order: [['slug', 'ASC']] });
   return lawChapters;
 }
 

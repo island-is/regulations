@@ -3,5 +3,4 @@ cd "./${0%/*}" # cd into project root
 
 export $(egrep -v '^#' .env | xargs)
 
-npx typeorm-model-generator -h ${MYSQL_HOST} -d ${MYSQL_DB} -u ${MYSQL_USER} -x ${MYSQL_PASS} -p ${MYSQL_PORT} -e mysql
-rm ./src/ormconfig.json ./src/tsconfig.json
+stg -h ${MYSQL_HOST} -d ${MYSQL_DB} -u ${MYSQL_USER} -x ${MYSQL_PASS} -p ${MYSQL_PORT} -D mysql -T DBMeta -c -o ./src/models
