@@ -1,5 +1,5 @@
 import { FastifyPluginCallback } from 'fastify';
-import { cache } from 'utils/misc';
+import { cache } from '../utils/misc';
 import { getAllMinistries } from '../db/Ministry';
 import { MinistryListItem } from './types';
 

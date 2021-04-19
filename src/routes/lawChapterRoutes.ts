@@ -1,5 +1,5 @@
 import { FastifyPluginCallback } from 'fastify';
-import { cache } from 'utils/misc';
+import { cache } from '../utils/misc';
 import { augmentLawChapters, chaptersToTree, getAllLawChapters } from '../db/LawChapter';
 
 const LAWCHAPTER_TTL = 24;

@@ -4,7 +4,7 @@ import { RegulationListItemFull, getAllBaseRegulations } from '../db/Regulations
 import { Client } from '@elastic/elasticsearch';
 import { performance } from 'perf_hooks';
 import { getSettingsTemplate, mappingTemplate } from './template';
-import { assertRegName } from 'utils/misc';
+import { assertRegName } from '../utils/misc';
 
 const INDEX_NAME = 'regulations';
 
