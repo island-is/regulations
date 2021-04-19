@@ -1,5 +1,8 @@
 import { FastifyPluginCallback } from 'fastify';
+import { cache } from 'utils/misc';
 import { augmentLawChapters, chaptersToTree, getAllLawChapters } from '../db/LawChapter';
+
+const LAWCHAPTER_TTL = 24;
 
 export const lawChapterRoutes: FastifyPluginCallback = (fastify, opts, done) => {
   /**
@@ -8,6 +11,7 @@ export const lawChapterRoutes: FastifyPluginCallback = (fastify, opts, done) => 
    */
   fastify.get('/lawchapters', opts, async (request, reply) => {
     const lawChapters = await getAllLawChapters();
+    cache(reply, LAWCHAPTER_TTL);
     reply.send(augmentLawChapters(lawChapters));
   });
 
@@ -17,6 +21,7 @@ export const lawChapterRoutes: FastifyPluginCallback = (fastify, opts, done) => 
    */
   fastify.get('/lawchapters/tree', opts, async (request, reply) => {
     const lawChapters = await getAllLawChapters();
+    cache(reply, LAWCHAPTER_TTL);
     reply.send(chaptersToTree(lawChapters));
   });
 

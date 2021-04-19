@@ -1,6 +1,9 @@
 import { FastifyPluginCallback } from 'fastify';
+import { cache } from 'utils/misc';
 import { getAllMinistries } from '../db/Ministry';
 import { MinistryListItem } from './types';
+
+const MINISTRY_TTL = 1;
 
 export const ministryRoutes: FastifyPluginCallback = (fastify, opts, done) => {
   /**
@@ -15,6 +18,7 @@ export const ministryRoutes: FastifyPluginCallback = (fastify, opts, done) => {
         return ministry;
       },
     );
+    cache(reply, MINISTRY_TTL);
     reply.send(ministries);
   });
 

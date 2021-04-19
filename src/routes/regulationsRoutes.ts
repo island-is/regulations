@@ -5,7 +5,10 @@ import {
   getRegulationsCount,
   getAllBaseRegulations,
 } from '../db/Regulations';
-import { assertPosInt, IntPositive, QStr } from './utils';
+import { assertPosInt, cache, IntPositive, QStr } from '../utils/misc';
+
+const NEWEST_TTL = 0.5;
+const ALLCURRENT_TTL = 0.5;
 
 export const regulationsRoutes: FastifyPluginCallback = (fastify, opts, done) => {
   /**
@@ -22,6 +25,7 @@ export const regulationsRoutes: FastifyPluginCallback = (fastify, opts, done) =>
     const totalItems: number = await getRegulationsCount();
     const totalPages = Math.ceil(totalItems / PER_PAGE);
 
+    cache(reply, NEWEST_TTL);
     reply.send({
       page,
       perPage: PER_PAGE,
@@ -35,6 +39,7 @@ export const regulationsRoutes: FastifyPluginCallback = (fastify, opts, done) =>
 
   fastify.get('/regulations/all/current', opts, async (request, reply) => {
     const data = await getAllBaseRegulations();
+    cache(reply, ALLCURRENT_TTL);
     reply.send(data);
   });
   fastify.get('/regulations/all/current/full', opts, async (request, reply) => {

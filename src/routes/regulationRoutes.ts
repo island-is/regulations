@@ -1,17 +1,11 @@
 import { getRegulation } from '../db/Regulation';
-import { assertISODate, assertNameSlug, slugToName } from '../utils/misc';
+import { assertISODate, assertNameSlug, slugToName, Pms, cache } from '../utils/misc';
 
 import { DB_Regulation } from '../entity/Regulation';
 import { ISODate, RegQueryName } from './types';
 import { FastifyPluginCallback, FastifyReply } from 'fastify';
-import { Pms } from './utils';
 
-// res.headers({
-//   Link: linkHeader,
-//   ETag: lastModified,
-//   'Content-Type': 'text/css; charset=UTF-8',
-//   'Cache-Control': 'public, max-age=',
-// });
+const REGULATION_TTL = 0.1;
 
 // eslint-disable-next-line complexity
 const handleRequest = async (
@@ -39,6 +33,7 @@ const handleRequest = async (
         : earlierDate && new Date(earlierDate),
     });
     if (data) {
+      cache(res, REGULATION_TTL);
       res.send(data);
     } else {
       res.code(400).send('Regulation not found!');

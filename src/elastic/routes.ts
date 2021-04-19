@@ -1,5 +1,5 @@
 import { FastifyPluginCallback } from 'fastify';
-import { QStr } from 'routes/utils';
+import { QStr } from '../utils/misc';
 import { populateElastic, updateElasticItem } from './populate';
 import { searchElastic, SearchQueryParams } from './search';
 
