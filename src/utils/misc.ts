@@ -109,6 +109,7 @@ export const assertPosInt = (maybeNumber: string): IntPositive | undefined => {
 const HOURS = 60 * 60;
 export const cache = (res: FastifyReply, ttl_hrs: number): void => {
   res.headers({
-    'Cache-Control': 'public, max-age=' + ttl_hrs * HOURS + (ttl_hrs ? ', immutale' : ''),
+    'Cache-Control':
+      'public, max-age=' + ttl_hrs * HOURS + (ttl_hrs ? ', immutable' : ''),
   });
 };
