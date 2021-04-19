@@ -1,38 +1,46 @@
-import { Client } from '@elastic/elasticsearch';
+import { FastifyPluginCallback } from 'fastify';
+import { QStr } from 'routes/utils';
 import { populateElastic, updateElasticItem } from './populate';
-import { searchElastic } from './search';
+import { searchElastic, SearchQueryParams } from './search';
 
-export function elasticsearchRoutes(fastify: any, opts: any, done: any) {
+// ---------------------------------------------------------------------------
+
+export const elasticsearchRoutes: FastifyPluginCallback = (fastify, opts, done) => {
   /**
    * Search regulations
    * @returns {Array<Ministry>}
    */
-  fastify.get('/search', opts, async function (request: any, reply: any) {
-    const client = this.elastic as Client;
-    const data = await searchElastic(client, request?.query);
-    reply.send(data);
-  });
+  fastify.get<{ Querystring: SearchQueryParams }>(
+    '/search',
+    opts,
+    async function (request, reply) {
+      const data = await searchElastic(this.elastic, request.query);
+      reply.send(data);
+    },
+  );
 
   /**
    * Populate regulations search index
    * @returns {Array<Ministry>}
    */
-  fastify.get('/search/populate', opts, async function (request: any, reply: any) {
-    const client = this.elastic as Client;
-    const data = await populateElastic(client, !!request?.query?.template);
-    reply.send(data);
-  });
+  fastify.get<QStr<'template'>>(
+    '/search/populate',
+    opts,
+    async function (request, reply) {
+      const data = await populateElastic(this.elastic, !!request.query.template);
+      reply.send(data);
+    },
+  );
 
   /**
    * Update single regulation in index by RegName
    * @returns {Array<Ministry>}
    */
-  fastify.get('/search/update', opts, async function (request: any, reply: any) {
-    const client = this.elastic as Client;
-    await updateElasticItem(client, request?.query);
+  fastify.get<QStr<'name'>>('/search/update', opts, async function (request, reply) {
+    await updateElasticItem(this.elastic, request.query);
 
     reply.send({ success: 1 });
   });
 
   done();
-}
+};

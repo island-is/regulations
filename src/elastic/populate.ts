@@ -4,6 +4,7 @@ import { RegulationListItemFull, getAllBaseRegulations } from '../db/Regulations
 import { Client } from '@elastic/elasticsearch';
 import { performance } from 'perf_hooks';
 import { getSettingsTemplate, mappingTemplate } from './template';
+import { assertRegName } from 'utils/misc';
 
 const INDEX_NAME = 'regulations';
 
@@ -130,19 +131,20 @@ const _updateItem = async (client: Client, regname: RegName) => {
   return { success: true };
 };
 
-export async function updateElasticItem(client: Client, query: { name: RegName }) {
-  if (!query.name || !/^\d{4}[-/]\d{4}$/.test(query.name)) {
+export async function updateElasticItem(client: Client, query: { name?: string }) {
+  const name = query.name && assertRegName(query.name);
+  if (!name) {
     return { success: false };
   }
   try {
-    console.info('deleting ' + query.name + ' from index...');
+    console.info('deleting ' + name + ' from index...');
     await client.deleteByQuery(
       {
         index: INDEX_NAME,
         body: {
           query: {
             query_string: {
-              query: '"' + query.name?.replace(/[-/]/, '\\/') + '"',
+              query: '"' + name + '"',
               fields: ['name'],
             },
           },
@@ -153,7 +155,7 @@ export async function updateElasticItem(client: Client, query: { name: RegName }
           console.error(err.message);
           return { success: false };
         }
-        return _updateItem(client, query.name);
+        return _updateItem(client, name);
       },
     );
   } catch (err) {

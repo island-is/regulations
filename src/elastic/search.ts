@@ -9,7 +9,7 @@ import { RegulationListItem, RegulationSearchResults } from '../routes/types';
 // - increments by 18 and needs to be dividable by 2 and 3
 const PER_SEARCH_PAGE = PER_PAGE * 10;
 
-type QueryParams = {
+export type SearchQueryParams = {
   q?: string; // query
   year?: string; // regulationYear
   rn?: string; // ministry slug
@@ -25,7 +25,7 @@ const cleanQuery = (q: string | undefined) => {
     : q;
 };
 
-export async function searchElastic(client: Client, query: QueryParams) {
+export async function searchElastic(client: Client, query: SearchQueryParams) {
   let searchQuery = cleanQuery(query.q);
   const isNameQuery = searchQuery && /^\d{3,4}([-/]\d{0,4})?$/.test(searchQuery);
 

@@ -3,13 +3,19 @@ import { assertISODate, assertNameSlug, slugToName } from '../utils/misc';
 
 import { DB_Regulation } from '../entity/Regulation';
 import { ISODate, RegQueryName } from './types';
+import { FastifyPluginCallback, FastifyReply } from 'fastify';
+import { Pms } from './utils';
 
-type Request = any;
-type Response = any;
+// res.headers({
+//   Link: linkHeader,
+//   ETag: lastModified,
+//   'Content-Type': 'text/css; charset=UTF-8',
+//   'Cache-Control': 'public, max-age=',
+// });
 
 // eslint-disable-next-line complexity
 const handleRequest = async (
-  res: Response,
+  res: FastifyReply,
   opts: {
     name?: RegQueryName;
     date?: ISODate | Date;
@@ -52,13 +58,13 @@ const handleRequest = async (
   }
 };
 
-export const regulationRoutes = (fastify: any, opts: any, done: any) => {
+export const regulationRoutes: FastifyPluginCallback = (fastify, opts, done) => {
   /**
    * Returns original version of a regulation
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
    * @returns {DB_Regulation}
    */
-  fastify.get('/regulation/:name/original', opts, (req: Request, res: Response) => {
+  fastify.get<Pms<'name'>>('/regulation/:name/original', opts, (req, res) => {
     const name = assertNameSlug(req.params.name);
     return handleRequest(res, {
       name,
@@ -70,7 +76,7 @@ export const regulationRoutes = (fastify: any, opts: any, done: any) => {
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
    * @returns {DB_Regulation}
    */
-  fastify.get('/regulation/:name/current', opts, (req: Request, res: Response) => {
+  fastify.get<Pms<'name'>>('/regulation/:name/current', opts, (req, res) => {
     const name = assertNameSlug(req.params.name);
     return handleRequest(res, {
       name,
@@ -84,7 +90,7 @@ export const regulationRoutes = (fastify: any, opts: any, done: any) => {
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
    * @returns {DB_Regulation}
    */
-  fastify.get('/regulation/:name/diff', opts, (req: Request, res: Response) => {
+  fastify.get<Pms<'name'>>('/regulation/:name/diff', opts, (req, res) => {
     const name = assertNameSlug(req.params.name);
     return handleRequest(res, {
       name,
@@ -100,7 +106,7 @@ export const regulationRoutes = (fastify: any, opts: any, done: any) => {
    * @param {string} date - ISODate (`YYYY-MM-DD`)
    * @returns {DB_Regulation}
    */
-  fastify.get('/regulation/:name/d/:date', opts, (req: Request, res: Response) => {
+  fastify.get<Pms<'name' | 'date'>>('/regulation/:name/d/:date', opts, (req, res) => {
     const name = assertNameSlug(req.params.name);
     const date = assertISODate(req.params.date);
     return handleRequest(res, {
@@ -116,15 +122,19 @@ export const regulationRoutes = (fastify: any, opts: any, done: any) => {
    * @param {string} date - ISODate (`YYYY-MM-DD`)
    * @returns {DB_Regulation}
    */
-  fastify.get('/regulation/:name/d/:date/diff', opts, (req: Request, res: Response) => {
-    const name = assertNameSlug(req.params.name);
-    const date = assertISODate(req.params.date);
-    handleRequest(res, {
-      name,
-      date,
-      diff: true,
-    });
-  });
+  fastify.get<Pms<'name' | 'date'>>(
+    '/regulation/:name/d/:date/diff',
+    opts,
+    (req, res) => {
+      const name = assertNameSlug(req.params.name);
+      const date = assertISODate(req.params.date);
+      handleRequest(res, {
+        name,
+        date,
+        diff: true,
+      });
+    },
+  );
 
   /**
    * Returns a version of a regulation as it was on a specific date, showing the changes
@@ -134,10 +144,10 @@ export const regulationRoutes = (fastify: any, opts: any, done: any) => {
    * @param {string} earlierDate - ISODate (`YYYY-MM-DD`) or 'original'
    * @returns {DB_Regulation}
    */
-  fastify.get(
+  fastify.get<Pms<'name' | 'date' | 'earlierDate'>>(
     '/regulation/:name/d/:date/diff/:earlierDate',
     opts,
-    (req: Request, res: Response) => {
+    (req, res) => {
       const p = req.params;
       const name = assertNameSlug(p.name);
       const date = assertISODate(p.date);

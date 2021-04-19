@@ -24,8 +24,25 @@ export const slugToName = (regulationName: RegQueryName): RegName =>
  *  Example: '0123-202' --> undefined
  */
 export const assertNameSlug = (slug: string): RegQueryName | undefined => {
-  if (/\d{1,4}-\d{4}/.test(slug)) {
+  if (/^\d{1,4}-\d{4}$/.test(slug)) {
     return (slug.length === 9 ? slug : ('000' + slug).substr(-9)) as RegQueryName;
+  }
+};
+
+// ---------------------------------------------------------------------------
+
+/** Returns a fully zero-padded RegName.
+ *
+ * Returns `undefined` if the slug doesn't roughly look like a valid regulation number
+ *
+ *  Example: '23-2020' --> '0023/2020'
+ *  Example: '23/2020' --> '0023/2020'
+ *  Example: '0123-202' --> undefined
+ */
+export const assertRegName = (slug: string): RegName | undefined => {
+  slug = slug.replace('-', '/');
+  if (/^\d{1,4}\/\d{4}$/.test(slug)) {
+    return (slug.length === 9 ? slug : ('000' + slug).substr(-9)) as RegName;
   }
 };
 
@@ -44,7 +61,7 @@ export function toISODate(date: Date | string | null | undefined) {
 // ---------------------------------------------------------------------------
 
 const smellsLikeISODate = (maybeISODate: string): boolean =>
-  /\d{4}-\d{2}-\d{2}/.test(maybeISODate);
+  /^\d{4}-\d{2}-\d{2}$/.test(maybeISODate);
 
 /** Asserts that the incoming string is a valid ISODate.
  *

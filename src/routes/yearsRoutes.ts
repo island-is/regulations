@@ -1,14 +1,15 @@
+import { FastifyPluginCallback } from 'fastify';
 import { getRegulationsYears } from '../db/Regulations';
 
-export function yearsRoutes(fastify: any, opts: any, done: any) {
+export const yearsRoutes: FastifyPluginCallback = (fastify, opts, done) => {
   /**
    * Gets all minitries
    * @returns {Array<Ministry>}
    */
-  fastify.get('/years', opts, async function (request: any, reply: any) {
+  fastify.get('/years', opts, async (request, reply) => {
     const data = await getRegulationsYears();
     reply.send(data);
   });
 
   done();
-}
+};

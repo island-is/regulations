@@ -1,12 +1,13 @@
+import { FastifyPluginCallback } from 'fastify';
 import { getAllMinistries } from '../db/Ministry';
 import { MinistryListItem } from './types';
 
-export function ministryRoutes(fastify: any, opts: any, done: any) {
+export const ministryRoutes: FastifyPluginCallback = (fastify, opts, done) => {
   /**
    * Gets all minitries
    * @returns {MinistryList}
    */
-  fastify.get('/ministries', opts, async function (request: any, reply: any) {
+  fastify.get('/ministries', opts, async (request, reply) => {
     const data = await getAllMinistries();
     const ministries = data.map(
       (m): MinistryListItem => {
@@ -18,4 +19,4 @@ export function ministryRoutes(fastify: any, opts: any, done: any) {
   });
 
   done();
-}
+};

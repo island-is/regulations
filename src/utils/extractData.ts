@@ -2,6 +2,8 @@ import qq from 'qj/qq';
 import { asDiv } from './serverDOM';
 import { HTMLText, Regulation } from '../routes/types';
 
+// This function is copy-pasted from https://github.com/hugsmidjan-is/reglugerd-admin-www/
+// Both copies should behave the same
 export const extractAppendixesAndComments = (
   text: HTMLText | '',
 ): Pick<Regulation, 'text' | 'appendixes' | 'comments'> => {
