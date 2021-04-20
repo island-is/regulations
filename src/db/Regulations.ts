@@ -3,6 +3,7 @@ import { ISODate, RegulationListItem, LawChapter, RegName } from '../routes/type
 import { getRegulationMinistry } from './Ministry';
 import { getRegulationLawChapters } from './LawChapter';
 import { db } from '../utils/sequelize';
+import { QueryTypes } from 'sequelize';
 
 export const PER_PAGE = 18;
 
@@ -21,6 +22,7 @@ export async function getRegulationsYears() {
     <Array<{ year: number }>>(
       await db.query(
         'SELECT DISTINCT YEAR(publishedDate) AS `year` FROM Regulation ORDER BY `year` DESC',
+        { type: QueryTypes.SELECT },
       )
     ) ?? [];
   return years.map((y) => y.year);
@@ -123,7 +125,9 @@ export async function getAllBaseRegulations(
     order by publishedDate DESC, id
     ;`;
 
-  const regulations = ((await db.query(sql)) ?? []) as SQLRegulationsList;
+  const regulations = <SQLRegulationsList>(
+    ((await db.query(sql, { type: QueryTypes.SELECT })) ?? [])
+  );
 
   if (extra) {
     return await augmentRegulations(regulations, {

@@ -6,8 +6,7 @@ import { RegulationCancel as DB_RegulationCancel } from '../models/RegulationCan
 import { getRegulationLawChapters } from './LawChapter';
 import { Task as DB_RegulationTasks } from '../models/Task';
 import { db } from '../utils/sequelize';
-import util from 'util';
-import { Op } from 'sequelize';
+import { Op, QueryTypes } from 'sequelize';
 import {
   HTMLText,
   PlainText,
@@ -89,6 +88,7 @@ type HistoryData = ReadonlyArray<{
 async function getRegulationHistory(regulation: DB_Regulation) {
   const historyData = <HistoryData>await db.query('call regulationHistoryByName(:name)', {
       replacements: { name: regulation.name },
+      type: QueryTypes.RAW,
     }) ?? [];
 
   return (
@@ -120,12 +120,12 @@ async function getRegulationEffects(regulationId: number) {
   on Regulation.id = effects.regulationId
   order by Regulation.publishedDate, Regulation.id
   ;`;
-  // FIXME: for some reason sequelize runs this query 2x and generates an array of EffectsData arrays
-  const effectsData = <Array<EffectsData>>await db.query(effectsQuery, {
+  const effectsData = <EffectsData>await db.query(effectsQuery, {
       replacements: { changingId: regulationId },
+      type: QueryTypes.SELECT,
     }) ?? [];
 
-  return effectsData[0].map(
+  return effectsData.map(
     ({ date, name, title, effect }): RegulationEffect => ({
       date: toISODate(date) as ISODate,
       name,
