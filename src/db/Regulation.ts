@@ -1,11 +1,12 @@
 import htmldiff from 'htmldiff-js';
-import { DB_Regulation } from '../entity/Regulation';
-import { getConnection, getManager } from 'typeorm';
-import { DB_RegulationChange } from '../entity/RegulationChange';
+import { Regulation as DB_Regulation } from '../models/Regulation';
+import { RegulationChange as DB_RegulationChange } from '../models/RegulationChange';
 import { getRegulationMinistry } from './Ministry';
-import { DB_RegulationCancel } from '../entity/RegulationCancel';
+import { RegulationCancel as DB_RegulationCancel } from '../models/RegulationCancel';
 import { getRegulationLawChapters } from './LawChapter';
-import { DB_RegulationTasks } from '../entity/RegulationTasks';
+import { Task as DB_RegulationTasks } from '../models/Task';
+import { db } from '../utils/sequelize';
+import util from 'util';
 import {
   HTMLText,
   PlainText,
@@ -39,18 +40,16 @@ async function getRegulationById(regulationId: number) {
   if (!regulationId) {
     return;
   }
-  const regulationRepository = getConnection().getRepository(DB_Regulation);
   const regulation =
-    (await regulationRepository.findOne({
+    (await DB_Regulation.findOne({
       where: { id: regulationId },
     })) ?? undefined;
   return regulation;
 }
 
 async function getRegulationByName(name: RegName) {
-  const regulationRepository = getConnection().getRepository(DB_Regulation);
   const regulation =
-    (await regulationRepository.findOne({
+    (await DB_Regulation.findOne({
       where: { name },
     })) ?? undefined;
   return regulation;
@@ -60,8 +59,8 @@ async function getRegulationTasks(regulationId?: number) {
   if (!regulationId) {
     return;
   }
-  const taskRepository = getConnection().getRepository(DB_RegulationTasks);
-  const task = await taskRepository.findOne({ where: { regulationId } });
+  const task =
+    (await DB_RegulationTasks.findOne({ where: { regulationId } })) ?? undefined;
   return task;
 }
 
@@ -69,27 +68,27 @@ async function getRegulationCancel(regulationId?: number) {
   if (!regulationId) {
     return;
   }
-  const regulationCancel = await getConnection()
-    .getRepository(DB_RegulationCancel)
-    .findOne({ where: { regulationId } });
+  const regulationCancel =
+    (await DB_RegulationCancel.findOne({ where: { regulationId } })) ?? undefined;
 
   return regulationCancel;
 }
 
+type HistoryData = ReadonlyArray<{
+  reason: 'root' | 'amend' | 'repeal';
+  impactMissing: boolean;
+  id: number;
+  title: string;
+  name: RegName;
+  status: string;
+  type: 'base' | 'amending' | 'repealing';
+  effectiveDate: Date;
+}>;
+
 async function getRegulationHistory(regulation: DB_Regulation) {
-  const historyData: ReadonlyArray<{
-    reason: 'root' | 'amend' | 'repeal';
-    impactMissing: boolean;
-    id: number;
-    title: string;
-    name: RegName;
-    status: string;
-    type: 'base' | 'amending' | 'repealing';
-    effectiveDate: Date;
-  }> =
-    (
-      await getManager().query('call regulationHistoryByName(?)', [regulation.name])
-    )?.[0] ?? [];
+  const historyData = <HistoryData>await db.query('call regulationHistoryByName(:name)', {
+      replacements: { name: regulation.name },
+    }) ?? [];
 
   return (
     historyData
@@ -106,20 +105,26 @@ async function getRegulationHistory(regulation: DB_Regulation) {
   );
 }
 
+type EffectsData = ReadonlyArray<{
+  name: RegName;
+  title: string;
+  date: Date;
+  effect: 'amend' | 'repeal';
+}>;
 async function getRegulationEffects(regulationId: number) {
   const effectsQuery = `select name, title, date, effect from Regulation
-  join ((select regulationId, date, 'amend' as effect from RegulationChange where changingId = ?)
+  join ((select regulationId, date, 'amend' as effect from RegulationChange where changingId = :changingId)
   union
-  (select regulationId, date, 'repeal' as effect from RegulationCancel where changingId = ?)) as effects
+  (select regulationId, date, 'repeal' as effect from RegulationCancel where changingId = :changingId)) as effects
   on Regulation.id = effects.regulationId
   order by Regulation.publishedDate, Regulation.id
   ;`;
-  const effectsData: ReadonlyArray<{
-    name: RegName;
-    title: string;
-    date: Date;
-    effect: 'amend' | 'repeal';
-  }> = (await getManager().query(effectsQuery, [regulationId, regulationId])) ?? [];
+  const effectsData =
+    <EffectsData>(
+      await db.query(effectsQuery, { replacements: { changingId: regulationId } })
+    ) ?? [];
+
+  console.log(util.inspect(effectsData, true, null, true));
 
   return effectsData.map(
     ({ date, name, title, effect }): RegulationEffect => ({
@@ -135,15 +140,19 @@ async function getLatestRegulationChange(
   regulationId: number,
   beforeDate: Date = new Date(),
 ) {
-  const regulationChanges = await getConnection()
-    .getRepository(DB_RegulationChange)
-    .createQueryBuilder('changes')
-    .orderBy('date', 'DESC')
-    .addOrderBy('id', 'ASC')
-    .where('regulationId = :regulationId', { regulationId })
-    .andWhere('date <= :before')
-    .setParameters({ before: beforeDate.toISOString() })
-    .getOne();
+  const regulationChanges =
+    (await DB_RegulationChange.findOne({
+      where: {
+        regulationId: regulationId,
+        date: {
+          $lt: beforeDate.toISOString(),
+        },
+      },
+      order: [
+        ['date', 'DESC'],
+        ['id', 'ASC'],
+      ],
+    })) ?? undefined;
   return regulationChanges;
 }
 
@@ -166,6 +175,10 @@ const augmentRegulation = async (
   regulationChange?: DB_RegulationChange,
 ): Promise<Regulation> => {
   const { id, type, name, signatureDate, publishedDate, effectiveDate } = regulation;
+
+  if (!id) {
+    return (regulation as unknown) as Regulation;
+  }
 
   const [
     ministry,
@@ -191,22 +204,22 @@ const augmentRegulation = async (
   ]);
 
   const { text, appendixes, comments } = extractAppendixesAndComments(
-    regulationChange ? regulationChange?.text : regulation.text,
+    (regulationChange ? regulationChange?.text : regulation.text) as HTMLText,
   );
 
   return {
-    type: type === 'repealing' ? 'amending' : type,
-    name,
+    type: (type === 'repealing' ? 'amending' : type) as 'base' | 'amending',
+    name: name as RegName,
     title: /* regulationChange?.title ||*/ regulation.title,
     text,
-    signatureDate,
-    publishedDate,
-    effectiveDate,
+    signatureDate: signatureDate as ISODate,
+    publishedDate: publishedDate as ISODate,
+    effectiveDate: effectiveDate as ISODate,
     ministry,
-    repealedDate,
+    repealedDate: repealedDate as ISODate,
     appendixes,
     comments,
-    lastAmendDate,
+    lastAmendDate: lastAmendDate as ISODate,
     lawChapters: lawChapters ?? [],
     history,
     effects,
@@ -216,10 +229,10 @@ const augmentRegulation = async (
 };
 
 const getRegulationRedirect = (regulation: DB_Regulation): RegulationRedirect => {
-  const { name, title } = regulation;
+  const name = regulation.name as RegName;
   return {
-    name,
-    title,
+    name: name,
+    title: regulation.title,
     redirectUrl: 'https://www.reglugerd.is/reglugerdir/allar/nr/' + nameToSlug(name),
   };
 };
@@ -228,7 +241,7 @@ async function isMigrated(regulation?: DB_Regulation) {
   let migrated = false;
   if (regulation?.type === 'base') {
     const tasks = await getRegulationTasks(regulation.id);
-    migrated = tasks?.done || false;
+    migrated = !!tasks?.done || false;
   } else if (regulation?.type === 'amending') {
     migrated = ['text_locked', 'migrated'].includes(regulation.status);
   }
@@ -260,7 +273,7 @@ export async function getRegulation(
 ) {
   const { date, diff, earlierDate } = opts || {};
   const regulation = await getRegulationByName(regulationName);
-  if (!regulation) {
+  if (!regulation || !regulation.id) {
     return null;
   }
 
@@ -291,7 +304,7 @@ export async function getRegulation(
 
   if (needsTimelineDate) {
     augmentedRegulation.timelineDate = regulationChange
-      ? regulationChange.date
+      ? (regulationChange.date as ISODate)
       : augmentedRegulation.effectiveDate;
   }
 
@@ -320,7 +333,7 @@ export async function getRegulation(
     earlierState = change
       ? {
           ...extractAppendixesAndComments(change.text),
-          date: change.date,
+          date: change.date as ISODate,
         }
       : extractAppendixesAndComments(regulation.text);
   }
@@ -345,8 +358,8 @@ export async function getRegulation(
   });
 
   diffedRegulation.showingDiff = {
-    from: earlierState.date || regulation.publishedDate,
-    to: regulationChange ? regulationChange.date : regulation.effectiveDate,
+    from: (earlierState.date || regulation.publishedDate) as ISODate,
+    to: (regulationChange ? regulationChange.date : regulation.effectiveDate) as ISODate,
   };
 
   return diffedRegulation;

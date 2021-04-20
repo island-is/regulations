@@ -1,6 +1,5 @@
 import { LawChapter as DB_LawChapter } from '../models/LawChapter';
-import { getConnection } from 'typeorm';
-import { DB_RegulationLawChapter } from '../entity/RegulationLawChapter';
+import { Regulation_LawChapter as DB_RegulationLawChapter } from '../models/Regulation_LawChapter';
 import { LawChapterTree, LawChapter } from '../routes/types';
 
 export const augmentLawChapters = (chapters: Array<DB_LawChapter>) =>
@@ -19,9 +18,9 @@ export const chaptersToTree = (chapters: Array<DB_LawChapter>): LawChapterTree =
   } = {};
 
   chapters.forEach((chapter) => {
-    const { parentId, title, slug } = chapter;
+    const { id = -1, parentId, title, slug } = chapter;
     if (!parentId) {
-      parents[chapter.id] = {
+      parents[id] = {
         name: title,
         slug,
         subChapters: [],
@@ -46,15 +45,11 @@ export async function getRegulationLawChapters(regulationId?: number) {
   if (!regulationId) {
     return;
   }
-  const lawChaptersRepository = getConnection().getRepository(DB_LawChapter);
-  const regulationLCRepository = getConnection().getRepository(DB_RegulationLawChapter);
-  const con = await regulationLCRepository.findOne({ where: { regulationId } });
 
-  const lawChapters: Array<DB_LawChapter> =
-    (await lawChaptersRepository
-      .createQueryBuilder('regulationlawchapters')
-      .where('id = :chapterId', { chapterId: con?.chapterId })
-      .getMany()) ?? undefined;
+  const con = await DB_RegulationLawChapter.findOne({ where: { regulationId } });
+
+  const lawChapters =
+    (await DB_LawChapter.findAll({ where: { id: con?.chapterId } })) ?? undefined;
 
   return augmentLawChapters(lawChapters);
 }

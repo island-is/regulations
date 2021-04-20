@@ -1,6 +1,5 @@
 import { fastify as fast } from 'fastify';
 import fastifyRateLimiter from 'fastify-rate-limit';
-import { Sequelize } from 'sequelize-typescript';
 
 import fastifyCompress from 'fastify-compress';
 import fastifyElasticsearch from 'fastify-elasticsearch';
@@ -12,14 +11,7 @@ import { ministryRoutes } from './routes/ministryRoutes';
 import { lawChapterRoutes } from './routes/lawChapterRoutes';
 import { yearsRoutes } from './routes/yearsRoutes';
 
-import { Regulation as DB_Regulation } from './models/Regulation';
-import { RegulationChange as DB_RegulationChange } from './models/RegulationChange';
-import { RegulationCancel as DB_RegulationCancel } from './models/RegulationCancel';
-import { Regulation_Ministry as DB_RegulationMinistry } from './models/Regulation_Ministry';
-import { Regulation_LawChapter as DB_RegulationLawChapter } from './models/Regulation_LawChapter';
-import { Ministry as DB_Ministry } from './models/Ministry';
-import { LawChapter as DB_LawChapter } from './models/LawChapter';
-import { Task as DB_RegulationTasks } from './models/Task';
+import { connectSequelize } from './utils/sequelize';
 
 const fastify = fast();
 fastify.register(fastifyRateLimiter, {
@@ -42,32 +34,7 @@ fastify.register(yearsRoutes, { prefix: '/api/v1' });
 
 const start = async () => {
   try {
-    await new Sequelize({
-      dialect: 'mysql',
-      host: process.env.MYSQL_HOST,
-      port: parseInt(process.env.MYSQL_PORT ?? ''),
-      username: process.env.MYSQL_USER,
-      password: process.env.MYSQL_PASS,
-      database: process.env.MYSQL_DB,
-      storage: ':memory:',
-      models: [
-        DB_Regulation,
-        DB_Ministry,
-        DB_LawChapter,
-        DB_RegulationChange,
-        DB_RegulationCancel,
-        DB_RegulationMinistry,
-        DB_RegulationLawChapter,
-        DB_RegulationTasks,
-      ],
-      // Options passed down to the `mysql2` driver
-      pool: {
-        max: Number(process.env.DATABASE_CONNECTION_LIMIT) || 5,
-        min: 0,
-        acquire: 30000,
-        idle: 10000,
-      },
-    });
+    connectSequelize();
 
     const serverPort = process.env.PORT || 3000;
 

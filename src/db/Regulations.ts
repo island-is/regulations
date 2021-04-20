@@ -1,34 +1,28 @@
-import { DB_Regulation } from '../entity/Regulation';
-import { getConnection, getManager } from 'typeorm';
-import { ISODate, RegulationListItem, LawChapter } from '../routes/types';
+import { Regulation as DB_Regulation } from '../models/Regulation';
+import { ISODate, RegulationListItem, LawChapter, RegName } from '../routes/types';
 import { getRegulationMinistry } from './Ministry';
 import { getRegulationLawChapters } from './LawChapter';
+import { db } from '../utils/sequelize';
 
 export const PER_PAGE = 18;
 
 export async function getAllRegulations() {
-  const connection = getConnection();
-  const regulationRepository = connection.getRepository(DB_Regulation);
-  const regulations: Array<DB_Regulation> = (await regulationRepository.find()) ?? [];
+  const regulations = (await DB_Regulation.findAll()) ?? [];
   return regulations;
 }
 
 export async function getRegulationsCount() {
-  const connection = getConnection();
-  const regulationRepository = connection.getRepository(DB_Regulation);
-  const regulationsCount: number =
-    (await regulationRepository
-      .createQueryBuilder('allregulations')
-      // .where({ status: 'text_locked' || 'migrated' })
-      .getCount()) ?? 0;
+  const regulationsCount = await DB_Regulation.count();
   return regulationsCount;
 }
 
 export async function getRegulationsYears() {
-  const years: Array<{ year: number }> =
-    (await getManager().query(
-      'SELECT DISTINCT YEAR(publishedDate) AS `year` FROM Regulation ORDER BY `year` DESC',
-    )) ?? [];
+  const years =
+    <Array<{ year: number }>>(
+      await db.query(
+        'SELECT DISTINCT YEAR(publishedDate) AS `year` FROM Regulation ORDER BY `year` DESC',
+      )
+    ) ?? [];
   return years.map((y) => y.year);
 }
 
@@ -68,12 +62,12 @@ const augmentRegulations = async (
       ]);
 
       const itm: RegulationListItemFull = {
-        type: type === 'repealing' ? 'amending' : type,
+        type: (type === 'repealing' ? 'amending' : type) as 'amending' | 'base',
         title,
         text: opts.text ? text : undefined,
-        name,
-        publishedDate,
-        effectiveDate,
+        name: name as RegName,
+        publishedDate: publishedDate as ISODate,
+        effectiveDate: effectiveDate as ISODate,
         ministry,
         lawChapters,
       };
@@ -93,16 +87,13 @@ const augmentRegulations = async (
 
 export async function getNewestRegulations(opts: { skip?: number; take?: number }) {
   const { skip = 0, take = PER_PAGE } = opts;
-  const connection = getConnection();
-  const regulations: SQLRegulationsList =
-    (await connection
-      .getRepository(DB_Regulation)
-      .createQueryBuilder('regulations')
-      .select(['id', 'type', 'name', 'title', 'publishedDate', 'effectiveDate'])
-      .orderBy('publishedDate', 'DESC')
-      .skip(skip)
-      .take(take)
-      .getRawMany()) ?? [];
+
+  const regulations = <SQLRegulationsList>await DB_Regulation.findAll({
+      attributes: ['id', 'type', 'name', 'title', 'publishedDate', 'effectiveDate'],
+      order: [['publishedDate', 'DESC']],
+      offset: skip,
+      limit: take,
+    }) ?? [];
 
   return await augmentRegulations(regulations);
 }
@@ -132,7 +123,7 @@ export async function getAllBaseRegulations(
     order by publishedDate DESC, id
     ;`;
 
-  const regulations = ((await getManager().query(sql)) ?? []) as SQLRegulationsList;
+  const regulations = ((await db.query(sql)) ?? []) as SQLRegulationsList;
 
   if (extra) {
     return await augmentRegulations(regulations, {

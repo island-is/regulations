@@ -23,7 +23,6 @@
   "dependencies": {
     "@types/jsdom": "^16.2.9",
     "elastic-builder": "^2.13.0",
-    "esm": "^3.2.25",
     "fastify": "^3.11.0",
     "fastify-compress": "^3.4.2",
     "fastify-elasticsearch": "^2.0.0",
@@ -36,7 +35,6 @@
     "reflect-metadata": "^0.1.13",
     "sequelize": "^6.6.2",
     "sequelize-typescript": "^2.1.0",
-    "typeorm": "0.2.31",
     "xss": "^1.0.8"
   },
   "devDependencies": {
@@ -47,8 +45,8 @@
     "@typescript-eslint/eslint-plugin": "^4.15.0",
     "@typescript-eslint/parser": "^4.15.0",
     "concurrently": "^6.0.1",
-    "cross-env": "^7.0.3",
     "del": "^6.0.0",
+    "dotenv": "^8.2.0",
     "eslint": "^7.10.0",
     "eslint-config-prettier": "^7.2.0",
     "eslint-plugin-deprecation": "^1.2.0",
@@ -58,10 +56,8 @@
     "eslint-plugin-react-hooks": "^4.2.0",
     "gulp": "^4.0.2",
     "nodemon": "^2.0.7",
-    "pg": "^8.5.1",
     "prettier": "^2.2.1",
     "sequelize-typescript-generator": "^4.0.2",
-    "ts-node": "9.1.1",
     "typescript": "^4.2.3"
   },
   "hxmstyle": {

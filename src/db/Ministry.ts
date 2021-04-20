@@ -1,17 +1,17 @@
-import { DB_Ministry } from '../entity/Ministry';
-import { getConnection } from 'typeorm';
-import { DB_RegulationMinistry } from '../entity/RegulationMinistry';
+import { Ministry as DB_Ministry } from '../models/Ministry';
+import { Regulation_Ministry as DB_RegulationMinistry } from '../models/Regulation_Ministry';
 import { Ministry } from '../routes/types';
 
 export async function getAllMinistries() {
-  const ministryRepository = getConnection().getRepository(DB_Ministry);
-  const ministries: Array<DB_Ministry> =
-    (await ministryRepository
-      .createQueryBuilder('regulations')
-      .orderBy('current', 'DESC')
-      .addOrderBy('`order`', 'ASC')
-      .addOrderBy('name', 'ASC')
-      .getMany()) ?? [];
+  const ministries =
+    (await DB_Ministry.findAll({
+      order: [
+        ['current', 'DESC'],
+        ['`order`', 'ASC'],
+        ['name', 'ASC'],
+      ],
+    })) ?? [];
+
   return ministries;
 }
 
@@ -19,19 +19,23 @@ export async function getMinistryById(id?: number) {
   if (!id) {
     return;
   }
-  const ministryRepository = getConnection().getRepository(DB_Ministry);
-  return await ministryRepository.findOne({ where: { id } });
+  const ministry = (await DB_Ministry.findOne({ where: { id } })) ?? undefined;
+  return ministry;
 }
 
-export async function getRegulationMinistry(regulationId: number) {
-  const ministryRepository = getConnection().getRepository(DB_Ministry);
-  const ministryRegRepository = getConnection().getRepository(DB_RegulationMinistry);
-  const con = await ministryRegRepository.findOne({ where: { regulationId } });
-  const ministry: Ministry | undefined =
-    (await ministryRepository
-      .createQueryBuilder('regulationministry')
-      .where('id = :ministryId', { ministryId: con?.ministryId })
-      .select(['name', 'slug', 'current'])
-      .getRawOne()) ?? undefined;
-  return ministry;
+export async function getRegulationMinistry(regulationId: number | undefined) {
+  const con = await DB_RegulationMinistry.findOne({ where: { regulationId } });
+  const ministry = await DB_Ministry.findOne({
+    where: { id: con?.ministryId },
+    attributes: ['name', 'slug', 'current'],
+  });
+
+  const retMinistry = ministry
+    ? <Ministry>{
+        name: ministry.name,
+        slug: ministry.slug,
+        current: !!ministry.current,
+      }
+    : undefined;
+  return retMinistry;
 }
