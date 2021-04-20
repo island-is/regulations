@@ -49,6 +49,9 @@ export async function getRegulationLawChapters(regulationId?: number) {
   }
 
   const con = await DB_RegulationLawChapter.findOne({ where: { regulationId } });
+  if (!con?.chapterId) {
+    return;
+  }
 
   const lawChapters =
     (await DB_LawChapter.findAll({ where: { id: con?.chapterId } })) ?? undefined;

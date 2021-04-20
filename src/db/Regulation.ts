@@ -323,7 +323,7 @@ export async function getRegulation(
     // Here the "active" regulation is the original and any diffing should be against the empty string
     earlierState = extractAppendixesAndComments('');
   } else if (earlierDate === 'original') {
-    earlierState = extractAppendixesAndComments(regulation.text);
+    earlierState = extractAppendixesAndComments(regulation.text as HTMLText);
   } else {
     let eDate = earlierDate;
     if (!eDate) {
@@ -333,10 +333,10 @@ export async function getRegulation(
     const change = await getLatestRegulationChange(regulation.id, eDate);
     earlierState = change
       ? {
-          ...extractAppendixesAndComments(change.text),
+          ...extractAppendixesAndComments(change.text as HTMLText),
           date: change.date as ISODate,
         }
-      : extractAppendixesAndComments(regulation.text);
+      : extractAppendixesAndComments(regulation.text as HTMLText);
   }
 
   diffedRegulation.title = toHTML(augmentedRegulation.title);

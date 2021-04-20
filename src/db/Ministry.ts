@@ -26,7 +26,13 @@ export async function getMinistryById(id?: number) {
 }
 
 export async function getRegulationMinistry(regulationId: number | undefined) {
+  if (!regulationId) {
+    return;
+  }
   const con = await DB_RegulationMinistry.findOne({ where: { regulationId } });
+  if (!con?.ministryId) {
+    return;
+  }
   const ministry = await DB_Ministry.findOne({
     where: { id: con?.ministryId },
     attributes: ['name', 'slug', 'current'],
