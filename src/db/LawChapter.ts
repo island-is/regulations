@@ -1,5 +1,7 @@
-import { LawChapter as DB_LawChapter } from '../models/LawChapter';
-import { Regulation_LawChapter as DB_RegulationLawChapter } from '../models/Regulation_LawChapter';
+import {
+  LawChapter as DB_LawChapter,
+  Regulation_LawChapter as DB_RegulationLawChapter,
+} from '../models';
 import { LawChapterTree, LawChapter } from '../routes/types';
 
 export const augmentLawChapters = (chapters: Array<DB_LawChapter>) =>

@@ -1,4 +1,4 @@
-import { Regulation as DB_Regulation } from '../models/Regulation';
+import { Regulation as DB_Regulation } from '../models';
 import { ISODate, RegulationListItem, LawChapter, RegName } from '../routes/types';
 import { getRegulationMinistry } from './Ministry';
 import { getRegulationLawChapters } from './LawChapter';

@@ -1,12 +1,14 @@
 import htmldiff from 'htmldiff-js';
-import { Regulation as DB_Regulation } from '../models/Regulation';
-import { RegulationChange as DB_RegulationChange } from '../models/RegulationChange';
-import { getRegulationMinistry } from './Ministry';
-import { RegulationCancel as DB_RegulationCancel } from '../models/RegulationCancel';
-import { getRegulationLawChapters } from './LawChapter';
-import { Task as DB_RegulationTasks } from '../models/Task';
 import { db } from '../utils/sequelize';
 import { Op, QueryTypes } from 'sequelize';
+import {
+  Regulation as DB_Regulation,
+  RegulationChange as DB_RegulationChange,
+  RegulationCancel as DB_RegulationCancel,
+  Task as DB_RegulationTasks,
+} from '../models';
+import { getRegulationMinistry } from './Ministry';
+import { getRegulationLawChapters } from './LawChapter';
 import {
   HTMLText,
   PlainText,
