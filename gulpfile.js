@@ -29,7 +29,6 @@ const [scriptsBundle, scriptsWatch] = rollupTaskFactory({
   name: 'build_server',
   dest: './dist',
   glob: ['server.ts'],
-  NODE_ENV: undefined,
   dist: distFolder,
 });
 
