@@ -7,6 +7,7 @@ import { getRegulationLawChapters } from './LawChapter';
 import { Task as DB_RegulationTasks } from '../models/Task';
 import { db } from '../utils/sequelize';
 import util from 'util';
+import { Op } from 'sequelize';
 import {
   HTMLText,
   PlainText,
@@ -119,12 +120,9 @@ async function getRegulationEffects(regulationId: number) {
   on Regulation.id = effects.regulationId
   order by Regulation.publishedDate, Regulation.id
   ;`;
-  const effectsData =
-    <EffectsData>(
-      await db.query(effectsQuery, { replacements: { changingId: regulationId } })
-    ) ?? [];
-
-  console.log(util.inspect(effectsData, true, null, true));
+  const effectsData = <EffectsData>await db.query(effectsQuery, {
+      replacements: { changingId: regulationId },
+    }) ?? [];
 
   return effectsData.map(
     ({ date, name, title, effect }): RegulationEffect => ({
@@ -145,7 +143,7 @@ async function getLatestRegulationChange(
       where: {
         regulationId: regulationId,
         date: {
-          $lt: beforeDate.toISOString(),
+          [Op.lte]: beforeDate,
         },
       },
       order: [

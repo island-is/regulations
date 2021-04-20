@@ -20,6 +20,7 @@ export const connectSequelize = async () => {
     password: process.env.MYSQL_PASS,
     database: process.env.MYSQL_DB,
     storage: ':memory:',
+    logging: process.env.DATABASE_QUERY_LOGGING === 'true',
     models: [
       DB_Regulation,
       DB_Ministry,

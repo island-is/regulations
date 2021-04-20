@@ -8,7 +8,7 @@
     "build": "gulp build",
     "dev-watch": "yarn && gulp watch",
     "dev-server": "yarn && yarn build && nodemon -r dotenv/config dist/server.js",
-    "dev": "concurrently --kill-others \"yarn dev-watch\" \"yarn dev-server\"",
+    "dev": "concurrently -k \"yarn dev-watch\" \"yarn dev-server\"",
     "start": "node dist/server.js",
     "lint:eslint": "eslint \"*.{js,ts,tsx}\" \"src/**/*.{js,ts,tsx}\"",
     "lint": "concurrently yarn:lint:*",
