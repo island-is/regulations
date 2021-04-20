@@ -23,8 +23,22 @@ if (process.env.PROXIED !== 'true') {
   fastify.register(fastifyCompress, { global: true });
 }
 
-fastify.register(fastifyElasticsearch, { node: process.env.SEARCHBOX_URL });
-fastify.register(elasticsearchRoutes, { prefix: '/api/v1' });
+const {
+  ELASTIC_CLOUD_ID,
+  ELASTIC_CLOUD_APIKEY_ID,
+  ELASTIC_CLOUD_APIKEY_KEY,
+} = process.env;
+if (ELASTIC_CLOUD_ID && ELASTIC_CLOUD_APIKEY_ID && ELASTIC_CLOUD_APIKEY_KEY) {
+  fastify.register(fastifyElasticsearch, {
+    cloud: {
+      id: ELASTIC_CLOUD_ID,
+    },
+    auth: {
+      apiKey: { id: ELASTIC_CLOUD_APIKEY_ID, api_key: ELASTIC_CLOUD_APIKEY_KEY },
+    },
+  });
+  fastify.register(elasticsearchRoutes, { prefix: '/api/v1' });
+}
 
 fastify.register(regulationRoutes, { prefix: '/api/v1' });
 fastify.register(regulationsRoutes, { prefix: '/api/v1' });

@@ -27,7 +27,7 @@ export const elasticsearchRoutes: FastifyPluginCallback = (fastify, opts, done) 
     '/search/populate',
     opts,
     async function (request, reply) {
-      const data = await populateElastic(this.elastic, !!request.query.template);
+      const data = await populateElastic(this.elastic);
       reply.send(data);
     },
   );

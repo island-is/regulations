@@ -16,14 +16,14 @@ const getDictionaryFile = async (sha: string, locale: 'is', analyzer: string) =>
 
 export const getSettingsTemplate = async (sha: string, locale: 'is') => {
   const [
-    // stemmer,
+    stemmer,
     keywords,
     synonyms,
     stopwords,
     hyphenwhitelist,
     //autocompletestop,
   ] = await Promise.all([
-    // getDictionaryFile(sha, locale, 'stemmer'), // this stemmer is 17+ mb and fails parsing
+    getDictionaryFile(sha, locale, 'stemmer'),
     getDictionaryFile(sha, locale, 'keywords'),
     getDictionaryFile(sha, locale, 'synonyms'),
     getDictionaryFile(sha, locale, 'stopwords'),
@@ -35,35 +35,30 @@ export const getSettingsTemplate = async (sha: string, locale: 'is') => {
     settings: {
       analysis: {
         filter: {
-          /*icelandicStemmer: {
+          icelandicStemmer: {
             type: 'stemmer_override',
-            // rules: [],
-            rules_path: 'analyzers/stemmer.txt',
-          },*/
+            rules: stemmer,
+          },
           icelandicStop: {
             type: 'stop',
             stopwords: stopwords,
-            // stopwords_path: 'analyzers/{STOPWORDS}',
           },
           icelandicKeyword: {
             type: 'keyword_marker',
             ignore_case: true,
             keywords: keywords,
-            // keywords_path: 'analyzers/{KEYWORDS}',
           },
           icelandicSynonym: {
             type: 'synonym',
             lenient: true,
             synonyms: synonyms,
-            // synonyms_path: 'analyzers/{SYNONYMS}',
           },
-          /*icelandicDeCompounded: {
+          icelandicDeCompounded: {
             type: 'dictionary_decompounder',
             word_list: hyphenwhitelist,
-            // word_list_path: 'analyzers/{HYPHENWHITELIST}',
             max_subword_size: 18,
             min_subword_size: 4,
-          },*/
+          },
         },
         analyzer: {
           baseIcelandic: {
@@ -74,7 +69,7 @@ export const getSettingsTemplate = async (sha: string, locale: 'is') => {
               'icelandicSynonym',
               'icelandicStop',
               'icelandicKeyword',
-              //'icelandicStemmer',
+              'icelandicStemmer',
             ],
           },
           compoundIcelandic: {
@@ -85,8 +80,8 @@ export const getSettingsTemplate = async (sha: string, locale: 'is') => {
               'icelandicSynonym',
               'icelandicStop',
               'icelandicKeyword',
-              //'icelandicDeCompounded',
-              //'icelandicStemmer',
+              'icelandicDeCompounded',
+              'icelandicStemmer',
             ],
           },
           termIcelandic: {
@@ -104,17 +99,11 @@ export const mappingTemplate = {
   properties: {
     title: {
       type: 'text',
-      /*fields: {
-        sort: {
-          type: 'icu_collation_keyword',
-          index: false,
-          language: 'is',
-          country: 'is',
+      fields: {
+        stemmed: {
+          type: 'text',
+          analyzer: 'baseIcelandic',
         },
-        // stemmed: {
-        //   type: 'text',
-        //   analyzer: 'baseIcelandic',
-        // },
         compound: {
           type: 'text',
           analyzer: 'compoundIcelandic',
@@ -122,16 +111,16 @@ export const mappingTemplate = {
         keyword: {
           type: 'keyword',
         },
-      },*/
+      },
     },
     text: {
       type: 'text',
-      /*fields: {
+      fields: {
         stemmed: {
           type: 'text',
           analyzer: 'baseIcelandic',
         },
-      },*/
+      },
     },
     type: {
       type: 'keyword',

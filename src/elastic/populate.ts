@@ -46,68 +46,76 @@ const checkIfIndexExists = async (client: Client, index: string): Promise<boolea
   return result.statusCode === 200;
 };
 
-export async function populateElastic(client: Client, useTemplate?: boolean) {
+export async function populateElastic(client: Client) {
   const t0 = performance.now();
-  console.info('fetching regulations...');
-  const regulations = (await getAllBaseRegulations({
-    full: true,
-    extra: true,
-  })) as Array<RegulationListItemFull>;
-  console.info(regulations.length + ' regulations found');
+  try {
+    console.info('fetching regulations...');
+    const regulations = (await getAllBaseRegulations({
+      full: true,
+      extra: true,
+    })) as Array<RegulationListItemFull>;
+    console.info(regulations.length + ' regulations found');
 
-  if (!regulations.length) {
-    console.warn('Error fetching regulations');
-    return { success: false };
-  }
+    if (!regulations.length) {
+      console.warn('Error fetching regulations');
+      return { success: false };
+    }
 
-  if (await checkIfIndexExists(client, INDEX_NAME)) {
-    console.info('Deleting old index...');
-    await client.indices.delete({
+    if (await checkIfIndexExists(client, INDEX_NAME)) {
+      console.info('Deleting old index...');
+      await client.indices.delete({
+        index: INDEX_NAME,
+      });
+    }
+
+    console.info('Creating new "' + INDEX_NAME + '" index...');
+    await client.indices.create({
       index: INDEX_NAME,
     });
-  }
 
-  console.info('Creating new "' + INDEX_NAME + '" index...');
-  await client.indices.create({
-    index: INDEX_NAME,
-  });
-
-  await client.indices.close({
-    index: INDEX_NAME,
-  });
-  console.info('Applying settings to "' + INDEX_NAME + '" index...');
-  /*const settingsTemplate = await getSettingsTemplate('master', 'is');
-  await client.indices.putSettings({
-    index: INDEX_NAME,
-    body: settingsTemplate,
-  });*/
-
-  console.info('Applying mappings to "' + INDEX_NAME + '" index...');
-  await client.indices.putMapping({
-    index: INDEX_NAME,
-    body: mappingTemplate,
-  });
-  await client.indices.open({
-    index: INDEX_NAME,
-  });
-
-  console.info('populating "' + INDEX_NAME + '" index...');
-  for await (const reg of regulations) {
-    const aReg = await regulationToIndexItem(reg);
-
-    await client.index({
+    await client.indices.close({
       index: INDEX_NAME,
-      body: aReg,
     });
+    console.info('Applying settings to "' + INDEX_NAME + '" index...');
+    const settingsTemplate = await getSettingsTemplate('master', 'is');
+    await client.indices.putSettings({
+      index: INDEX_NAME,
+      body: settingsTemplate,
+    });
+
+    console.info('Applying mappings to "' + INDEX_NAME + '" index...');
+    await client.indices.putMapping({
+      index: INDEX_NAME,
+      body: mappingTemplate,
+    });
+    await client.indices.open({
+      index: INDEX_NAME,
+    });
+
+    console.info('populating "' + INDEX_NAME + '" index...');
+    for await (const reg of regulations) {
+      const aReg = await regulationToIndexItem(reg);
+
+      await client.index({
+        index: INDEX_NAME,
+        body: aReg,
+      });
+    }
+
+    console.info('refreshing indices for "' + INDEX_NAME + '" index...');
+    await client.indices.refresh({ index: INDEX_NAME });
+
+    const t1 = performance.now();
+    console.info(
+      'indexing "' + INDEX_NAME + '" successful in ' + Math.round(t1 - t0) + 'ms.',
+    );
+  } catch (err) {
+    const t1 = performance.now();
+    console.info(err);
+    console.info(
+      'indexing "' + INDEX_NAME + '" failed in ' + Math.round(t1 - t0) + 'ms.',
+    );
   }
-
-  console.info('refreshing indices for "' + INDEX_NAME + '" index...');
-  await client.indices.refresh({ index: INDEX_NAME });
-
-  const t1 = performance.now();
-  console.info(
-    'indexing "' + INDEX_NAME + '" successful in ' + Math.round(t1 - t0) + 'ms.',
-  );
   return { success: true };
 }
 
