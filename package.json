@@ -9,7 +9,7 @@
     "dev-watch": "yarn && gulp watch",
     "dev-server": "yarn && yarn build && nodemon -r dotenv/config dist/server.js",
     "dev": "concurrently -k \"yarn dev-watch\" \"yarn dev-server\"",
-    "start": "NODE_ENV=production node dist/server.js",
+    "start": "NODE_ENV=production node -r dotenv/config dist/server.js",
     "lint:eslint": "eslint \"*.{js,ts,tsx}\" \"src/**/*.{js,ts,tsx}\"",
     "lint": "concurrently yarn:lint:*",
     "format:eslint": "eslint --fix  \"*.{js,ts,tsx}\" \"src/**/*.{js,ts,tsx}\"",
