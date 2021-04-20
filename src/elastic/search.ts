@@ -1,5 +1,6 @@
 import { Client } from '@elastic/elasticsearch';
 import esb from 'elastic-builder';
+import xss from 'xss';
 // import util from 'util';
 import { PER_PAGE } from '../db/Regulations';
 import { RegulationListItem, RegulationSearchResults } from '../routes/types';
@@ -18,7 +19,7 @@ export type SearchQueryParams = {
 
 const cleanQuery = (q: string | undefined) => {
   return q
-    ? q
+    ? xss(q)
         .replace(/[\r\n\s]+/g, ' ')
         .trim()
         .toLowerCase()
@@ -33,13 +34,13 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
   const filters: Array<esb.Query> = [];
 
   if (query.year) {
-    filters.push(esb.termQuery('year', query.year));
+    filters.push(esb.termQuery('year', xss(query.year)));
   }
   if (query.rn) {
-    filters.push(esb.termQuery('ministrySlug', query.rn));
+    filters.push(esb.termQuery('ministrySlug', xss(query.rn)));
   }
   if (query.ch) {
-    filters.push(esb.termQuery('lawChaptersSlugs', query.ch));
+    filters.push(esb.termQuery('lawChaptersSlugs', xss(query.ch)));
   }
 
   // build text search
