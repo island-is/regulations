@@ -120,11 +120,12 @@ async function getRegulationEffects(regulationId: number) {
   on Regulation.id = effects.regulationId
   order by Regulation.publishedDate, Regulation.id
   ;`;
-  const effectsData = <EffectsData>await db.query(effectsQuery, {
+  // FIXME: for some reason sequelize runs this query 2x and generates an array of EffectsData arrays
+  const effectsData = <Array<EffectsData>>await db.query(effectsQuery, {
       replacements: { changingId: regulationId },
     }) ?? [];
 
-  return effectsData.map(
+  return effectsData[0].map(
     ({ date, name, title, effect }): RegulationEffect => ({
       date: toISODate(date) as ISODate,
       name,
