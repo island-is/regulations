@@ -14,7 +14,7 @@ export const ministryRoutes: FastifyPluginCallback = (fastify, opts, done) => {
     const data = await getAllMinistries();
     const ministries = data.map(
       (m): MinistryListItem => {
-        const { id, ...ministry } = m;
+        const { id, ...ministry } = m.get();
         return ministry;
       },
     );

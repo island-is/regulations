@@ -40,7 +40,6 @@ export const chaptersToTree = (chapters: Array<DB_LawChapter>): LawChapterTree =
 
 export async function getAllLawChapters() {
   const lawChapters = await DB_LawChapter.findAll({
-    raw: true,
     order: [['slug', 'ASC']],
   });
   return lawChapters;
@@ -51,10 +50,8 @@ export async function getRegulationLawChapters(regulationId: number) {
   if (!con) {
     return;
   }
-
   const lawChapters =
-    (await DB_LawChapter.findAll({ raw: true, where: { id: con.chapterId } })) ??
-    undefined;
+    (await DB_LawChapter.findAll({ where: { id: con.chapterId } })) ?? undefined;
 
   return augmentLawChapters(lawChapters);
 }
