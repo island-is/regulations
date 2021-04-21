@@ -3,11 +3,11 @@ import { Sequelize } from 'sequelize-typescript';
 import { Regulation as DB_Regulation } from '../models/Regulation';
 import { RegulationChange as DB_RegulationChange } from '../models/RegulationChange';
 import { RegulationCancel as DB_RegulationCancel } from '../models/RegulationCancel';
-import { Regulation_Ministry as DB_RegulationMinistry } from '../models/Regulation_Ministry';
-import { Regulation_LawChapter as DB_RegulationLawChapter } from '../models/Regulation_LawChapter';
+import { Regulation_Ministry as DB_Regulation_Ministry } from '../models/Regulation_Ministry';
+import { Regulation_LawChapter as DB_Regulation_LawChapter } from '../models/Regulation_LawChapter';
 import { Ministry as DB_Ministry } from '../models/Ministry';
 import { LawChapter as DB_LawChapter } from '../models/LawChapter';
-import { Task as DB_RegulationTasks } from '../models/Task';
+import { Task as DB_Tasks } from '../models/Task';
 
 export let db: Sequelize;
 
@@ -27,9 +27,9 @@ export const connectSequelize = async () => {
       DB_LawChapter,
       DB_RegulationChange,
       DB_RegulationCancel,
-      DB_RegulationMinistry,
-      DB_RegulationLawChapter,
-      DB_RegulationTasks,
+      DB_Regulation_Ministry,
+      DB_Regulation_LawChapter,
+      DB_Tasks,
     ],
     // Options passed down to the `mysql2` driver
     pool: {

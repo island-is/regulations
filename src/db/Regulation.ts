@@ -5,7 +5,7 @@ import {
   Regulation as DB_Regulation,
   RegulationChange as DB_RegulationChange,
   RegulationCancel as DB_RegulationCancel,
-  Task as DB_RegulationTasks,
+  Task as DB_Tasks,
 } from '../models';
 import { getRegulationMinistry } from './Ministry';
 import { getRegulationLawChapters } from './LawChapter';
@@ -61,8 +61,7 @@ async function getRegulationTasks(regulationId?: number) {
   if (!regulationId) {
     return;
   }
-  const task =
-    (await DB_RegulationTasks.findOne({ where: { regulationId } })) ?? undefined;
+  const task = (await DB_Tasks.findOne({ where: { regulationId } })) ?? undefined;
   return task;
 }
 

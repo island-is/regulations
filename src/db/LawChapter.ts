@@ -1,6 +1,6 @@
 import {
   LawChapter as DB_LawChapter,
-  Regulation_LawChapter as DB_RegulationLawChapter,
+  Regulation_LawChapter as DB_Regulation_LawChapter,
 } from '../models';
 import { LawChapterTree, LawChapter } from '../routes/types';
 
@@ -51,7 +51,7 @@ export async function getRegulationLawChapters(regulationId?: number) {
     return;
   }
 
-  const con = await DB_RegulationLawChapter.findOne({ where: { regulationId } });
+  const con = await DB_Regulation_LawChapter.findOne({ where: { regulationId } });
   if (!con?.chapterId) {
     return;
   }
