@@ -7,6 +7,7 @@ import { Ministry } from '../routes/types';
 export async function getAllMinistries() {
   const ministries =
     (await DB_Ministry.findAll({
+      raw: true,
       order: [
         ['current', 'DESC'],
         ['`order`', 'ASC'],

@@ -8,7 +8,7 @@ import { QueryTypes } from 'sequelize';
 export const PER_PAGE = 18;
 
 export async function getAllRegulations() {
-  const regulations = (await DB_Regulation.findAll()) ?? [];
+  const regulations = (await DB_Regulation.findAll({ raw: true })) ?? [];
   return regulations;
 }
 
@@ -91,6 +91,7 @@ export async function getNewestRegulations(opts: { skip?: number; take?: number 
   const { skip = 0, take = PER_PAGE } = opts;
 
   const regulations = <SQLRegulationsList>await DB_Regulation.findAll({
+      raw: true,
       attributes: ['id', 'type', 'name', 'title', 'publishedDate', 'effectiveDate'],
       order: [['publishedDate', 'DESC']],
       offset: skip,
