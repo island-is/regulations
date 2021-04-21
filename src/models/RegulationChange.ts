@@ -20,7 +20,7 @@ type RegulationChangeAttributes = {
 };
 
 @Table({ tableName: 'RegulationChange', timestamps: false })
-export class RegulationChange
+export class DB_RegulationChange
   extends Model<RegulationChangeAttributes, RegulationChangeAttributes>
   implements RegulationChangeAttributes {
   @Column({ primaryKey: true, autoIncrement: true, type: DataType.INTEGER })

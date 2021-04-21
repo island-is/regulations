@@ -1,7 +1,7 @@
 import { getRegulation } from '../db/Regulation';
 import { assertISODate, assertNameSlug, slugToName, Pms, cache } from '../utils/misc';
 
-import { Regulation as DB_Regulation } from '../models/Regulation';
+import { DB_Regulation } from '../models/Regulation';
 import { ISODate, RegQueryName } from './types';
 import { FastifyPluginCallback, FastifyReply } from 'fastify';
 

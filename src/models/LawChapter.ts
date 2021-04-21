@@ -16,7 +16,7 @@ type LawChapterAttributes = {
 };
 
 @Table({ tableName: 'LawChapter', timestamps: false })
-export class LawChapter
+export class DB_LawChapter
   extends Model<LawChapterAttributes, LawChapterAttributes>
   implements LawChapterAttributes {
   @Column({ primaryKey: true, autoIncrement: true, type: DataType.INTEGER })

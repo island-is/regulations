@@ -16,7 +16,7 @@ type TaskAttributes = {
 };
 
 @Table({ tableName: 'Task', timestamps: false })
-export class Task
+export class DB_Task
   extends Model<TaskAttributes, TaskAttributes>
   implements TaskAttributes {
   @Column({ primaryKey: true, autoIncrement: true, type: DataType.INTEGER })

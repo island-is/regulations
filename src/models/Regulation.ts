@@ -24,7 +24,7 @@ type RegulationAttributes = {
 };
 
 @Table({ tableName: 'Regulation', timestamps: false })
-export class Regulation
+export class DB_Regulation
   extends Model<RegulationAttributes, RegulationAttributes>
   implements RegulationAttributes {
   @Column({

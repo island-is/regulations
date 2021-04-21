@@ -15,7 +15,7 @@ type Regulation_MinistryAttributes = {
 };
 
 @Table({ tableName: 'Regulation_Ministry', timestamps: false })
-export class Regulation_Ministry
+export class DB_Regulation_Ministry
   extends Model<Regulation_MinistryAttributes, Regulation_MinistryAttributes>
   implements Regulation_MinistryAttributes {
   @Column({ primaryKey: true, autoIncrement: true, type: DataType.INTEGER })

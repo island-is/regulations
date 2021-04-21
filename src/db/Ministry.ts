@@ -1,7 +1,4 @@
-import {
-  Ministry as DB_Ministry,
-  Regulation_Ministry as DB_Regulation_Ministry,
-} from '../models';
+import { DB_Ministry, DB_Regulation_Ministry } from '../models';
 import { Ministry } from 'routes/types';
 
 export async function getAllMinistries() {

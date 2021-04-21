@@ -17,7 +17,7 @@ type MinistryAttributes = {
 };
 
 @Table({ tableName: 'Ministry', timestamps: false })
-export class Ministry
+export class DB_Ministry
   extends Model<MinistryAttributes, MinistryAttributes>
   implements MinistryAttributes {
   @Column({ primaryKey: true, type: DataType.INTEGER })

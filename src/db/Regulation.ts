@@ -2,10 +2,10 @@ import htmldiff from 'htmldiff-js';
 import { db } from '../utils/sequelize';
 import { Op, QueryTypes } from 'sequelize';
 import {
-  Regulation as DB_Regulation,
-  RegulationChange as DB_RegulationChange,
-  RegulationCancel as DB_RegulationCancel,
-  Task as DB_Tasks,
+  DB_Regulation,
+  DB_RegulationChange,
+  DB_RegulationCancel,
+  DB_Task,
 } from '../models';
 import { getRegulationMinistry } from './Ministry';
 import { getRegulationLawChapters } from './LawChapter';
@@ -54,8 +54,8 @@ async function getRegulationByName(name: RegName) {
   return regulation;
 }
 
-async function getRegulationTasks(regulationId: number) {
-  const task = (await DB_Tasks.findOne({ where: { regulationId } })) ?? undefined;
+async function getRegulationTask(regulationId: number) {
+  const task = (await DB_Task.findOne({ where: { regulationId } })) ?? undefined;
   return task;
 }
 
@@ -223,13 +223,15 @@ const getRegulationRedirect = (regulation: DB_Regulation): RegulationRedirect =>
   };
 };
 
-async function isMigrated(regulation?: DB_Regulation) {
+async function isMigrated(regulation: DB_Regulation) {
   let migrated = false;
-  if (regulation?.type === 'base') {
-    const tasks = await getRegulationTasks(regulation.id);
-    migrated = !!tasks?.done || false;
-  } else if (regulation?.type === 'amending') {
+  if (regulation.type === 'base') {
+    const task = await getRegulationTask(regulation.id);
+    migrated = !!task && task.done;
+  } else if (regulation.type === 'amending') {
     migrated = ['text_locked', 'migrated'].includes(regulation.status);
+  } else {
+    /* The regulation is of type 'repealing' which isn't really a thing and should just be ignored. */
   }
   return migrated;
 }

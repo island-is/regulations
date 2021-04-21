@@ -18,7 +18,7 @@ type RegulationCancelAttributes = {
 };
 
 @Table({ tableName: 'RegulationCancel', timestamps: false })
-export class RegulationCancel
+export class DB_RegulationCancel
   extends Model<RegulationCancelAttributes, RegulationCancelAttributes>
   implements RegulationCancelAttributes {
   @Column({ primaryKey: true, autoIncrement: true, type: DataType.INTEGER })
