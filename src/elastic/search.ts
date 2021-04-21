@@ -77,7 +77,6 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
   let searchHits: Array<RegulationListItem> = [];
 
   if (filters.length || search.length) {
-    console.log('Searching!!');
     let search: Record<string, any> = {};
 
     try {
@@ -89,8 +88,6 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
     } catch (err) {
       console.error(err);
     }
-
-    console.log({ search });
 
     searchHits =
       search?.body?.hits?.hits?.map((hit: any) => {

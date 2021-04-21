@@ -1,9 +1,10 @@
 import { fastify as fast } from 'fastify';
 import fastifyRateLimiter from 'fastify-rate-limit';
+import fastifyBasicAuth, { FastifyBasicAuthOptions } from 'fastify-basic-auth';
 
 import fastifyCompress from 'fastify-compress';
 import fastifyElasticsearch from 'fastify-elasticsearch';
-import { elasticsearchRoutes } from './elastic/routes';
+import { elasticSearchRoutes, elasticRebuildRoutes } from './elastic/routes';
 
 import { regulationRoutes } from './routes/regulationRoutes';
 import { regulationsRoutes } from './routes/regulationsRoutes';
@@ -18,6 +19,31 @@ fastify.register(fastifyRateLimiter, {
   max: 100,
   timeWindow: '1 minute',
 });
+
+const { ROUTES_USERNAME, ROUTES_PASSWORD } = process.env;
+
+const validate: FastifyBasicAuthOptions['validate'] = (
+  username,
+  password,
+  req,
+  reply,
+  done,
+) => {
+  console.log(username, ROUTES_USERNAME);
+
+  if (
+    ROUTES_USERNAME &&
+    username === ROUTES_USERNAME &&
+    ROUTES_PASSWORD &&
+    password === process.env.ROUTES_PASSWORD
+  ) {
+    done();
+  } else {
+    done(new Error('Noop'));
+  }
+};
+const authenticate = { realm: 'Reglugerdir' };
+fastify.register(fastifyBasicAuth, { validate, authenticate });
 
 if (process.env.PROXIED !== 'true') {
   fastify.register(fastifyCompress, { global: true });
@@ -37,7 +63,8 @@ if (ELASTIC_CLOUD_ID && ELASTIC_CLOUD_APIKEY_ID && ELASTIC_CLOUD_APIKEY_KEY) {
       apiKey: { id: ELASTIC_CLOUD_APIKEY_ID, api_key: ELASTIC_CLOUD_APIKEY_KEY },
     },
   });
-  fastify.register(elasticsearchRoutes, { prefix: '/api/v1' });
+  fastify.register(elasticSearchRoutes, { prefix: '/api/v1' });
+  fastify.register(elasticRebuildRoutes, { prefix: '/api/v1' });
 }
 
 fastify.register(regulationRoutes, { prefix: '/api/v1' });
