@@ -4391,10 +4391,10 @@ pupa@^2.0.1:
   dependencies:
     escape-goat "^2.0.0"
 
-"qj@npm:@hugsmidjan/qj@^4.5.1":
-  version "4.5.1"
-  resolved "https://registry.yarnpkg.com/@hugsmidjan/qj/-/qj-4.5.1.tgz#e87c28dacdc63cd0487f5be5efdfe2331711588c"
-  integrity sha512-qidGyecYZD58DyBr/4Vd1Ou08g6lFNzvM0ty1TOcDIV6fopxWTr4PScvApT1yn6jBCCHmm0pzGLfPVDk86NuhQ==
+"qj@npm:@hugsmidjan/qj@^4.6.1":
+  version "4.6.1"
+  resolved "https://registry.yarnpkg.com/@hugsmidjan/qj/-/qj-4.6.1.tgz#f22ec7fa0c760009fa4d9ed5f5b033872964f9b7"
+  integrity sha512-DnX7YUzWQXycbIO7L2r/Jljng73uFE1XSOMUrnc9GrRKIAtqkvCyknRKqnBo68lyMCCdZ5FauaJgqa0wVej9Jg==
 
 qs@~6.5.2:
   version "6.5.2"

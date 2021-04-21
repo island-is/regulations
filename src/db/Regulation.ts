@@ -22,6 +22,7 @@ import {
 } from '../routes/types';
 import { extractAppendixesAndComments } from '../utils/extractData';
 import { nameToSlug, toISODate } from '../utils/misc';
+import promiseAll from 'qj/promiseAllObject';
 
 // ---------------------------------------------------------------------------
 
@@ -166,20 +167,20 @@ const augmentRegulation = async (
 ): Promise<Regulation> => {
   const { id, type, name, signatureDate, publishedDate, effectiveDate } = regulation;
 
-  const [
+  const {
     ministry,
     history,
     effects,
     lawChapters,
     lastAmendDate,
     repealedDate,
-  ] = await Promise.all([
-    getRegulationMinistry(id),
-    getRegulationHistory(regulation),
-    getRegulationEffects(id),
-    getRegulationLawChapters(id),
-    getLatestRegulationChange(id).then((change) => change?.date),
-    getRegulationCancel(id).then((cancel) => {
+  } = await promiseAll({
+    ministry: getRegulationMinistry(id),
+    history: getRegulationHistory(regulation),
+    effects: getRegulationEffects(id),
+    lawChapters: getRegulationLawChapters(id),
+    lastAmendDate: getLatestRegulationChange(id).then((change) => change?.date),
+    repealedDate: getRegulationCancel(id).then((cancel) => {
       const date = cancel?.date;
       // Skip if repeal/cancellation date is in the future
       if (!date || new Date().toISOString() < date) {
@@ -187,7 +188,7 @@ const augmentRegulation = async (
       }
       return date;
     }),
-  ]);
+  });
 
   const { text, appendixes, comments } = extractAppendixesAndComments(
     regulationChange ? regulationChange?.text : regulation.text,

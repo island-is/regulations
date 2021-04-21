@@ -37,7 +37,7 @@
     "jsdom": "^16.5.2",
     "mysql2": "^2.2.5",
     "node-fetch": "^2.6.1",
-    "qj": "npm:@hugsmidjan/qj@^4.5.1",
+    "qj": "npm:@hugsmidjan/qj@^4.6.1",
     "reflect-metadata": "^0.1.13",
     "sequelize": "^6.6.2",
     "sequelize-typescript": "^2.1.0",

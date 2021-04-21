@@ -4,6 +4,7 @@ import { getRegulationMinistry } from './Ministry';
 import { getRegulationLawChapters } from './LawChapter';
 import { db } from '../utils/sequelize';
 import { QueryTypes } from 'sequelize';
+import promiseAll from 'qj/promiseAllObject';
 
 export const PER_PAGE = 18;
 
@@ -58,10 +59,12 @@ const augmentRegulations = async (
     const regProms = regChunk.map(async (reg) => {
       const { type, name, title, text, publishedDate, effectiveDate } = reg;
 
-      const [ministry, lawChapters] = await Promise.all([
-        opts.ministry ?? true ? await getRegulationMinistry(reg.id) : undefined,
-        opts.lawChapters ? await getRegulationLawChapters(reg.id) : undefined,
-      ]);
+      const { ministry, lawChapters } = await promiseAll({
+        ministry: opts.ministry ?? true ? await getRegulationMinistry(reg.id) : undefined,
+        lawChapters: opts.lawChapters
+          ? await getRegulationLawChapters(reg.id)
+          : undefined,
+      });
 
       const itm: RegulationListItemFull = {
         type: type === 'repealing' ? 'amending' : type,

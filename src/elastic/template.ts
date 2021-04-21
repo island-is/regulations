@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import promiseAll from 'qj/promiseAllObject';
 
 const getDictionaryFile = async (sha: string, locale: 'is', analyzer: string) => {
   return await fetch(
@@ -15,21 +16,21 @@ const getDictionaryFile = async (sha: string, locale: 'is', analyzer: string) =>
 };
 
 export const getSettingsTemplate = async (sha: string, locale: 'is') => {
-  const [
+  const {
     stemmer,
     keywords,
     synonyms,
     stopwords,
     hyphenwhitelist,
-    //autocompletestop,
-  ] = await Promise.all([
-    getDictionaryFile(sha, locale, 'stemmer'),
-    getDictionaryFile(sha, locale, 'keywords'),
-    getDictionaryFile(sha, locale, 'synonyms'),
-    getDictionaryFile(sha, locale, 'stopwords'),
-    getDictionaryFile(sha, locale, 'hyphenwhitelist'),
-    //getDictionaryFile(sha, locale, 'autocompletestop'),
-  ]);
+    // autocompletestop,
+  } = await promiseAll({
+    stemmer: getDictionaryFile(sha, locale, 'stemmer'),
+    keywords: getDictionaryFile(sha, locale, 'keywords'),
+    synonyms: getDictionaryFile(sha, locale, 'synonyms'),
+    stopwords: getDictionaryFile(sha, locale, 'stopwords'),
+    hyphenwhitelist: getDictionaryFile(sha, locale, 'hyphenwhitelist'),
+    // autocompletestop: getDictionaryFile(sha, locale, 'autocompletestop'),
+  });
 
   return {
     settings: {
