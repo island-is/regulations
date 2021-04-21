@@ -97,6 +97,9 @@ export const getSettingsTemplate = async (sha: string, locale: 'is') => {
 
 export const mappingTemplate = {
   properties: {
+    name: {
+      type: 'text',
+    },
     title: {
       type: 'text',
       fields: {
@@ -122,14 +125,26 @@ export const mappingTemplate = {
         },
       },
     },
-    type: {
+    year: {
       type: 'keyword',
     },
-    name: {
+    type: {
       type: 'keyword',
     },
     publishedDate: {
       type: 'date',
+    },
+    ministry: {
+      type: 'text',
+    },
+    ministrySlug: {
+      type: 'keyword',
+    },
+    lawChapters: {
+      type: 'text',
+    },
+    lawChaptersSlugs: {
+      type: 'keyword',
     },
   },
 };

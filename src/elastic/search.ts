@@ -77,14 +77,23 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
   let searchHits: Array<RegulationListItem> = [];
 
   if (filters.length || search.length) {
-    const { body } = await client.search({
-      index: 'regulations',
-      size: PER_SEARCH_PAGE,
-      body: requestBody.toJSON(),
-    });
+    console.log('Searching!!');
+    let search: Record<string, any> = {};
+
+    try {
+      search = await client.search({
+        index: 'regulations',
+        size: PER_SEARCH_PAGE,
+        body: requestBody.toJSON(),
+      });
+    } catch (err) {
+      console.error(err);
+    }
+
+    console.log({ search });
 
     searchHits =
-      body?.hits?.hits?.map((hit: any) => {
+      search?.body?.hits?.hits?.map((hit: any) => {
         return {
           name: hit._source.name,
           title: hit._source.title,
@@ -93,7 +102,7 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
         };
       }) ?? [];
 
-    totalItems = body?.hits?.total?.value ?? 0;
+    totalItems = search?.body?.hits?.total?.value ?? 0;
   }
 
   const results: RegulationSearchResults = {

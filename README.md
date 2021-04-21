@@ -15,46 +15,46 @@ Set `process.env.PORT` to use a different port.
 
 ## LawChapter
 
-- `GET /api/v1/lawchapters`  
+- `GET /api/v1/lawchapters`
   Returns all lawchapters
-- `GET /api/v1/lawchapters/tree`  
+- `GET /api/v1/lawchapters/tree`
   Returns all lawchapters in tree view with subchapters
 
 ## Ministry
 
-- `GET /api/v1/ministries`  
+- `GET /api/v1/ministries`
   Returns all ministries
 
 ## Years
 
-- `GET /api/v1/years`  
+- `GET /api/v1/years`
   Returns all regulation years
 
 ## Regulations
 
-- `GET /api/v1/regulations/newest`  
-  `GET /api/v1/regulations/newest?page=2`  
+- `GET /api/v1/regulations/newest`
+  `GET /api/v1/regulations/newest?page=2`
   Returns all regulations ordered by publisheddate, 14 items per page
 
-- `GET /api/v1/regulations/all/current`  
-  `GET /api/v1/regulations/all/current/full`  
-  `GET /api/v1/regulations/all/current/extra`  
+- `GET /api/v1/regulations/all/current`
+  `GET /api/v1/regulations/all/current/full`
+  `GET /api/v1/regulations/all/current/extra`
   Returns all regulations ordered by publisheddate
   - full also returns text field for generic search
   - extra also returns text, law chapters and ministry for advanced search
 
 ## Regulation
 
-- `GET /api/v1/regulation/:name/current`  
+- `GET /api/v1/regulation/:name/current`
   Returns current version of a regulation with all changes applied
-- `GET /api/v1/regulation/:name/diff`  
+- `GET /api/v1/regulation/:name/diff`
   Returns current version of a regulation with all changes applied, showing
   the total changes the "original" verion.
-- `GET /api/v1/regulation/:name/original`  
+- `GET /api/v1/regulation/:name/original`
   Returns original version of a regulation
-- `GET /api/v1/regulation/:name/d/:date`  
+- `GET /api/v1/regulation/:name/d/:date`
   Returns a version of a regulation as it was on a specific `date`
-- `GET /api/v1/regulation/:name/d/:date/diff`  
+- `GET /api/v1/regulation/:name/d/:date/diff`
   Returns a version of a regulation as it was on a specific `date`, showing
   the changes that occurred on that date
 - `GET /api/v1/regulation/:name/d/:date/diff/original` Returns a version of a
@@ -65,10 +65,12 @@ Set `process.env.PORT` to use a different port.
   since `earlierDate`
 
 ## Search
-- `GET /api/v1/search?q=query&year=YYYY&rn=ministrySlug&ch=lawChapterSlug`  
+- `GET /api/v1/search?q=query&year=YYYY&rn=ministrySlug&ch=lawChapterSlug`
   Searches regulations by query, year, ministry or lawchapter
-- `GET /api/v1/search/populate`  
-  Rebuilds index db
+- `GET /api/v1/search/recreate`
+  Recreates index db
+- `GET /api/v1/search/repopulate`
+  Repopulates index db
 - `GET /api/v1/search/update?name=:name`
   Updates regulation item in index by `name`
 

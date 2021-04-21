@@ -1,6 +1,6 @@
 import { FastifyPluginCallback } from 'fastify';
 import { QStr } from '../utils/misc';
-import { populateElastic, updateElasticItem } from './populate';
+import { recreateElastic, repopulateElastic, updateElasticItem } from './populate';
 import { searchElastic, SearchQueryParams } from './search';
 
 // ---------------------------------------------------------------------------
@@ -8,7 +8,7 @@ import { searchElastic, SearchQueryParams } from './search';
 export const elasticsearchRoutes: FastifyPluginCallback = (fastify, opts, done) => {
   /**
    * Search regulations
-   * @returns {Array<Ministry>}
+   * @returns RegulationSearchResults
    */
   fastify.get<{ Querystring: SearchQueryParams }>(
     '/search',
@@ -20,26 +20,39 @@ export const elasticsearchRoutes: FastifyPluginCallback = (fastify, opts, done) 
   );
 
   /**
-   * Populate regulations search index
-   * @returns {Array<Ministry>}
+   * Recreate regulations search index
+   * @returns {success: boolean>}
    */
   fastify.get<QStr<'template'>>(
-    '/search/populate',
+    '/search/recreate',
     opts,
     async function (request, reply) {
-      const data = await populateElastic(this.elastic);
+      const data = await recreateElastic(this.elastic);
+      reply.send(data);
+    },
+  );
+
+  /**
+   * Repopulate regulations search index
+   * @returns {success: boolean>}
+   */
+  fastify.get<QStr<'template'>>(
+    '/search/repopulate',
+    opts,
+    async function (request, reply) {
+      const data = await repopulateElastic(this.elastic);
       reply.send(data);
     },
   );
 
   /**
    * Update single regulation in index by RegName
-   * @returns {Array<Ministry>}
+   * @returns {success: boolean>}
    */
   fastify.get<QStr<'name'>>('/search/update', opts, async function (request, reply) {
     await updateElasticItem(this.elastic, request.query);
 
-    reply.send({ success: 1 });
+    reply.send({ success: true });
   });
 
   done();
