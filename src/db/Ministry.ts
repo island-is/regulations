@@ -2,7 +2,6 @@ import {
   Ministry as DB_Ministry,
   Regulation_Ministry as DB_Regulation_Ministry,
 } from '../models';
-import { Ministry } from '../routes/types';
 
 export async function getAllMinistries() {
   const ministries =
@@ -18,27 +17,13 @@ export async function getAllMinistries() {
   return ministries;
 }
 
-export async function getMinistryById(id?: number) {
-  if (!id) {
-    return;
-  }
-  const ministry = (await DB_Ministry.findOne({ where: { id } })) ?? undefined;
-  return ministry;
-}
+export const getMinistryById = async (id: number) =>
+  (await DB_Ministry.findOne({ where: { id } })) || undefined;
 
-export async function getRegulationMinistry(regulationId: number | undefined) {
-  if (!regulationId) {
-    return;
-  }
+export async function getRegulationMinistry(regulationId: number) {
   const con = await DB_Regulation_Ministry.findOne({ where: { regulationId } });
-  if (!con?.ministryId) {
+  if (!con) {
     return;
   }
-  const ministry =
-    (await DB_Ministry.findOne({
-      where: { id: con?.ministryId },
-      attributes: ['name', 'slug', 'current'],
-    })) ?? undefined;
-
-  return ministry;
+  return getMinistryById(con.ministryId);
 }

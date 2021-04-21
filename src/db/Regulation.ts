@@ -57,21 +57,14 @@ async function getRegulationByName(name: RegName) {
   return regulation;
 }
 
-async function getRegulationTasks(regulationId?: number) {
-  if (!regulationId) {
-    return;
-  }
+async function getRegulationTasks(regulationId: number) {
   const task = (await DB_Tasks.findOne({ where: { regulationId } })) ?? undefined;
   return task;
 }
 
-async function getRegulationCancel(regulationId?: number) {
-  if (!regulationId) {
-    return;
-  }
+async function getRegulationCancel(regulationId: number) {
   const regulationCancel =
     (await DB_RegulationCancel.findOne({ where: { regulationId } })) ?? undefined;
-
   return regulationCancel;
 }
 

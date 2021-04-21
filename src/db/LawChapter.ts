@@ -46,18 +46,14 @@ export async function getAllLawChapters() {
   return lawChapters;
 }
 
-export async function getRegulationLawChapters(regulationId?: number) {
-  if (!regulationId) {
-    return;
-  }
-
+export async function getRegulationLawChapters(regulationId: number) {
   const con = await DB_Regulation_LawChapter.findOne({ where: { regulationId } });
-  if (!con?.chapterId) {
+  if (!con) {
     return;
   }
 
   const lawChapters =
-    (await DB_LawChapter.findAll({ raw: true, where: { id: con?.chapterId } })) ??
+    (await DB_LawChapter.findAll({ raw: true, where: { id: con.chapterId } })) ??
     undefined;
 
   return augmentLawChapters(lawChapters);
