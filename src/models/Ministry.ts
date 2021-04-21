@@ -29,7 +29,7 @@ export class Ministry
   @Column({ type: DataType.STRING(128) })
   name!: string;
 
-  @Column({ type: DataType.TINYINT })
+  @Column({ type: DataType.BOOLEAN })
   current!: boolean;
 
   @Column({ allowNull: true, type: DataType.INTEGER })

@@ -11,7 +11,7 @@ import {
 type TaskAttributes = {
   id: number;
   regulationId: number;
-  done: number;
+  done: boolean;
   lastEdited: Date;
 };
 
@@ -25,8 +25,8 @@ export class Task
   @Column({ type: DataType.INTEGER })
   regulationId!: number;
 
-  @Column({ type: DataType.TINYINT })
-  done!: number;
+  @Column({ type: DataType.BOOLEAN })
+  done!: boolean;
 
   @Column({ type: DataType.DATE })
   lastEdited!: Date;
