@@ -39,9 +39,6 @@ const getTextContentDiff = (older: PlainText, newer: PlainText): HTMLText =>
 // ---------------------------------------------------------------------------
 
 async function getRegulationById(regulationId: number) {
-  if (!regulationId) {
-    return;
-  }
   const regulation =
     (await DB_Regulation.findOne({
       where: { id: regulationId },
