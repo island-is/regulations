@@ -64,12 +64,12 @@ const augmentRegulations = async (
       ]);
 
       const itm: RegulationListItemFull = {
-        type: (type === 'repealing' ? 'amending' : type) as 'amending' | 'base',
+        type: type === 'repealing' ? 'amending' : type,
         title,
         text: opts.text ? text : undefined,
-        name: name as RegName,
-        publishedDate: publishedDate as ISODate,
-        effectiveDate: effectiveDate as ISODate,
+        name,
+        publishedDate,
+        effectiveDate,
         ministry,
         lawChapters,
       };

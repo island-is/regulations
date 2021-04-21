@@ -9,7 +9,7 @@ import {
 } from 'sequelize-typescript';
 
 type Regulation_MinistryAttributes = {
-  id?: number;
+  id: number;
   regulationId: number;
   ministryId: number;
 };
@@ -19,7 +19,7 @@ export class Regulation_Ministry
   extends Model<Regulation_MinistryAttributes, Regulation_MinistryAttributes>
   implements Regulation_MinistryAttributes {
   @Column({ primaryKey: true, autoIncrement: true, type: DataType.INTEGER })
-  id?: number;
+  id!: number;
 
   @Column({ type: DataType.INTEGER })
   regulationId!: number;

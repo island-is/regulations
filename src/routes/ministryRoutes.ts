@@ -1,7 +1,7 @@
 import { FastifyPluginCallback } from 'fastify';
 import { cache } from '../utils/misc';
 import { getAllMinistries } from '../db/Ministry';
-import { Ministry, MinistryListItem } from './types';
+import { MinistryListItem } from './types';
 
 const MINISTRY_TTL = 1;
 
@@ -15,7 +15,7 @@ export const ministryRoutes: FastifyPluginCallback = (fastify, opts, done) => {
     const ministries = data.map(
       (m): MinistryListItem => {
         const { id, ...ministry } = m;
-        return (ministry as unknown) as Ministry;
+        return ministry;
       },
     );
     cache(reply, MINISTRY_TTL);

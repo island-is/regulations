@@ -12,7 +12,7 @@ type MinistryAttributes = {
   id: number;
   slug: string;
   name: string;
-  current: number;
+  current: boolean;
   order?: number;
 };
 
@@ -30,7 +30,7 @@ export class Ministry
   name!: string;
 
   @Column({ type: DataType.TINYINT })
-  current!: number;
+  current!: boolean;
 
   @Column({ allowNull: true, type: DataType.INTEGER })
   order?: number;

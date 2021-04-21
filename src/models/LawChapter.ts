@@ -9,7 +9,7 @@ import {
 } from 'sequelize-typescript';
 
 type LawChapterAttributes = {
-  id?: number;
+  id: number;
   slug: string;
   title: string;
   parentId?: number;
@@ -20,7 +20,7 @@ export class LawChapter
   extends Model<LawChapterAttributes, LawChapterAttributes>
   implements LawChapterAttributes {
   @Column({ primaryKey: true, autoIncrement: true, type: DataType.INTEGER })
-  id?: number;
+  id!: number;
 
   @Column({ type: DataType.STRING(8) })
   slug!: string;

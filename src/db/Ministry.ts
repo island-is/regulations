@@ -33,17 +33,11 @@ export async function getRegulationMinistry(regulationId: number | undefined) {
   if (!con?.ministryId) {
     return;
   }
-  const ministry = await DB_Ministry.findOne({
-    where: { id: con?.ministryId },
-    attributes: ['name', 'slug', 'current'],
-  });
+  const ministry =
+    (await DB_Ministry.findOne({
+      where: { id: con?.ministryId },
+      attributes: ['name', 'slug', 'current'],
+    })) ?? undefined;
 
-  const retMinistry = ministry
-    ? <Ministry>{
-        name: ministry.name,
-        slug: ministry.slug,
-        current: !!ministry.current,
-      }
-    : undefined;
-  return retMinistry;
+  return ministry;
 }

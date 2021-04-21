@@ -8,27 +8,21 @@ import {
   ForeignKey,
 } from 'sequelize-typescript';
 
+import { HTMLText, ISODate, RegName } from '../routes/types';
+
 type RegulationAttributes = {
-  id?: number;
+  id: number;
   title: string;
-  name: string;
-  text: string;
-  signatureDate: string;
-  updatedSignatureDateTemp?: string;
-  publishedDate: string;
-  updatedPublishedDateTemp?: string;
-  _legacyimportid?: string;
-  _externalsource?: string;
-  effectiveDate: string;
-  updatedEffectiveDateTemp?: string;
-  updateStatus?: string;
+  name: RegName;
+  text: HTMLText;
+  signatureDate: ISODate;
+  publishedDate: ISODate;
+  effectiveDate: ISODate;
+  updateStatus?: '' | '-1' | '0' | '1' | '2' | '3';
   updateComment?: string;
-  status: string;
-  type: string;
-  repealedDate?: string;
-  signatureDateUnconfirmed: number;
-  publishedDateUnconfirmed: number;
-  effectiveDateUnconfirmed: number;
+  status?: 'raw' | 'unsafe' | 'draft' | 'text_locked' | 'migrated';
+  type?: 'base' | 'amending' | 'repealing';
+  repealedDate?: ISODate;
 };
 
 @Table({ tableName: 'Regulation', timestamps: false })
@@ -41,7 +35,7 @@ export class Regulation
     type: DataType.INTEGER,
     comment: 'migrated as-is from old table',
   })
-  id?: number;
+  id!: number;
 
   @Column({
     type: DataType.STRING,
@@ -50,30 +44,16 @@ export class Regulation
   title!: string;
 
   @Column({ type: DataType.STRING(9), comment: 'migrated as-is from old table' })
-  name!: string;
+  name!: RegName;
 
   @Column({ type: DataType.STRING, comment: 'migrated as-is from old table' })
-  text!: string;
+  text!: HTMLText;
 
   @Column({ type: DataType.DATEONLY, comment: 'migrated as-is from old table' })
-  signatureDate!: string;
-
-  @Column({
-    allowNull: true,
-    type: DataType.STRING(64),
-    comment: 'updated via manual process in spreadsheet',
-  })
-  updatedSignatureDateTemp?: string;
+  signatureDate!: ISODate;
 
   @Column({ type: DataType.DATEONLY, comment: 'migrated as-is from old table' })
-  publishedDate!: string;
-
-  @Column({
-    allowNull: true,
-    type: DataType.STRING(64),
-    comment: 'updated via manual process in spreadsheet',
-  })
-  updatedPublishedDateTemp?: string;
+  publishedDate!: ISODate;
 
   @Column({
     allowNull: true,
@@ -94,14 +74,7 @@ export class Regulation
     comment:
       'migrated as-is from old table. NOTE: Regulation.effectiveDate and RegulationChange.date are NOT the same thing, though they are often the same value',
   })
-  effectiveDate!: string;
-
-  @Column({
-    allowNull: true,
-    type: DataType.STRING(64),
-    comment: 'updated via manual process in spreadsheet',
-  })
-  updatedEffectiveDateTemp?: string;
+  effectiveDate!: ISODate;
 
   @Column({
     allowNull: true,
@@ -109,7 +82,7 @@ export class Regulation
     comment:
       'Status of regulation after manual processing:\n-1 = Duplicate\n0  = Ekki regluger\u00F0\n1  = \u00D3sta\u00F0festar dags\n2  = Eitthva\u00F0 spes\n3  = Brottfelld en ekki merkt \u00FEannig\n\n',
   })
-  updateStatus?: string;
+  updateStatus?: '' | '-1' | '0' | '1' | '2' | '3';
 
   @Column({ allowNull: true, type: DataType.STRING(512) })
   updateComment?: string;
@@ -118,28 +91,19 @@ export class Regulation
     type: DataType.ENUM('raw', 'unsafe', 'draft', 'text_locked', 'migrated'),
     comment: 'Status of regulation after manual processing',
   })
-  status!: string;
+  status!: 'raw' | 'unsafe' | 'draft' | 'text_locked' | 'migrated';
 
   @Column({
-    type: DataType.ENUM('base', 'amending'),
+    type: DataType.ENUM('base', 'amending', 'repealing'),
     comment:
       'Type of regulation, base (stofn) or amending (breytingar), base can still amend tho. We do not mark it as repealed here since that would lose the type',
   })
-  type!: string;
+  type!: 'base' | 'amending' | 'repealing';
 
   @Column({
     allowNull: true,
     type: DataType.DATEONLY,
     comment: 'when regulation was repealed or will be repealed',
   })
-  repealedDate?: string;
-
-  @Column({ type: DataType.TINYINT })
-  signatureDateUnconfirmed!: number;
-
-  @Column({ type: DataType.TINYINT })
-  publishedDateUnconfirmed!: number;
-
-  @Column({ type: DataType.TINYINT })
-  effectiveDateUnconfirmed!: number;
+  repealedDate?: ISODate;
 }

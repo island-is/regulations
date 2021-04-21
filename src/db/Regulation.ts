@@ -177,10 +177,6 @@ const augmentRegulation = async (
 ): Promise<Regulation> => {
   const { id, type, name, signatureDate, publishedDate, effectiveDate } = regulation;
 
-  if (!id) {
-    return (regulation as unknown) as Regulation;
-  }
-
   const [
     ministry,
     history,
@@ -205,22 +201,22 @@ const augmentRegulation = async (
   ]);
 
   const { text, appendixes, comments } = extractAppendixesAndComments(
-    (regulationChange ? regulationChange?.text : regulation.text) as HTMLText,
+    regulationChange ? regulationChange?.text : regulation.text,
   );
 
   return {
-    type: (type === 'repealing' ? 'amending' : type) as 'base' | 'amending',
-    name: name as RegName,
+    type: type === 'repealing' ? 'amending' : type,
+    name,
     title: /* regulationChange?.title ||*/ regulation.title,
     text,
-    signatureDate: signatureDate as ISODate,
-    publishedDate: publishedDate as ISODate,
-    effectiveDate: effectiveDate as ISODate,
+    signatureDate,
+    publishedDate,
+    effectiveDate,
     ministry,
-    repealedDate: repealedDate as ISODate,
+    repealedDate,
     appendixes,
     comments,
-    lastAmendDate: lastAmendDate as ISODate,
+    lastAmendDate,
     lawChapters: lawChapters ?? [],
     history,
     effects,
@@ -230,10 +226,10 @@ const augmentRegulation = async (
 };
 
 const getRegulationRedirect = (regulation: DB_Regulation): RegulationRedirect => {
-  const name = regulation.name as RegName;
+  const { name, title } = regulation;
   return {
-    name: name,
-    title: regulation.title,
+    name,
+    title,
     redirectUrl: 'https://www.reglugerd.is/reglugerdir/allar/nr/' + nameToSlug(name),
   };
 };
@@ -274,7 +270,7 @@ export async function getRegulation(
 ) {
   const { date, diff, earlierDate } = opts || {};
   const regulation = await getRegulationByName(regulationName);
-  if (!regulation || !regulation.id) {
+  if (!regulation) {
     return null;
   }
 
@@ -305,7 +301,7 @@ export async function getRegulation(
 
   if (needsTimelineDate) {
     augmentedRegulation.timelineDate = regulationChange
-      ? (regulationChange.date as ISODate)
+      ? regulationChange.date
       : augmentedRegulation.effectiveDate;
   }
 
@@ -323,7 +319,7 @@ export async function getRegulation(
     // Here the "active" regulation is the original and any diffing should be against the empty string
     earlierState = extractAppendixesAndComments('');
   } else if (earlierDate === 'original') {
-    earlierState = extractAppendixesAndComments(regulation.text as HTMLText);
+    earlierState = extractAppendixesAndComments(regulation.text);
   } else {
     let eDate = earlierDate;
     if (!eDate) {
@@ -333,10 +329,10 @@ export async function getRegulation(
     const change = await getLatestRegulationChange(regulation.id, eDate);
     earlierState = change
       ? {
-          ...extractAppendixesAndComments(change.text as HTMLText),
-          date: change.date as ISODate,
+          ...extractAppendixesAndComments(change.text),
+          date: change.date,
         }
-      : extractAppendixesAndComments(regulation.text as HTMLText);
+      : extractAppendixesAndComments(regulation.text);
   }
 
   diffedRegulation.title = toHTML(augmentedRegulation.title);
@@ -359,8 +355,8 @@ export async function getRegulation(
   });
 
   diffedRegulation.showingDiff = {
-    from: (earlierState.date || regulation.publishedDate) as ISODate,
-    to: (regulationChange ? regulationChange.date : regulation.effectiveDate) as ISODate,
+    from: earlierState.date || regulation.publishedDate,
+    to: regulationChange ? regulationChange.date : regulation.effectiveDate,
   };
 
   return diffedRegulation;

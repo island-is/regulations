@@ -29,7 +29,7 @@ const regulationToIndexItem = (reg: RegulationListItemFull | Regulation) => {
   });
   const indexBody: RegulationsIndexBody = {
     year: reg.name.match(/\/(\d{4})/)?.[1] || '',
-    name: reg.name as RegName,
+    name: reg.name,
     title: reg.title,
     text: reg.text ?? '',
     publishedDate: reg.publishedDate,

@@ -8,11 +8,13 @@ import {
   ForeignKey,
 } from 'sequelize-typescript';
 
+import { ISODate } from '../routes/types';
+
 type RegulationCancelAttributes = {
-  id?: number;
+  id: number;
   regulationId: number;
   changingId: number;
-  date: string;
+  date: ISODate;
 };
 
 @Table({ tableName: 'RegulationCancel', timestamps: false })
@@ -20,7 +22,7 @@ export class RegulationCancel
   extends Model<RegulationCancelAttributes, RegulationCancelAttributes>
   implements RegulationCancelAttributes {
   @Column({ primaryKey: true, autoIncrement: true, type: DataType.INTEGER })
-  id?: number;
+  id!: number;
 
   @Column({
     type: DataType.INTEGER,
@@ -35,5 +37,5 @@ export class RegulationCancel
   changingId!: number;
 
   @Column({ type: DataType.DATEONLY, comment: 'the "effectiveDate" of the cancellation' })
-  date!: string;
+  date!: ISODate;
 }

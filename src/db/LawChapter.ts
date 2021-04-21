@@ -20,9 +20,9 @@ export const chaptersToTree = (chapters: Array<DB_LawChapter>): LawChapterTree =
   } = {};
 
   chapters.forEach((chapter) => {
-    const { id = -1, parentId, title, slug } = chapter;
+    const { parentId, title, slug } = chapter;
     if (!parentId) {
-      parents[id] = {
+      parents[chapter.id] = {
         name: title,
         slug,
         subChapters: [],

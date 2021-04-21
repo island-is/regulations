@@ -9,7 +9,7 @@ import {
 } from 'sequelize-typescript';
 
 type TaskAttributes = {
-  id?: number;
+  id: number;
   regulationId: number;
   done: number;
   lastEdited: Date;
@@ -20,7 +20,7 @@ export class Task
   extends Model<TaskAttributes, TaskAttributes>
   implements TaskAttributes {
   @Column({ primaryKey: true, autoIncrement: true, type: DataType.INTEGER })
-  id?: number;
+  id!: number;
 
   @Column({ type: DataType.INTEGER })
   regulationId!: number;
