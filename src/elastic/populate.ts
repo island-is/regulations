@@ -179,26 +179,18 @@ export async function updateElasticItem(client: Client, query: { name?: string }
   }
   try {
     console.info('deleting ' + name + ' from index...');
-    await client.deleteByQuery(
-      {
-        index: INDEX_NAME,
-        body: {
-          query: {
-            query_string: {
-              query: '"' + name + '"',
-              fields: ['name'],
-            },
+    await client.deleteByQuery({
+      index: INDEX_NAME,
+      body: {
+        query: {
+          query_string: {
+            query: '"' + name + '"',
+            fields: ['name'],
           },
         },
       },
-      function (err, res) {
-        if (err) {
-          console.error(err.message);
-          return { success: false };
-        }
-        return _updateItem(client, name);
-      },
-    );
+    });
+    await _updateItem(client, name);
   } catch (err) {
     console.info(err);
     return { success: false };
