@@ -11,6 +11,7 @@ import { regulationsRoutes } from './routes/regulationsRoutes';
 import { ministryRoutes } from './routes/ministryRoutes';
 import { lawChapterRoutes } from './routes/lawChapterRoutes';
 import { yearsRoutes } from './routes/yearsRoutes';
+import { redirectsRoutes } from './routes/redirectsRoutes';
 
 import { connectSequelize } from './utils/sequelize';
 
@@ -72,6 +73,7 @@ fastify.register(regulationsRoutes, { prefix: '/api/v1' });
 fastify.register(ministryRoutes, { prefix: '/api/v1' });
 fastify.register(lawChapterRoutes, { prefix: '/api/v1' });
 fastify.register(yearsRoutes, { prefix: '/api/v1' });
+fastify.register(redirectsRoutes, { prefix: '/api/v1' });
 
 const start = async () => {
   try {

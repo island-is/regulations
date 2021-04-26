@@ -74,6 +74,10 @@ Set `process.env.PORT` to use a different port.
 - `GET /api/v1/search/update?name=:name`
   Updates regulation item in index by `name`
 
+## Redirects
+- `GET /api/v1/redirects`
+  Returns redirects for all regulations marked as `Done`
+
 ### Param types:
 
 - `name` – Regulation publication name formatted as `nnnn-yyyy`. _(Example:
