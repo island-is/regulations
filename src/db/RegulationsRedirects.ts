@@ -8,31 +8,21 @@ type SQLRedirectList = Array<{
   name: RegName;
 }>;
 
-type Redirects = Array<{
-  name: RegQueryName;
-  to: string;
-}>;
+type Redirects = Array<RegQueryName>;
 
 export async function getRegulationsRedirects() {
   const sql = `
-    select
-      r.id,
-      r.name
-    from Regulation as r
-    where
-      (select done from Task where regulationId = r.id) = true
-    order by id DESC
-    ;`;
+  (select name from Regulation where type = 'amending' and status in ('text_locked', 'migrated'))
+  union all
+  (select name from Regulation as r join Task as t on r.id = t.regulationId where t.done = true)
+  ;`;
 
   const redirectsData = <SQLRedirectList>(
     ((await db.query(sql, { type: QueryTypes.SELECT })) ?? [])
   );
 
   const redirects: Redirects = redirectsData.map((itm) => {
-    return {
-      name: nameToSlug(itm.name),
-      to: 'https://island.is/reglugerdir/nr/' + nameToSlug(itm.name),
-    };
+    return nameToSlug(itm.name);
   });
 
   return redirects;
