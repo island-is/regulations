@@ -7,7 +7,7 @@ const YEARS_TTL = 1;
 export const yearsRoutes: FastifyPluginCallback = (fastify, opts, done) => {
   /**
    * Gets all minitries
-   * @returns {Array<Ministry>}
+   * @returns {Array<number>}
    */
   fastify.get('/years', opts, async (request, reply) => {
     const data = await getRegulationsYears();
