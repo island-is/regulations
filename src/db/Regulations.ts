@@ -1,4 +1,4 @@
-import { DB_Regulation } from '../models';
+import { DB_Regulation, DB_Task } from '../models';
 import { ISODate, RegulationListItem, LawChapter, RegName } from '../routes/types';
 import { getRegulationMinistry } from './Ministry';
 import { getRegulationLawChapters } from './LawChapter';
@@ -37,6 +37,7 @@ type SQLRegulationsList = ReadonlyArray<
     'id' | 'name' | 'type' | 'title' | 'publishedDate' | 'effectiveDate'
   > & {
     text?: DB_Regulation['text'];
+    migrated?: DB_Task['done'];
   }
 >;
 export type RegulationListItemFull = RegulationListItem & {
@@ -57,7 +58,7 @@ const augmentRegulations = async (
     const regChunk = regulations.slice(i, i + chunkSize);
     // eslint-disable-next-line no-await-in-loop
     const regProms = regChunk.map(async (reg) => {
-      const { type, name, title, text, publishedDate, effectiveDate } = reg;
+      const { type, migrated, name, title, text, publishedDate, effectiveDate } = reg;
 
       const { ministry, lawChapters } = await promiseAll({
         ministry: opts.ministry ?? true ? await getRegulationMinistry(reg.id) : undefined,
@@ -69,7 +70,7 @@ const augmentRegulations = async (
       const itm: RegulationListItemFull = {
         type: type === 'repealing' ? 'amending' : type,
         title,
-        text: opts.text ? text : undefined,
+        text: !!migrated && opts.text ? text : undefined,
         name,
         publishedDate,
         effectiveDate,
@@ -117,13 +118,13 @@ export async function getAllBaseRegulations(
           ? 'COALESCE((select text from RegulationChange where regulationId = r.id and date <= now() order by date desc limit 1), text) as text,'
           : ''
       }
+      (select done from Task where regulationId = r.id) as migrated,
       r.type,
       r.publishedDate,
       r.effectiveDate
     from Regulation as r
     where
       r.type = 'base'
-      and (select done from Task where regulationId = r.id) = true
       and (select date from RegulationCancel where regulationId = r.id limit 1) IS NULL
     order by publishedDate DESC, id
     ;`;

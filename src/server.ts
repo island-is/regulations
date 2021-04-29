@@ -30,8 +30,6 @@ const validate: FastifyBasicAuthOptions['validate'] = (
   reply,
   done,
 ) => {
-  console.log(username, ROUTES_USERNAME);
-
   if (
     ROUTES_USERNAME &&
     username === ROUTES_USERNAME &&

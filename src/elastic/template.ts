@@ -72,6 +72,7 @@ export const getSettingsTemplate = async (sha: string, locale: 'is') => {
               'icelandicKeyword',
               'icelandicStemmer',
             ],
+            char_filter: ['html_strip'],
           },
           compoundIcelandic: {
             type: 'custom',
@@ -84,6 +85,7 @@ export const getSettingsTemplate = async (sha: string, locale: 'is') => {
               'icelandicDeCompounded',
               'icelandicStemmer',
             ],
+            char_filter: ['html_strip'],
           },
           termIcelandic: {
             type: 'custom',
