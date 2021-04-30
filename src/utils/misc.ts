@@ -113,3 +113,36 @@ export const cache = (res: FastifyReply, ttl_hrs: number): void => {
       'public, max-age=' + ttl_hrs * HOURS + (ttl_hrs ? ', immutable' : ''),
   });
 };
+
+// ---------------------------------------------------------------------------
+
+import fs from 'fs';
+
+/* write json data to disk */
+export const storeData = (data: any, path: string) => {
+  try {
+    fs.writeFileSync(path, JSON.stringify(data));
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const loadData = async (path: string) => {
+  try {
+    const available = true;
+    // fetch file details
+    const stats = await fs.promises.stat(path);
+    const now = new Date().getTime();
+    const mtime = new Date(stats.mtime).getTime();
+
+    // return file if it's available and newer than 6 hours
+    if (now - mtime <= 3.6e6) {
+      const data = await fs.readFileSync(path, 'utf8');
+      return available ? JSON.parse(data) : false;
+    }
+    return false;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+};

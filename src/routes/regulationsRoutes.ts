@@ -5,7 +5,14 @@ import {
   getRegulationsCount,
   getAllBaseRegulations,
 } from '../db/Regulations';
-import { assertPosInt, cache, IntPositive, QStr } from '../utils/misc';
+import {
+  assertPosInt,
+  cache,
+  IntPositive,
+  loadData,
+  QStr,
+  storeData,
+} from '../utils/misc';
 
 const NEWEST_TTL = 0.5;
 const ALLCURRENT_TTL = 0.5;
@@ -43,11 +50,25 @@ export const regulationsRoutes: FastifyPluginCallback = (fastify, opts, done) =>
     reply.send(data);
   });
   fastify.get('/regulations/all/current/full', opts, async (request, reply) => {
-    const data = await getAllBaseRegulations({ full: true });
+    let data = await loadData('backup-json/all-current-full.json');
+    if (!data) {
+      console.info('Fetching data from db');
+      data = await getAllBaseRegulations({ full: true });
+      storeData(data, 'backup-json/all-current-full.json');
+    } else {
+      console.info('Returning all-current-full data from file');
+    }
     reply.send(data);
   });
   fastify.get('/regulations/all/current/extra', opts, async (request, reply) => {
-    const data = await getAllBaseRegulations({ full: true, extra: true });
+    let data = await loadData('backup-json/all-current-extra.json');
+    if (!data) {
+      console.info('Fetching data from db');
+      data = await getAllBaseRegulations({ full: true, extra: true });
+      storeData(data, 'backup-json/all-current-extra.json');
+    } else {
+      console.info('Returning all-current-extra data from file');
+    }
     reply.send(data);
   });
 

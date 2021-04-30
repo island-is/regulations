@@ -31,7 +31,7 @@ export async function getRegulationsYears() {
 
 // ---------------------------------------------------------------------------
 
-type SQLRegulationsList = ReadonlyArray<
+export type SQLRegulationsList = ReadonlyArray<
   Pick<
     DB_Regulation,
     'id' | 'name' | 'type' | 'title' | 'publishedDate' | 'effectiveDate'
@@ -51,7 +51,7 @@ const augmentRegulations = async (
   regulations: SQLRegulationsList,
   opts: { text?: boolean; ministry?: boolean; lawChapters?: boolean } = {},
 ) => {
-  const chunkSize = 20;
+  const chunkSize = 10;
   const augmentedRegulations: Array<RegulationListItemFull> = [];
 
   for (let i = 0; i < regulations.length; i += chunkSize) {

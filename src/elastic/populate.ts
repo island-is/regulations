@@ -4,7 +4,7 @@ import { RegulationListItemFull, getAllBaseRegulations } from '../db/Regulations
 import { Client } from '@elastic/elasticsearch';
 import { performance } from 'perf_hooks';
 import { getSettingsTemplate, mappingTemplate } from './template';
-import { assertRegName } from '../utils/misc';
+import { assertRegName, loadData } from '../utils/misc';
 
 const INDEX_NAME = 'regulations';
 
@@ -102,10 +102,18 @@ export async function repopulateElastic(client: Client) {
   const t0 = performance.now();
   try {
     console.info('fetching regulations...');
-    const regulations = (await getAllBaseRegulations({
-      full: true,
-      extra: true,
-    })) as Array<RegulationListItemFull>;
+    let regulations = (await loadData('backup-json/all-current-extra.json')) as
+      | Array<RegulationListItemFull>
+      | false;
+    if (regulations) {
+      console.info('returning data from file');
+    } else {
+      console.info('fetching data from db (this takes a while)...');
+      regulations = (await getAllBaseRegulations({
+        full: true,
+        extra: true,
+      })) as Array<RegulationListItemFull>;
+    }
 
     if (!regulations.length) {
       console.warn('Error fetching regulations');
