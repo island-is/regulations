@@ -102,30 +102,30 @@ export async function getNewestRegulations(opts: { skip?: number; take?: number 
   return await augmentRegulationList(regulations);
 }
 
-export async function getAllBaseRegulations(
-  opts: { full?: boolean; extra?: boolean } = {},
-) {
-  const { full = false, extra = false } = opts;
+export async function getAllBaseRegulations(opts: { full?: boolean; extra?: boolean }) {
+  const { full, extra } = opts || {};
   const sql = `
     select
       r.id,
       r.name,
-      r.title,
+      COALESCE((select title from RegulationChange where regulationId = r.id and date <= now() order by date desc limit 1), r.title) as title,
       ${
+        // This is dumb and inefficient repetition, but works. TODO: Make this more fancy with Blackjack and CTEs
         full
-          ? 'COALESCE((select text from RegulationChange where regulationId = r.id and date <= now() order by date desc limit 1), text) as text,'
-          : ''
+          ? 'COALESCE((select text from RegulationChange where regulationId = r.id and date <= now() order by date desc limit 1), r.text) as text,'
+          : 'r.title,'
       }
-      (select done from Task where regulationId = r.id) as migrated,
+      t.done as migrated,
       r.type,
       r.publishedDate,
       r.effectiveDate
     from Regulation as r
+    left join Task as t on t.regulationId = r.id
     where
       r.type = 'base'
       and (select date from RegulationCancel where regulationId = r.id limit 1) IS NULL
     order by publishedDate DESC, id
-    ;`;
+  ;`;
 
   const regulations = <SQLRegulationsList>(
     ((await db.query(sql, { type: QueryTypes.SELECT })) ?? [])
