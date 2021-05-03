@@ -205,7 +205,7 @@ const augmentRegulation = async (
   return {
     type: type === 'repealing' ? 'amending' : type,
     name,
-    title: /* regulationChange?.title ||*/ regulation.title,
+    title: regulationChange ? regulationChange.title : regulation.title,
     text,
     signatureDate,
     publishedDate,
@@ -309,8 +309,11 @@ export async function getRegulation(
     return augmentedRegulation;
   }
 
+  // Resolve/apply diff
+
   const diffedRegulation = (augmentedRegulation as unknown) as RegulationDiff;
 
+  let earlierTitle: Regulation['title'];
   let earlierState: Pick<Regulation, 'text' | 'appendixes' | 'comments'> & {
     date?: ISODate;
   };
@@ -318,8 +321,10 @@ export async function getRegulation(
   if (!regulationChange) {
     // Here the "active" regulation is the original and any diffing should be against the empty string
     earlierState = extractAppendixesAndComments('');
+    earlierTitle = '';
   } else if (earlierDate === 'original') {
     earlierState = extractAppendixesAndComments(regulation.text);
+    earlierTitle = regulation.title;
   } else {
     let eDate = earlierDate;
     if (!eDate) {
@@ -327,20 +332,20 @@ export async function getRegulation(
       eDate.setDate(eDate.getDate() - 1);
     }
     const change = await getLatestRegulationChange(regulation.id, eDate);
-    earlierState = change
-      ? {
-          ...extractAppendixesAndComments(change.text),
-          date: change.date,
-        }
-      : extractAppendixesAndComments(regulation.text);
+
+    if (change) {
+      earlierState = {
+        ...extractAppendixesAndComments(change.text),
+        date: change.date,
+      };
+      earlierTitle = change.title;
+    } else {
+      earlierState = extractAppendixesAndComments(regulation.text);
+      earlierTitle = regulation.title;
+    }
   }
 
-  diffedRegulation.title = toHTML(augmentedRegulation.title);
-  // TODO:
-  // diffedRegulation.title = getTextContentDiff(
-  //   earlierState.title,
-  //   diffedRegulation.title,
-  // );
+  diffedRegulation.title = getTextContentDiff(earlierTitle, augmentedRegulation.title);
   diffedRegulation.text = getDiff(earlierState.text, augmentedRegulation.text);
   diffedRegulation.comments = getDiff(
     earlierState.comments,

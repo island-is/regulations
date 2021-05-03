@@ -8,13 +8,14 @@ import {
   ForeignKey,
 } from 'sequelize-typescript';
 
-import { HTMLText, ISODate } from '../routes/types';
+import { HTMLText, ISODate, PlainText } from '../routes/types';
 
 type RegulationChangeAttributes = {
   id: number;
   regulationId: number;
   changingId: number;
   date: ISODate;
+  title: PlainText;
   text: HTMLText;
   changeset: string;
 };
@@ -40,6 +41,12 @@ export class DB_RegulationChange
 
   @Column({ type: DataType.DATEONLY, comment: 'the "effectiveDate" of the change' })
   date!: ISODate;
+
+  @Column({
+    type: DataType.STRING,
+    comment: 'Regulation title after applying the change',
+  })
+  title!: PlainText;
 
   @Column({ type: DataType.STRING, comment: 'Regulation text after applying change' })
   text!: HTMLText;

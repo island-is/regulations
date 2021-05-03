@@ -8,7 +8,7 @@ import {
   ForeignKey,
 } from 'sequelize-typescript';
 
-import { HTMLText, ISODate, RegName } from '../routes/types';
+import { HTMLText, ISODate, PlainText, RegName } from '../routes/types';
 
 type RegulationAttributes = {
   id: number;
@@ -39,7 +39,7 @@ export class DB_Regulation
     type: DataType.STRING,
     comment: 'html encoding fixes of title from old table before migration',
   })
-  title!: string;
+  title!: PlainText;
 
   @Column({ type: DataType.STRING(9), comment: 'migrated as-is from old table' })
   name!: RegName;
