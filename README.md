@@ -65,7 +65,7 @@ Set `process.env.PORT` to use a different port.
   since `earlierDate`
 
 ## Search
-- `GET /api/v1/search?q=query&year=YYYY&rn=ministrySlug&ch=lawChapterSlug`
+- `GET /api/v1/search?q=query&year=YYYY&yearTo=YYYY&rn=ministrySlug&ch=lawChapterSlug`
   Searches regulations by query, year, ministry or lawchapter
 - `GET /api/v1/search/recreate`
   Recreates index db

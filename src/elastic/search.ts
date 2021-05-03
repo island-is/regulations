@@ -37,7 +37,7 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
 
   if (query.year) {
     const years = [query.year];
-    if (query.yearTo) {
+    if (query.yearTo && Number(query.yearTo) > Number(query.year)) {
       let yearStepper = Number(query.year) + 1;
       while (yearStepper <= Number(query.yearTo)) {
         years.push('' + yearStepper);
