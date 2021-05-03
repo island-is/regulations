@@ -47,7 +47,7 @@ export type RegulationListItemFull = RegulationListItem & {
   lawChapters?: ReadonlyArray<LawChapter>;
 };
 
-const augmentRegulations = async (
+const augmentRegulationList = async (
   regulations: SQLRegulationsList,
   opts: { text?: boolean; ministry?: boolean; lawChapters?: boolean } = {},
 ) => {
@@ -101,7 +101,7 @@ export async function getNewestRegulations(opts: { skip?: number; take?: number 
       limit: take,
     }) ?? [];
 
-  return await augmentRegulations(regulations);
+  return await augmentRegulationList(regulations);
 }
 
 export async function getAllBaseRegulations(
@@ -134,7 +134,7 @@ export async function getAllBaseRegulations(
   );
 
   if (extra) {
-    return await augmentRegulations(regulations, {
+    return await augmentRegulationList(regulations, {
       text: true,
       ministry: true,
       lawChapters: true,
