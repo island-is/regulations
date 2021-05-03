@@ -37,7 +37,7 @@ export class DB_Regulation
 
   @Column({
     type: DataType.STRING,
-    comment: 'html encoding fixes of title from old table before migration\n',
+    comment: 'html encoding fixes of title from old table before migration',
   })
   title!: string;
 
@@ -69,7 +69,7 @@ export class DB_Regulation
   @Column({
     type: DataType.ENUM('base', 'amending', 'repealing'),
     comment:
-      'Type of regulation, base (stofn) or amending (breytingar), base can still amend tho. We do not mark it as repealed here since that would lose the type',
+      'Type of regulation, base (stofn) or amending (breytingar), base can still amend tho.',
   })
   type!: 'base' | 'amending' | 'repealing';
 }

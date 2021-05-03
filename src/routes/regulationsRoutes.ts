@@ -49,6 +49,7 @@ export const regulationsRoutes: FastifyPluginCallback = (fastify, opts, done) =>
     cache(reply, ALLCURRENT_TTL);
     reply.send(data);
   });
+
   fastify.get('/regulations/all/current/full', opts, async (request, reply) => {
     let data = await loadData('backup-json/all-current-full.json');
     if (!data) {
@@ -60,6 +61,7 @@ export const regulationsRoutes: FastifyPluginCallback = (fastify, opts, done) =>
     }
     reply.send(data);
   });
+
   fastify.get('/regulations/all/current/extra', opts, async (request, reply) => {
     let data = await loadData('backup-json/all-current-extra.json');
     if (!data) {
