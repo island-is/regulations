@@ -113,12 +113,13 @@ type EffectsData = ReadonlyArray<{
   effect: 'amend' | 'repeal';
 }>;
 async function getRegulationEffects(regulationId: number) {
-  const effectsQuery = `select name, title, date, effect from Regulation
-  join ((select regulationId, date, 'amend' as effect from RegulationChange where changingId = :changingId)
-  union
-  (select regulationId, date, 'repeal' as effect from RegulationCancel where changingId = :changingId)) as effects
-  on Regulation.id = effects.regulationId
-  order by Regulation.publishedDate, Regulation.id
+  const effectsQuery = `
+    select name, title, date, effect from Regulation
+    join ((select regulationId, date, 'amend' as effect from RegulationChange where changingId = :changingId)
+    union
+    (select regulationId, date, 'repeal' as effect from RegulationCancel where changingId = :changingId)) as effects
+    on Regulation.id = effects.regulationId
+    order by Regulation.publishedDate, Regulation.id
   ;`;
   const effectsData = <EffectsData>await db.query(effectsQuery, {
       replacements: { changingId: regulationId },
