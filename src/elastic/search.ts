@@ -13,6 +13,7 @@ const PER_SEARCH_PAGE = PER_PAGE * 20;
 export type SearchQueryParams = {
   q?: string; // query
   year?: string; // regulationYear
+  yearTo?: string; // regulationYear arnge to
   rn?: string; // ministry slug
   ch?: string; // lawchapter slug
 };
@@ -26,6 +27,7 @@ const cleanQuery = (q: string | undefined) => {
     : q;
 };
 
+// eslint-disable-next-line complexity
 export async function searchElastic(client: Client, query: SearchQueryParams) {
   let searchQuery = cleanQuery(query.q);
   const isNameQuery = searchQuery && /^\d{3,4}([-/]\d{0,4})?$/.test(searchQuery);
@@ -34,7 +36,15 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
   const filters: Array<esb.Query> = [];
 
   if (query.year) {
-    filters.push(esb.termQuery('year', xss(query.year)));
+    const years = [query.year];
+    if (query.yearTo) {
+      let yearStepper = Number(query.year) + 1;
+      while (yearStepper <= Number(query.yearTo)) {
+        years.push('' + yearStepper);
+        yearStepper++;
+      }
+    }
+    filters.push(esb.termsQuery('year', years));
   }
   if (query.rn) {
     filters.push(esb.termQuery('ministrySlug', xss(query.rn)));
