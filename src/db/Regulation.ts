@@ -28,11 +28,19 @@ import promiseAll from 'qj/promiseAllObject';
 
 const toHTML = (textContent: PlainText) => textContent.replace(/>/g, '&lg;') as HTMLText;
 
-const getDiff = (older: HTMLText, newer: HTMLText) =>
-  htmldiff
-    .execute(older, newer)
-    .replace(/<del [^>]+>\s+<\/del>/g, '')
-    .replace(/<ins [^>]+>\s+<\/ins>/g, '') as HTMLText;
+const getDiff = (older: HTMLText, newer: HTMLText, raw?: boolean) => {
+  const diffed = htmldiff.execute(older, newer);
+  if (raw) {
+    return diffed as HTMLText;
+  }
+  return diffed
+    .replace(/<del [^>]+>\n*<\/del>/g, '')
+    .replace(/<ins [^>]+>\n*<\/ins>/g, '') as HTMLText;
+  // // The old, more aggressive version of the cleanup
+  // return diffed
+  //   .replace(/<del [^>]+>\s+<\/del>/g, '')
+  //   .replace(/<ins [^>]+>\s+<\/ins>/g, '') as HTMLText;
+};
 
 const getTextContentDiff = (older: PlainText, newer: PlainText): HTMLText =>
   older === newer ? toHTML(newer) : getDiff(toHTML(older), toHTML(newer));
