@@ -1,28 +1,29 @@
 import { FastifyPluginCallback } from 'fastify';
 import { cache } from '../utils/misc';
-import { augmentLawChapters, chaptersToTree, getAllLawChapters } from '../db/LawChapter';
+import { getLawChapterTree, getLawChapterList } from '../db/LawChapter';
+import { LawChapter, LawChapterTree } from './types';
 
 const LAWCHAPTER_TTL = 24;
 
 export const lawChapterRoutes: FastifyPluginCallback = (fastify, opts, done) => {
   /**
-   * Gets all LawChapters
+   * Gets all LawChapters sorted by slug
    * @returns {Array<LawChapter>}
    */
   fastify.get('/lawchapters', opts, async (request, reply) => {
-    const lawChapters = await getAllLawChapters();
+    const lawChapters = await getLawChapterList();
     cache(reply, LAWCHAPTER_TTL);
-    reply.send(augmentLawChapters(lawChapters));
+    reply.send(lawChapters);
   });
 
   /**
-   * Gets all LawChapters
-   * @returns {Array<LawChapter>}
+   * Gets a tree containing all LawChapters sorted by slug
+   * @returns {LawChapterTree}
    */
   fastify.get('/lawchapters/tree', opts, async (request, reply) => {
-    const lawChapters = await getAllLawChapters();
+    const lawChapterTree = await getLawChapterTree();
     cache(reply, LAWCHAPTER_TTL);
-    reply.send(chaptersToTree(lawChapters));
+    reply.send(lawChapterTree);
   });
 
   done();

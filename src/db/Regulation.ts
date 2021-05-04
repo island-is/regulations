@@ -8,7 +8,7 @@ import {
   DB_Task,
 } from '../models';
 import { getRegulationMinistry } from './Ministry';
-import { getRegulationLawChapters } from './LawChapter';
+import { getLawChapterList } from './LawChapter';
 import {
   HTMLText,
   PlainText,
@@ -187,7 +187,7 @@ const augmentRegulation = async (
     ministry: getRegulationMinistry(id),
     history: getRegulationHistory(regulation),
     effects: getRegulationEffects(id),
-    lawChapters: getRegulationLawChapters(id),
+    lawChapters: getLawChapterList(id),
     lastAmendDate: getLatestRegulationChange(id).then((change) => change?.date),
     repealedDate: getRegulationCancel(id).then((cancel) => {
       const date = cancel?.date;

@@ -1,7 +1,7 @@
 import { DB_Regulation, DB_Task } from '../models';
 import { ISODate, RegulationListItem, LawChapter, RegName } from '../routes/types';
 import { getRegulationMinistry } from './Ministry';
-import { getRegulationLawChapters } from './LawChapter';
+import { getLawChapterList } from './LawChapter';
 import { db } from '../utils/sequelize';
 import { QueryTypes } from 'sequelize';
 import promiseAll from 'qj/promiseAllObject';
@@ -62,9 +62,7 @@ const augmentRegulationList = async (
 
       const { ministry, lawChapters } = await promiseAll({
         ministry: opts.ministry ?? true ? await getRegulationMinistry(reg.id) : undefined,
-        lawChapters: opts.lawChapters
-          ? await getRegulationLawChapters(reg.id)
-          : undefined,
+        lawChapters: opts.lawChapters ? await getLawChapterList(reg.id) : undefined,
       });
 
       const itm: RegulationListItemFull = {

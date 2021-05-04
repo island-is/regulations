@@ -1,15 +1,11 @@
-import { DB_LawChapter, DB_Regulation_LawChapter } from '../models';
+import { QueryTypes } from 'sequelize';
+import { db } from '../utils/sequelize';
+import { DB_LawChapter } from '../models';
 import { LawChapterTree, LawChapter } from '../routes/types';
 
-export const augmentLawChapters = (chapters: Array<DB_LawChapter>) =>
-  chapters.map(
-    (c): LawChapter => ({
-      name: c.title,
-      slug: c.slug,
-    }),
-  );
+export async function getLawChapterTree(): Promise<LawChapterTree> {
+  const chapters = await DB_LawChapter.findAll({ order: [['slug', 'ASC']] });
 
-export const chaptersToTree = (chapters: Array<DB_LawChapter>): LawChapterTree => {
   const parents: {
     [key: string]: LawChapter & {
       subChapters: Array<LawChapter>;
@@ -33,22 +29,32 @@ export const chaptersToTree = (chapters: Array<DB_LawChapter>): LawChapterTree =
   });
 
   return Object.values(parents);
-};
-
-export async function getAllLawChapters() {
-  const lawChapters = await DB_LawChapter.findAll({
-    order: [['slug', 'ASC']],
-  });
-  return lawChapters;
 }
 
-export async function getRegulationLawChapters(regulationId: number) {
-  const con = await DB_Regulation_LawChapter.findOne({ where: { regulationId } });
-  if (!con) {
-    return;
-  }
-  const lawChapters =
-    (await DB_LawChapter.findAll({ where: { id: con.chapterId } })) ?? undefined;
+export async function getLawChapterList(
+  regulationId?: number,
+): Promise<ReadonlyArray<LawChapter>> {
+  const rawLawChapters =
+    (await db.query<
+      Pick<DB_LawChapter, 'title' | 'slug'> & { parentTitle: DB_LawChapter['title'] }
+    >(
+      `
+        SELECT l.title, l.slug, pl.title AS parentTitle FROM LawChapter AS l
+        RIGHT JOIN Regulation_LawChapter AS rl ON l.id = rl.chapterId
+        LEFT JOIN LawChapter AS pl ON l.parentId = pl.id
+        ${regulationId ? 'WHERE rl.regulationId = :regulationId' : ''}
+        ORDER BY l.slug, id
+      `,
+      {
+        replacements: regulationId ? { regulationId } : undefined,
+        type: QueryTypes.SELECT,
+      },
+    )) ?? [];
 
-  return augmentLawChapters(lawChapters);
+  return rawLawChapters.map(
+    ({ title, slug, parentTitle }): LawChapter => ({
+      name: parentTitle ? parentTitle + ' – ' + title : title,
+      slug,
+    }),
+  );
 }
