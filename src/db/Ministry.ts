@@ -1,5 +1,7 @@
-import { DB_Ministry, DB_Regulation_Ministry } from '../models';
+import { DB_Ministry } from '../models';
 import { Ministry } from 'routes/types';
+import { db } from '../utils/sequelize';
+import { QueryTypes } from 'sequelize';
 
 export async function getAllMinistries() {
   const ministries =
@@ -14,16 +16,18 @@ export async function getAllMinistries() {
   return ministries;
 }
 
-export const getMinistryById = async (id: number): Promise<Ministry | undefined> =>
-  (await DB_Ministry.findOne({
-    where: { id },
-    attributes: ['slug', 'name', 'current'],
-  })) || undefined;
-
-export async function getRegulationMinistry(regulationId: number) {
-  const con = await DB_Regulation_Ministry.findOne({ where: { regulationId } });
-  if (!con) {
-    return;
-  }
-  return getMinistryById(con.ministryId);
+export async function getRegulationMinistry(
+  regulationId: number,
+): Promise<Ministry | undefined> {
+  const ministryQuery = `
+    SELECT m.name, m.slug, m.current FROM Ministry AS m
+    RIGHT JOIN Regulation_Ministry AS rm ON m.id = rm.ministryId
+    WHERE rm.regulationId = :regulationId
+  `;
+  return (
+    await db.query<Pick<DB_Ministry, 'name' | 'slug' | 'current'>>(ministryQuery, {
+      replacements: { regulationId },
+      type: QueryTypes.SELECT,
+    })
+  )?.[0];
 }
