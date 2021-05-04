@@ -17,6 +17,10 @@ export type HTMLText = string & { [_HTMLTextToken_]: true };
 /** Plain-text string – e.g. `I <3 You ` */
 export type PlainText = string & { [_HTMLTextToken_]?: false };
 
+declare const _Year__Brand: unique symbol;
+/**  */
+export type Year = number & { [_Year__Brand]: true };
+
 // ---------------------------------------------------------------------------
 
 // Years

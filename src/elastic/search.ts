@@ -3,7 +3,8 @@ import esb from 'elastic-builder';
 import xss from 'xss';
 // import util from 'util';
 import { PER_PAGE } from '../db/Regulations';
-import { RegulationListItem, RegulationSearchResults } from '../routes/types';
+import { RegulationListItem, RegulationSearchResults, Year } from '../routes/types';
+import range from 'qj/range';
 // import { RegulationsIndexBody } from './populate';
 
 // bunch of results for infinite scrolling search results
@@ -17,6 +18,15 @@ export type SearchQueryParams = {
   rn?: string; // ministry slug
   ch?: string; // lawchapter slug
 };
+
+/** Asserts that string is a number between 1900 and 2150
+ *
+ * Guards against "Infinity" and unreasonably sized numbers
+ */
+const assertReasonableYear = (maybeYear?: string): Year | undefined =>
+  maybeYear && /\d{4}/.test(maybeYear)
+    ? (Math.max(1900, Math.min(2150, Number(maybeYear))) as Year)
+    : undefined;
 
 const cleanQuery = (q: string | undefined) => {
   return q
@@ -35,15 +45,10 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
   // add filters
   const filters: Array<esb.Query> = [];
 
-  if (query.year) {
-    const years = [query.year];
-    if (query.yearTo && Number(query.yearTo) > Number(query.year)) {
-      let yearStepper = Number(query.year) + 1;
-      while (yearStepper <= Number(query.yearTo)) {
-        years.push('' + yearStepper);
-        yearStepper++;
-      }
-    }
+  const yearFrom = assertReasonableYear(query.year);
+  if (yearFrom) {
+    const yearTo = Math.max(yearFrom, assertReasonableYear(query.yearTo) || 0);
+    const years = range(yearFrom, yearTo);
     filters.push(esb.termsQuery('year', years));
   }
   if (query.rn) {
