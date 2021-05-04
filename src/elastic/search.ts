@@ -24,7 +24,7 @@ export type SearchQueryParams = {
  * Guards against "Infinity" and unreasonably sized numbers
  */
 const assertReasonableYear = (maybeYear?: string): Year | undefined =>
-  maybeYear && /\d{4}/.test(maybeYear)
+  maybeYear && /^\d{4}$/.test(maybeYear)
     ? (Math.max(1900, Math.min(2150, Number(maybeYear))) as Year)
     : undefined;
 
