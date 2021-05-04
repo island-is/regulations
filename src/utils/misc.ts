@@ -17,6 +17,8 @@ export const slugToName = (regulationName: RegQueryName): RegName =>
 
 // ---------------------------------------------------------------------------
 
+const reRegQueryNameFlex = /^\d{1,4}-\d{4}$/;
+
 /** Returns a fully zero-padded RegQueryName.
  *
  * Returns `undefined` if the slug doesn't roughly look like a valid regulation number
@@ -25,7 +27,7 @@ export const slugToName = (regulationName: RegQueryName): RegName =>
  *  Example: '0123-202' --> undefined
  */
 export const assertNameSlug = (slug: string): RegQueryName | undefined => {
-  if (/^\d{1,4}-\d{4}$/.test(slug)) {
+  if (reRegQueryNameFlex.test(slug)) {
     return (slug.length === 9 ? slug : ('000' + slug).substr(-9)) as RegQueryName;
   }
 };
