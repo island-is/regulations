@@ -93,6 +93,7 @@ export async function getNewestRegulations(opts: { skip?: number; take?: number 
   const { skip = 0, take = PER_PAGE } = opts;
 
   const regulations = <SQLRegulationsList>await DB_Regulation.findAll({
+      // NOTE: This is leaky - as title might have changed
       attributes: ['id', 'type', 'name', 'title', 'publishedDate', 'effectiveDate'],
       order: [['publishedDate', 'DESC']],
       offset: skip,
@@ -102,8 +103,12 @@ export async function getNewestRegulations(opts: { skip?: number; take?: number 
   return await augmentRegulationList(regulations);
 }
 
-export async function getAllBaseRegulations(opts: { full?: boolean; extra?: boolean }) {
-  const { full, extra } = opts || {};
+export async function getAllBaseRegulations(opts: {
+  full?: boolean;
+  extra?: boolean;
+  includeRepealed?: boolean;
+}) {
+  const { full, extra, includeRepealed } = opts || {};
   const sql = `
     select
       r.id,
@@ -123,7 +128,11 @@ export async function getAllBaseRegulations(opts: { full?: boolean; extra?: bool
     left join Task as t on t.regulationId = r.id
     where
       r.type = 'base'
-      and (select date from RegulationCancel where regulationId = r.id limit 1) IS NULL
+      ${
+        includeRepealed
+          ? ''
+          : 'and (select date from RegulationCancel where regulationId = r.id limit 1) IS NULL'
+      }
     order by publishedDate DESC, id
   ;`;
 
