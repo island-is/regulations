@@ -72,4 +72,7 @@ export class DB_Regulation
       'Type of regulation, base (stofn) or amending (breytingar), base can still amend tho.',
   })
   type!: 'base' | 'amending' | 'repealing';
+
+  @Column({ type: DataType.INTEGER, comment: 'The ministry this Regulation belongs to' })
+  ministryId!: number;
 }

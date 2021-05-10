@@ -57,4 +57,10 @@ export class DB_RegulationChange
       'Changeset (diff) from changing regulation to the previous version of the regulation text',
   })
   changeset!: string;
+
+  @Column({
+    type: DataType.INTEGER,
+    comment: 'The ministry this Regulation belongs to after applying the change',
+  })
+  ministryId!: number;
 }

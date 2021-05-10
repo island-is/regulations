@@ -3,7 +3,6 @@ import { Sequelize } from 'sequelize-typescript';
 import { DB_Regulation } from '../models/Regulation';
 import { DB_RegulationChange } from '../models/RegulationChange';
 import { DB_RegulationCancel } from '../models/RegulationCancel';
-import { DB_Regulation_Ministry } from '../models/Regulation_Ministry';
 import { DB_Regulation_LawChapter } from '../models/Regulation_LawChapter';
 import { DB_Ministry } from '../models/Ministry';
 import { DB_LawChapter } from '../models/LawChapter';
@@ -27,7 +26,6 @@ export const connectSequelize = async () => {
       DB_LawChapter,
       DB_RegulationChange,
       DB_RegulationCancel,
-      DB_Regulation_Ministry,
       DB_Regulation_LawChapter,
       DB_Task,
     ],

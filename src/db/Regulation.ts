@@ -7,7 +7,7 @@ import {
   DB_RegulationCancel,
   DB_Task,
 } from '../models';
-import { getRegulationMinistry } from './Ministry';
+import { getMinistry } from './Ministry';
 import { getLawChapterList } from './LawChapter';
 import {
   HTMLText,
@@ -140,7 +140,7 @@ async function getLatestRegulationChange(
   regulationId: number,
   beforeDate: Date = new Date(),
 ) {
-  const regulationChanges =
+  const regulationChange =
     (await DB_RegulationChange.findOne({
       where: {
         regulationId: regulationId,
@@ -153,7 +153,7 @@ async function getLatestRegulationChange(
         ['id', 'ASC'],
       ],
     })) ?? undefined;
-  return regulationChanges;
+  return regulationChange;
 }
 
 // async function getRegulationChanges(regulationId: number) {
@@ -184,7 +184,7 @@ const augmentRegulation = async (
     lastAmendDate,
     repealedDate,
   } = await promiseAll({
-    ministry: getRegulationMinistry(id),
+    ministry: getMinistry(regulationChange || regulation),
     history: getRegulationHistory(regulation),
     effects: getRegulationEffects(id),
     lawChapters: getLawChapterList(id),
@@ -314,18 +314,27 @@ export async function getRegulation(
 
   const diffedRegulation = (augmentedRegulation as unknown) as RegulationDiff;
 
+  let earlierMinistry: Regulation['ministry'] | undefined;
   let earlierTitle: Regulation['title'];
   let earlierState: Pick<Regulation, 'text' | 'appendixes' | 'comments'> & {
     date?: ISODate;
   };
 
+  const _getMinistry = (regOrChange: DB_Regulation | DB_RegulationChange) =>
+    // reuse already fetched ministry if possible
+    regOrChange.ministryId === (regulationChange || regulation).ministryId
+      ? Promise.resolve(augmentedRegulation.ministry)
+      : getMinistry(regOrChange);
+
   if (!regulationChange) {
     // Here the "active" regulation is the original and any diffing should be against the empty string
     earlierState = extractAppendixesAndComments('');
     earlierTitle = '';
+    earlierMinistry = undefined;
   } else if (earlierDate === 'original') {
     earlierState = extractAppendixesAndComments(regulation.text);
     earlierTitle = regulation.title;
+    earlierMinistry = await _getMinistry(regulation);
   } else {
     let eDate = earlierDate;
     if (!eDate) {
@@ -340,9 +349,11 @@ export async function getRegulation(
         date: change.date,
       };
       earlierTitle = change.title;
+      earlierMinistry = await _getMinistry(change);
     } else {
       earlierState = extractAppendixesAndComments(regulation.text);
       earlierTitle = regulation.title;
+      earlierMinistry = await _getMinistry(regulation);
     }
   }
 
@@ -359,6 +370,7 @@ export async function getRegulation(
       text: getDiff(text, baseAppendix.text),
     };
   });
+  diffedRegulation.prevMinistry = earlierMinistry || null;
 
   diffedRegulation.showingDiff = {
     from: earlierState.date || regulation.publishedDate,

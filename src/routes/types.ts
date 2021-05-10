@@ -102,7 +102,7 @@ export type RegulationListItem = {
   /** The title of the Regulation */
   title: string;
   /** The ministry that the regulation is linked to */
-  ministry?: Ministry;
+  ministry: Ministry;
   /** Publication date of this regulation */
   publishedDate: ISODate;
 };
@@ -161,7 +161,7 @@ export type Regulation = {
    */
   repealedDate?: ISODate | null;
   /** The ministry this regulation is published by/linked to */
-  ministry?: Ministry;
+  ministry: Ministry;
   /** Law chapters that this regulation is linked to */
   lawChapters: ReadonlyArray<LawChapter>;
 
@@ -203,6 +203,9 @@ export type RegulationDiff = Omit<Regulation, 'title' | 'appendixes' | 'showingD
       title: HTMLText;
     }
   >;
+  /** The ministry the base version being compared against was published by/linked to */
+  prevMinistry: Ministry | null;
+
   /** Present if the regulation contains inlined change-markers (via htmldiff-js) */
   showingDiff: {
     /** The date of the base version being compared against */

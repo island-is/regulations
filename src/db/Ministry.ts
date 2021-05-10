@@ -1,4 +1,4 @@
-import { DB_Ministry } from '../models';
+import { DB_Ministry, DB_Regulation, DB_RegulationChange } from '../models';
 import { Ministry } from 'routes/types';
 import { db } from '../utils/sequelize';
 import { QueryTypes } from 'sequelize';
@@ -16,18 +16,13 @@ export async function getAllMinistries() {
   return ministries;
 }
 
-export async function getRegulationMinistry(
-  regulationId: number,
-): Promise<Ministry | undefined> {
-  const ministryQuery = `
-    SELECT m.name, m.slug, m.current FROM Ministry AS m
-    RIGHT JOIN Regulation_Ministry AS rm ON m.id = rm.ministryId
-    WHERE rm.regulationId = :regulationId
-  `;
-  return (
-    await db.query<Pick<DB_Ministry, 'name' | 'slug' | 'current'>>(ministryQuery, {
-      replacements: { regulationId },
-      type: QueryTypes.SELECT,
-    })
-  )?.[0];
-}
+export const getMinistry = (regOrChange: Pick<DB_Regulation, 'ministryId'>) =>
+  (DB_Ministry.findOne({
+    where: { id: regOrChange.ministryId },
+  }) as Promise<DB_Ministry>).then(
+    (m): Ministry => ({
+      slug: m.slug,
+      name: m.name,
+      current: m.current,
+    }),
+  );

@@ -7,7 +7,7 @@ import {
   Year,
   RegulationYears,
 } from '../routes/types';
-import { getRegulationMinistry } from './Ministry';
+import { getMinistry } from './Ministry';
 import { getLawChapterList } from './LawChapter';
 import { db } from '../utils/sequelize';
 import { QueryTypes } from 'sequelize';
@@ -41,14 +41,15 @@ export async function getRegulationsYears(): Promise<RegulationYears> {
 export type SQLRegulationsList = ReadonlyArray<
   Pick<
     DB_Regulation,
-    'id' | 'name' | 'type' | 'title' | 'publishedDate' | 'effectiveDate'
+    'id' | 'name' | 'type' | 'title' | 'ministryId' | 'publishedDate' | 'effectiveDate'
   > & {
     text?: DB_Regulation['text'];
     migrated?: DB_Task['done'];
   }
 >;
-export type RegulationListItemFull = RegulationListItem & {
+export type RegulationListItemFull = Omit<RegulationListItem, 'ministry'> & {
   type: 'amending' | 'base';
+  ministry?: RegulationListItem['ministry'];
   text?: DB_Regulation['text'];
   effectiveDate: ISODate;
   lawChapters?: ReadonlyArray<LawChapter>;
@@ -61,6 +62,8 @@ const augmentRegulationList = async (
   const chunkSize = 10;
   const augmentedRegulations: Array<RegulationListItemFull> = [];
 
+  const fetchMinistry = opts.ministry ?? true;
+
   for (let i = 0; i < regulations.length; i += chunkSize) {
     const regChunk = regulations.slice(i, i + chunkSize);
     // eslint-disable-next-line no-await-in-loop
@@ -68,7 +71,7 @@ const augmentRegulationList = async (
       const { type, migrated, name, title, text, publishedDate, effectiveDate } = reg;
 
       const { ministry, lawChapters } = await promiseAll({
-        ministry: opts.ministry ?? true ? await getRegulationMinistry(reg.id) : undefined,
+        ministry: fetchMinistry ? await getMinistry(reg) : undefined,
         lawChapters: opts.lawChapters ? await getLawChapterList(reg.id) : undefined,
       });
 
