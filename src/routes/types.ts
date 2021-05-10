@@ -18,13 +18,13 @@ export type HTMLText = string & { [_HTMLText__Brand]: true };
 export type PlainText = string & { [_HTMLText__Brand]?: false };
 
 declare const _Year__Brand: unique symbol;
-/**  */
+/** Four letter positive integer that might reasonably be a year */
 export type Year = number & { [_Year__Brand]: true };
 
 // ---------------------------------------------------------------------------
 
 // Years
-export type RegulationYears = ReadonlyArray<number>;
+export type RegulationYears = ReadonlyArray<Year>;
 
 // ---------------------------------------------------------------------------
 

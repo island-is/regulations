@@ -1,5 +1,12 @@
 import { DB_Regulation, DB_Task } from '../models';
-import { ISODate, RegulationListItem, LawChapter, RegName } from '../routes/types';
+import {
+  ISODate,
+  RegulationListItem,
+  LawChapter,
+  RegName,
+  Year,
+  RegulationYears,
+} from '../routes/types';
 import { getRegulationMinistry } from './Ministry';
 import { getLawChapterList } from './LawChapter';
 import { db } from '../utils/sequelize';
@@ -18,9 +25,9 @@ export async function getRegulationsCount() {
   return regulationsCount;
 }
 
-export async function getRegulationsYears() {
+export async function getRegulationsYears(): Promise<RegulationYears> {
   const years =
-    <Array<{ year: number }>>(
+    <Array<{ year: Year }>>(
       await db.query(
         'SELECT DISTINCT YEAR(publishedDate) AS `year` FROM Regulation ORDER BY `year` DESC',
         { type: QueryTypes.SELECT },
@@ -103,7 +110,7 @@ export async function getNewestRegulations(opts: { skip?: number; take?: number 
   return await augmentRegulationList(regulations);
 }
 
-export async function getAllBaseRegulations(opts: {
+export async function getAllBaseRegulations(opts?: {
   full?: boolean;
   extra?: boolean;
   includeRepealed?: boolean;
