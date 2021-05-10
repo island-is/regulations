@@ -43,7 +43,7 @@ export async function getLawChapterList(
         RIGHT JOIN Regulation_LawChapter AS rl ON l.id = rl.chapterId
         LEFT JOIN LawChapter AS pl ON l.parentId = pl.id
         ${regulationId ? 'WHERE rl.regulationId = :regulationId' : ''}
-        ORDER BY l.slug, id
+        ORDER BY l.slug, l.id
       `,
       {
         replacements: regulationId ? { regulationId } : undefined,

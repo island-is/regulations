@@ -143,7 +143,7 @@ export async function getAllBaseRegulations(opts?: {
           ? ''
           : 'and (select date from RegulationCancel where regulationId = r.id limit 1) IS NULL'
       }
-    order by publishedDate DESC, id
+    order by r.publishedDate DESC, r.id
   ;`;
 
   const regulations = <SQLRegulationsList>(
