@@ -57,12 +57,10 @@ export type RegulationListItemFull = Omit<RegulationListItem, 'ministry'> & {
 
 const augmentRegulationList = async (
   regulations: SQLRegulationsList,
-  opts: { text?: boolean; ministry?: boolean; lawChapters?: boolean } = {},
+  opts: { text?: boolean; lawChapters?: boolean } = {},
 ) => {
   const chunkSize = 10;
   const augmentedRegulations: Array<RegulationListItemFull> = [];
-
-  const fetchMinistry = opts.ministry ?? true;
 
   for (let i = 0; i < regulations.length; i += chunkSize) {
     const regChunk = regulations.slice(i, i + chunkSize);
@@ -71,7 +69,7 @@ const augmentRegulationList = async (
       const { type, migrated, name, title, text, publishedDate, effectiveDate } = reg;
 
       const { ministry, lawChapters } = await promiseAll({
-        ministry: fetchMinistry ? await getMinistry(reg) : undefined,
+        ministry: await getMinistry(reg),
         lawChapters: opts.lawChapters ? await getLawChapterList(reg.id) : undefined,
       });
 
@@ -162,7 +160,6 @@ export async function getAllBaseRegulations(opts?: {
   if (extra) {
     return await augmentRegulationList(regulations, {
       text: true,
-      ministry: true,
       lawChapters: true,
     });
   } else {
