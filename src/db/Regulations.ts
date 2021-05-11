@@ -103,8 +103,16 @@ export async function getNewestRegulations(opts: { skip?: number; take?: number 
   const { skip = 0, take = PER_PAGE } = opts;
 
   const regulations = <SQLRegulationsList>await DB_Regulation.findAll({
-      // NOTE: This is leaky - as title might have changed
-      attributes: ['id', 'type', 'name', 'title', 'publishedDate', 'effectiveDate'],
+      // NOTE: This is leaky - as both title and ministryId might have changed
+      attributes: [
+        'id',
+        'type',
+        'name',
+        'title',
+        'publishedDate',
+        'effectiveDate',
+        'ministryId',
+      ],
       order: [['publishedDate', 'DESC']],
       offset: skip,
       limit: take,
@@ -134,6 +142,7 @@ export async function getAllBaseRegulations(opts?: {
       r.type,
       r.publishedDate,
       r.effectiveDate
+      COALESCE((select ministryId from RegulationChange where regulationId = r.id and date <= now() order by date desc limit 1), r.ministryId) as ministryId,
     from Regulation as r
     left join Task as t on t.regulationId = r.id
     where
