@@ -17,6 +17,8 @@ export type SearchQueryParams = {
   yearTo?: string; // regulationYear arnge to
   rn?: string; // ministry slug
   ch?: string; // lawchapter slug
+  iA?: boolean; // include amending regulations
+  iR?: boolean; // include repelled regulations
 };
 
 /** Asserts that string is a number between 1900 and 2150
@@ -44,6 +46,13 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
 
   // add filters
   const filters: Array<esb.Query> = [];
+
+  if (!query.iA) {
+    filters.push(esb.termQuery('type', 'base'));
+  }
+  if (!query.iR) {
+    filters.push(esb.termQuery('repealed', false));
+  }
 
   const yearFrom = assertReasonableYear(query.year);
   if (yearFrom) {

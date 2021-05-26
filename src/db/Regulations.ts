@@ -43,6 +43,7 @@ export type SQLRegulationsList = ReadonlyArray<
     DB_Regulation,
     'id' | 'name' | 'type' | 'title' | 'ministryId' | 'publishedDate' | 'effectiveDate'
   > & {
+    repealedDate?: ISODate | null;
     text?: DB_Regulation['text'];
     migrated?: DB_Task['done'];
   }
@@ -52,6 +53,8 @@ export type RegulationListItemFull = Omit<RegulationListItem, 'ministry'> & {
   ministry?: RegulationListItem['ministry'];
   text?: DB_Regulation['text'];
   effectiveDate: ISODate;
+  repealedDate?: ISODate | null;
+  repealed?: boolean | null;
   lawChapters?: ReadonlyArray<LawChapter>;
 };
 
@@ -59,14 +62,25 @@ const augmentRegulationList = async (
   regulations: SQLRegulationsList,
   opts: { text?: boolean; lawChapters?: boolean } = {},
 ) => {
-  const chunkSize = 10;
+  const chunkSize = 200;
   const augmentedRegulations: Array<RegulationListItemFull> = [];
+  const today = new Date();
 
   for (let i = 0; i < regulations.length; i += chunkSize) {
+    console.info(`- Augmenting chunk ${i} - ${i + chunkSize}`);
     const regChunk = regulations.slice(i, i + chunkSize);
     // eslint-disable-next-line no-await-in-loop
     const regProms = regChunk.map(async (reg) => {
-      const { type, migrated, name, title, text, publishedDate, effectiveDate } = reg;
+      const {
+        type,
+        migrated,
+        name,
+        title,
+        text,
+        publishedDate,
+        effectiveDate,
+        repealedDate,
+      } = reg;
 
       const { ministry, lawChapters } = await promiseAll({
         ministry: await getMinistry(reg),
@@ -80,6 +94,8 @@ const augmentRegulationList = async (
         name,
         publishedDate,
         effectiveDate,
+        repealedDate: repealedDate ?? undefined,
+        repealed: repealedDate ? new Date(repealedDate) <= today : false,
         ministry,
         lawChapters,
       };
@@ -119,6 +135,13 @@ export async function getNewestRegulations(opts: { skip?: number; take?: number 
   return await augmentRegulationList(regulations);
 }
 
+/**
+ * Returns all base regulations
+ * @param {boolean} full - Include text and minitry info
+ * @param {boolean} extra - Also includ augmented regulation data
+ * @param {boolean} includeRepealed - Include amending and repealed regulations
+ * @returns {SQLRegulationsList | RegulationListItemFull[]}
+ */
 export async function getAllBaseRegulations(opts?: {
   full?: boolean;
   extra?: boolean;
@@ -129,27 +152,27 @@ export async function getAllBaseRegulations(opts?: {
     select
       r.id,
       r.name,
-      COALESCE((select title from RegulationChange where regulationId = r.id and date <= now() order by date desc limit 1), r.title) as title,
+      COALESCE((select title from RegulationChange where regulationId = r.id and date <= now() and title != '' order by date desc limit 1), r.title) as title,
       ${
         // This is dumb and inefficient repetition, but works. TODO: Make this more fancy with Blackjack and CTEs
-        full
-          ? 'COALESCE((select text from RegulationChange where regulationId = r.id and date <= now() order by date desc limit 1), r.text) as text,'
+        full || extra
+          ? 'COALESCE((select text from RegulationChange where regulationId = r.id and date <= now() and text != "" order by date desc limit 1), r.text) as text,'
           : ''
       }
       t.done as migrated,
       r.type,
       COALESCE((select ministryId from RegulationChange where regulationId = r.id and date <= now() order by date desc limit 1), r.ministryId) as ministryId,
       r.publishedDate,
+      ${includeRepealed ? 'c.date as repealedDate,' : ''}
       r.effectiveDate
     from Regulation as r
+    ${includeRepealed ? 'left join RegulationCancel as c on c.regulationId = r.id' : ''}
     left join Task as t on t.regulationId = r.id
-    where
-      r.type = 'base'
-      ${
-        includeRepealed
-          ? ''
-          : 'and (select date from RegulationCancel where regulationId = r.id limit 1) IS NULL'
-      }
+    ${
+      !includeRepealed
+        ? "where r.type = 'base' and (select date from RegulationCancel where regulationId = r.id limit 1) IS NULL"
+        : ''
+    }
     order by r.publishedDate DESC, r.id
   ;`;
 

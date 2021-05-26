@@ -137,6 +137,12 @@ export const mappingTemplate = {
     publishedDate: {
       type: 'date',
     },
+    repealedDate: {
+      type: 'date',
+    },
+    repealed: {
+      type: 'boolean',
+    },
     ministry: {
       type: 'text',
     },

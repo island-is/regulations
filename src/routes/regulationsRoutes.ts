@@ -62,17 +62,26 @@ export const regulationsRoutes: FastifyPluginCallback = (fastify, opts, done) =>
     reply.send(data);
   });
 
-  fastify.get('/regulations/all/current/extra', opts, async (request, reply) => {
-    let data = await loadData('backup-json/all-current-extra.json');
-    if (!data) {
-      console.info('Fetching data from db');
-      data = await getAllBaseRegulations({ full: true, extra: true });
-      storeData(data, 'backup-json/all-current-extra.json');
-    } else {
-      console.info('Returning all-current-extra data from file');
-    }
-    reply.send(data);
-  });
+  fastify.get<QStr<'template'>>(
+    '/regulations/all/extra',
+    Object.assign({}, opts, {
+      onRequest: fastify.basicAuth,
+    }),
+    async function (request, reply) {
+      let data = await loadData('backup-json/all-extra.json');
+      if (!data) {
+        console.info('Fetching data from db');
+        data = await getAllBaseRegulations({
+          extra: true,
+          includeRepealed: true,
+        });
+        storeData(data, 'backup-json/all-extra.json');
+      } else {
+        console.info('Returning all-extra data from file');
+      }
+      reply.send(data);
+    },
+  );
 
   done();
 };

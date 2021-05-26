@@ -38,10 +38,12 @@ Set `process.env.PORT` to use a different port.
 
 - `GET /api/v1/regulations/all/current`
   `GET /api/v1/regulations/all/current/full`
-  `GET /api/v1/regulations/all/current/extra`
-  Returns all regulations ordered by publisheddate
+  Returns all current regulations ordered by publisheddate
   - full also returns text field for generic search
-  - extra also returns text, law chapters and ministry for advanced search
+
+  `GET /api/v1/regulations/all/extra`
+  Returns all regulations ordered by publisheddate
+  - including text, law chapters and ministry for advanced search
 
 ## Regulation
 
@@ -65,8 +67,9 @@ Set `process.env.PORT` to use a different port.
   since `earlierDate`
 
 ## Search
-- `GET /api/v1/search?q=query&year=YYYY&yearTo=YYYY&rn=ministrySlug&ch=lawChapterSlug`
-  Searches regulations by query, year, ministry or lawchapter
+- `GET /api/v1/search?q=query&year=YYYY&yearTo=YYYY&rn=ministrySlug&ch=lawChapterSlug&iA=bool&iR=bool`
+  Searches regulations by query (q), year, ministry (rn) or lawchapter (ch)
+  - optionally include amending (iA) or repelled (iR) regulations
 - `GET /api/v1/search/recreate`
   Recreates index db
 - `GET /api/v1/search/repopulate`

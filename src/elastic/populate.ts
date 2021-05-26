@@ -9,11 +9,14 @@ import { assertRegName, loadData } from '../utils/misc';
 const INDEX_NAME = 'regulations';
 
 export type RegulationsIndexBody = {
+  type: 'amending' | 'base';
   year: string;
   name: RegName;
   title: string;
   text: string;
   publishedDate?: ISODate;
+  repealedDate?: ISODate;
+  repealed?: boolean;
   ministry?: string;
   ministrySlug?: string;
   lawChapters: Array<string>;
@@ -28,10 +31,13 @@ const regulationToIndexItem = (reg: RegulationListItemFull | Regulation) => {
     lawChaptersSlugs.push(chapter.slug);
   });
   const indexBody: RegulationsIndexBody = {
+    type: reg.type,
     year: reg.name.match(/\/(\d{4})/)?.[1] || '',
     name: reg.name,
     title: reg.title,
     text: reg.text ?? '',
+    repealed: 'repealed' in reg && reg.repealed ? reg.repealed : false, // FIXME: add repealed to Regulation!
+    repealedDate: reg.repealedDate ?? undefined,
     publishedDate: reg.publishedDate,
     ministry: reg?.ministry?.name,
     ministrySlug: reg?.ministry?.slug,
@@ -102,7 +108,7 @@ export async function repopulateElastic(client: Client) {
   const t0 = performance.now();
   try {
     console.info('fetching regulations...');
-    let regulations = (await loadData('backup-json/all-current-extra.json')) as
+    let regulations = (await loadData('backup-json/all-extra.json')) as
       | Array<RegulationListItemFull>
       | false;
     if (regulations) {
@@ -110,8 +116,8 @@ export async function repopulateElastic(client: Client) {
     } else {
       console.info('fetching data from db (this takes a while)...');
       regulations = (await getAllBaseRegulations({
-        full: true,
         extra: true,
+        includeRepealed: true,
       })) as Array<RegulationListItemFull>;
     }
 
