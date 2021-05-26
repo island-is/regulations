@@ -134,13 +134,13 @@ export async function getAllBaseRegulations(opts?: {
         // This is dumb and inefficient repetition, but works. TODO: Make this more fancy with Blackjack and CTEs
         full
           ? 'COALESCE((select text from RegulationChange where regulationId = r.id and date <= now() order by date desc limit 1), r.text) as text,'
-          : 'r.title,'
+          : ''
       }
       t.done as migrated,
       r.type,
+      COALESCE((select ministryId from RegulationChange where regulationId = r.id and date <= now() order by date desc limit 1), r.ministryId) as ministryId,
       r.publishedDate,
       r.effectiveDate
-      COALESCE((select ministryId from RegulationChange where regulationId = r.id and date <= now() order by date desc limit 1), r.ministryId) as ministryId,
     from Regulation as r
     left join Task as t on t.regulationId = r.id
     where
