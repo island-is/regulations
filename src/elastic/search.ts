@@ -95,7 +95,7 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
   // console.log(util.inspect(requestBody, true, null));
 
   let totalItems = 0;
-  const pagingPage = parseInt('' + query.page) || 1;
+  const pagingPage = Math.max(parseInt('' + query.page) || 1, 1);
   let searchHits: Array<RegulationListItem> = [];
 
   if (filters.length || search.length) {
@@ -106,7 +106,7 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
         index: 'regulations',
         size: PER_PAGE,
         body: requestBody.toJSON(),
-        from: pagingPage * PER_PAGE,
+        from: (pagingPage - 1) * PER_PAGE,
       });
     } catch (err) {
       console.error(err);
