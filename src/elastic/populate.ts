@@ -23,7 +23,7 @@ export type RegulationsIndexBody = {
   lawChaptersSlugs: Array<string>;
 };
 
-const regulationToIndexItem = (reg: RegulationListItemFull | Regulation) => {
+const regulationToIndexItem = (reg: RegulationListItemFull) => {
   const lawChapters: Array<string> = [];
   const lawChaptersSlugs: Array<string> = [];
   reg?.lawChapters?.forEach((chapter) => {
@@ -36,7 +36,7 @@ const regulationToIndexItem = (reg: RegulationListItemFull | Regulation) => {
     name: reg.name,
     title: reg.title,
     text: reg.text ?? '',
-    repealed: 'repealed' in reg && reg.repealed ? reg.repealed : false, // FIXME: add repealed to Regulation!
+    repealed: reg.repealed ?? false,
     repealedDate: reg.repealedDate ?? undefined,
     publishedDate: reg.publishedDate,
     ministry: reg?.ministry?.name,
@@ -167,16 +167,15 @@ export async function repopulateElastic(client: Client) {
 }
 
 const _updateItem = async (client: Client, regname: RegName) => {
-  const newReg = await getRegulation(regname);
+  const newReg = (await getAllBaseRegulations({
+    extra: true,
+    includeRepealed: true,
+    nameFilter: `'${regname}'`,
+  })) as Array<RegulationListItemFull>;
 
-  if (
-    newReg &&
-    !('redirectUrl' in newReg) && // ignore RegulationRedirect
-    newReg.type === 'base' && // only add base regulations
-    !newReg.repealedDate // ignore cancelled regulations
-  ) {
+  if (newReg && newReg[0]) {
     console.info('adding ' + regname + ' to index...');
-    const aReg = await regulationToIndexItem(newReg);
+    const aReg = await regulationToIndexItem(newReg[0]);
     await client.index({
       index: INDEX_NAME,
       body: aReg,

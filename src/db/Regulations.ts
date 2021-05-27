@@ -150,8 +150,9 @@ export async function getAllBaseRegulations(opts?: {
   full?: boolean;
   extra?: boolean;
   includeRepealed?: boolean;
+  nameFilter?: string; // format: "'RegName','RegName','RegName'" ... used for indexing specific regulations
 }) {
-  const { full, extra, includeRepealed } = opts || {};
+  const { full, extra, includeRepealed, nameFilter } = opts || {};
   const sql = `
     select
       r.id,
@@ -172,11 +173,13 @@ export async function getAllBaseRegulations(opts?: {
     from Regulation as r
     ${includeRepealed ? 'left join RegulationCancel as c on c.regulationId = r.id' : ''}
     left join Task as t on t.regulationId = r.id
+    ${!includeRepealed || nameFilter ? 'where' : ''}
     ${
       !includeRepealed
-        ? "where r.type = 'base' and (select date from RegulationCancel where regulationId = r.id limit 1) IS NULL"
+        ? "r.type = 'base' and (select date from RegulationCancel where regulationId = r.id limit 1) IS NULL"
         : ''
     }
+    ${nameFilter ? `r.name IN (${nameFilter})` : ''}
     order by r.publishedDate DESC, r.id
   ;`;
 
