@@ -372,8 +372,14 @@ export async function getRegulation(
   });
   diffedRegulation.prevMinistry = earlierMinistry || null;
 
+  const fromChangeIdx = earlierState.date
+    ? diffedRegulation.history.findIndex((item) => item.date === earlierState.date)
+    : -1;
+  const fromChange = diffedRegulation.history[fromChangeIdx + 1];
+
   diffedRegulation.showingDiff = {
-    from: earlierState.date || regulation.publishedDate,
+    // from: earlierState.date || regulation.publishedDate,
+    from: fromChange ? fromChange.date : regulation.effectiveDate,
     to: regulationChange ? regulationChange.date : regulation.effectiveDate,
   };
 
