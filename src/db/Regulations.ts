@@ -12,6 +12,7 @@ import { getLawChapterList } from './LawChapter';
 import { db } from '../utils/sequelize';
 import { QueryTypes } from 'sequelize';
 import promiseAll from 'qj/promiseAllObject';
+import { extractComments } from '../utils/extractData';
 
 export const PER_PAGE = 18;
 
@@ -87,10 +88,13 @@ const augmentRegulationList = async (
         lawChapters: opts.lawChapters ? await getLawChapterList(reg.id) : undefined,
       });
 
+      const textWithoutComments =
+        !!migrated && opts.text && text ? extractComments(text).text : undefined;
+
       const itm: RegulationListItemFull = {
         type: type === 'repealing' ? 'amending' : type,
         title,
-        text: !!migrated && opts.text ? text : undefined,
+        text: textWithoutComments,
         name,
         publishedDate,
         effectiveDate,

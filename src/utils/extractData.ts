@@ -27,3 +27,16 @@ export const extractAppendixesAndComments = (
     comments: (commentsElms.length ? commentsElms[0].innerHTML : '') as HTMLText,
   };
 };
+
+export const extractComments = (
+  text: HTMLText | '',
+): Pick<Regulation, 'text' | 'comments'> => {
+  const root = asDiv(text);
+  const commentsElms = qq('.comments', root);
+  commentsElms.forEach((elm) => elm.remove());
+
+  return {
+    text: root.innerHTML as HTMLText,
+    comments: (commentsElms.length ? commentsElms[0].innerHTML : '') as HTMLText,
+  };
+};
