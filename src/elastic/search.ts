@@ -5,6 +5,7 @@ import xss from 'xss';
 import { PER_PAGE } from '../db/Regulations';
 import { RegulationListItem, RegulationSearchResults, Year } from '../routes/types';
 import range from 'qj/range';
+import zeroPad from 'qj/zeroPad';
 // import { RegulationsIndexBody } from './populate';
 
 export type SearchQueryParams = {
@@ -38,8 +39,8 @@ const cleanQuery = (q: string | undefined) => {
 
 // eslint-disable-next-line complexity
 export async function searchElastic(client: Client, query: SearchQueryParams) {
-  let searchQuery = cleanQuery(query.q);
-  const isNameQuery = searchQuery && /^\d{3,4}([-/]\d{0,4})?$/.test(searchQuery);
+  const searchQuery = cleanQuery(query.q);
+  const isNameQuery = searchQuery && /^\d{1,4}([-/](19|20)\d{0,2})?$/.test(searchQuery);
 
   // add filters
   const filters: Array<esb.Query> = [];
@@ -66,13 +67,10 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
 
   // build text search
   const search: Array<esb.Query> = [];
-  if (isNameQuery) {
-    if (searchQuery && /^\d{3}([-/]\d{0,4})?$/.test(searchQuery)) {
-      // zeropad 3 digit name querys
-      searchQuery = '0' + searchQuery;
-    }
-    // exact regulation name search
-    search.push(esb.matchPhrasePrefixQuery('name', searchQuery));
+  if (searchQuery && isNameQuery) {
+    const q = searchQuery.split(/[-/]/);
+    q[0] = zeroPad(parseInt(q[0]), 4);
+    search.push(esb.matchPhrasePrefixQuery('name', q[0] + (q[1] ? '/' + q[1] : '')));
   } else if (searchQuery) {
     // generic search
     search.push(
