@@ -7,10 +7,6 @@ import { RegulationListItem, RegulationSearchResults, Year } from '../routes/typ
 import range from 'qj/range';
 // import { RegulationsIndexBody } from './populate';
 
-// bunch of results for infinite scrolling search results
-// - increments by 18 and needs to be dividable by 2 and 3
-const PER_SEARCH_PAGE = PER_PAGE * 20;
-
 export type SearchQueryParams = {
   q?: string; // query
   year?: string; // regulationYear
@@ -19,6 +15,7 @@ export type SearchQueryParams = {
   ch?: string; // lawchapter slug
   iA?: string; // 'true' to include amending regulations
   iR?: string; // 'true' to include repelled regulations
+  page?: string; // pagination page
 };
 
 /** Asserts that string is a number between 1900 and 2150
@@ -98,6 +95,7 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
   // console.log(util.inspect(requestBody, true, null));
 
   let totalItems = 0;
+  const pagingPage = parseInt('' + query.page) || 1;
   let searchHits: Array<RegulationListItem> = [];
 
   if (filters.length || search.length) {
@@ -106,8 +104,9 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
     try {
       search = await client.search({
         index: 'regulations',
-        size: PER_SEARCH_PAGE,
+        size: PER_PAGE,
         body: requestBody.toJSON(),
+        from: pagingPage * PER_PAGE,
       });
     } catch (err) {
       console.error(err);
@@ -127,9 +126,9 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
   }
 
   const results: RegulationSearchResults = {
-    page: 1,
-    perPage: PER_SEARCH_PAGE,
-    totalPages: Math.ceil(totalItems / PER_SEARCH_PAGE),
+    page: pagingPage,
+    perPage: PER_PAGE,
+    totalPages: Math.ceil(totalItems / PER_PAGE),
     totalItems,
     data: searchHits,
   };
