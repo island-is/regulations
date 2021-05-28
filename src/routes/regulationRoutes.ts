@@ -1,9 +1,20 @@
 import { getRegulation } from '../db/Regulation';
-import { assertISODate, assertNameSlug, slugToName, Pms, cache } from '../utils/misc';
+import {
+  assertISODate,
+  assertNameSlug,
+  slugToName,
+  Pms,
+  cache,
+  checkRegulationFile,
+} from '../utils/misc';
 
 import { DB_Regulation } from '../models/Regulation';
-import { ISODate, RegQueryName } from './types';
+import { ISODate, RegQueryName, Regulation } from './types';
 import { FastifyPluginCallback, FastifyReply } from 'fastify';
+
+import { getRegulationPdf } from '../db/RegulationPdf';
+import path from 'path';
+import fs from 'fs';
 
 const REGULATION_TTL = 0.1;
 
@@ -156,6 +167,38 @@ export const regulationRoutes: FastifyPluginCallback = (fastify, opts, done) => 
       });
     },
   );
+
+  /**
+   * Returns current version of a regulation with all changes applied in pdf format
+   * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
+   * @returns pdf file
+   */
+  fastify.get<Pms<'name'>>('/regulation/:name/pdf', opts, async (req, res) => {
+    const name = assertNameSlug(req?.params?.name);
+    if (!name) {
+      res.code(400).send('Regulation not found!');
+      return;
+    }
+
+    const regulationPdfUrl = await getRegulationPdf(name);
+    if (!regulationPdfUrl) {
+      res.code(400).send('Regulation not found!');
+      return false;
+    } else {
+      res.send({ pdfUrl: regulationPdfUrl });
+    }
+  });
+
+  fastify.get<Pms<'name'>>('/regulation/:name/pdf/download', opts, async (req, res) => {
+    const name = req?.params?.name;
+    const fileExists = await checkRegulationFile(name);
+    if (fileExists) {
+      const regulationBuffer = fs.readFileSync(`regulation-pdf/${name}.pdf`);
+      return res.type('application/pdf').send(regulationBuffer);
+    }
+    res.code(400).send('Regulation not found!');
+    return false;
+  });
 
   done();
 };

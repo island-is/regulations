@@ -136,6 +136,19 @@ export const storeData = (data: unknown, path: string) => {
   }
 };
 
+export const checkRegulationFile = async (path: string) => {
+  try {
+    const stats = await fs.promises.stat(`regulation-pdf/${path}.pdf`);
+    if (stats.mtime) {
+      return true;
+    }
+    return false;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+};
+
 export const loadData = <T>(path: string): T | false => {
   if (!fs.existsSync(path)) {
     return false;
