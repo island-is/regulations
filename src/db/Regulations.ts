@@ -153,13 +153,25 @@ export async function getAllBaseRegulations(opts?: {
   nameFilter?: string; // format: "'RegName','RegName','RegName'" ... used for indexing specific regulations
 }) {
   const { full, extra, includeRepealed, nameFilter } = opts || {};
+
+  const whereConds: Array<string> = [];
+
+  if (!includeRepealed) {
+    whereConds.push(
+      `where r.type = 'base' and (select date from RegulationCancel where regulationId = r.id limit 1) IS NULL`,
+    );
+  }
+  if (nameFilter) {
+    whereConds.push(`r.name IN ("${nameFilter}")`);
+  }
+
   const sql = `
     select
       r.id,
       r.name,
       COALESCE((select title from RegulationChange where regulationId = r.id and date <= now() and title != '' order by date desc limit 1), r.title) as title,
       ${
-        // This is dumb and inefficient repetition, but works. TODO: Make this more fancy with Blackjack and CTEs
+        // Inefficient repetition, but works. TODO: Make this more fancy with Blackjack and CTEs??
         full || extra
           ? 'COALESCE((select text from RegulationChange where regulationId = r.id and date <= now() and text != "" order by date desc limit 1), r.text) as text,'
           : ''
@@ -173,13 +185,7 @@ export async function getAllBaseRegulations(opts?: {
     from Regulation as r
     ${includeRepealed ? 'left join RegulationCancel as c on c.regulationId = r.id' : ''}
     left join Task as t on t.regulationId = r.id
-    ${!includeRepealed || nameFilter ? 'where' : ''}
-    ${
-      !includeRepealed
-        ? "r.type = 'base' and (select date from RegulationCancel where regulationId = r.id limit 1) IS NULL"
-        : ''
-    }
-    ${nameFilter ? `r.name IN (${nameFilter})` : ''}
+    ${whereConds.length ? 'where ' + whereConds.join(' and ') : ''}
     order by r.publishedDate DESC, r.id
   ;`;
 
