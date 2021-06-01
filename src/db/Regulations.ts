@@ -189,9 +189,22 @@ export async function getAllBaseRegulations(opts?: {
     order by r.publishedDate DESC, r.id
   ;`;
 
-  const regulations = <SQLRegulationsList>(
+  let regulations = <SQLRegulationsList>(
     ((await db.query(sql, { type: QueryTypes.SELECT })) ?? [])
   );
+
+  // FIXME: Remove this block once the Reglugerðagrunnur has been cleaned up
+  // so that RegulationCancel.regulationId values are unique
+  // (i.e. only one cancellation per regulation).
+  if (includeRepealed) {
+    const found: Record<string, true | undefined> = {};
+    regulations = regulations.filter((item) => {
+      if (!found[item.name]) {
+        found[item.name] = true;
+        return true;
+      }
+    });
+  }
 
   if (extra) {
     return await augmentRegulationList(regulations, {
