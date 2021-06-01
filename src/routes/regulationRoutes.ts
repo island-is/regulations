@@ -184,20 +184,18 @@ export const regulationRoutes: FastifyPluginCallback = (fastify, opts, done) => 
     if (!regulationPdfUrl) {
       res.code(400).send('Regulation not found!');
       return false;
-    } else {
-      res.send({ pdfUrl: regulationPdfUrl });
     }
+    res.send({ pdfUrl: regulationPdfUrl });
   });
 
-  fastify.get<Pms<'name'>>('/regulation/:name/pdf/download', opts, async (req, res) => {
+  fastify.get<Pms<'name'>>('/regulation/:name/pdf/download', opts, (req, res) => {
     const name = req?.params?.name;
-    const fileExists = await checkRegulationFile(name);
-    if (fileExists) {
-      const regulationBuffer = fs.readFileSync(`regulation-pdf/${name}.pdf`);
-      return res.type('application/pdf').send(regulationBuffer);
+    if (!checkRegulationFile(name)) {
+      res.code(400).send('Regulation not found!');
+      return;
     }
-    res.code(400).send('Regulation not found!');
-    return false;
+    const regulationBuffer = fs.readFileSync(`regulation-pdf/${name}.pdf`);
+    res.type('application/pdf').send(regulationBuffer);
   });
 
   done();

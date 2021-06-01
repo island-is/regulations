@@ -7,8 +7,7 @@ export async function getRegulationPdf(name: RegQueryName) {
   const filename = `regulation-pdf/${name}.pdf`;
   const downloadLink = `/api/v1/regulation/${name}/pdf/download`;
   try {
-    const fileExists = await checkRegulationFile(name);
-    if (fileExists) {
+    if (checkRegulationFile(name)) {
       return downloadLink;
     }
 
