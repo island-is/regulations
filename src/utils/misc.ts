@@ -1,5 +1,7 @@
 import { ISODate, RegName, RegQueryName } from '../routes/types';
 import { FastifyReply } from 'fastify';
+import fs from 'fs';
+import { parse } from 'path';
 
 /** Converts a Regulation `name` into a URL path segment
  *
@@ -118,33 +120,38 @@ export const cache = (res: FastifyReply, ttl_hrs: number): void => {
 
 // ---------------------------------------------------------------------------
 
-import fs from 'fs';
+const HOUR = 60 * 60 * 1000;
+const JSONFILE_MAXAGE = 6 * HOUR;
 
 /* write json data to disk */
-export const storeData = (data: any, path: string) => {
+export const storeData = (data: unknown, path: string) => {
   try {
+    const dirName = parse(path).dir;
+    if (!fs.existsSync(dirName)) {
+      fs.mkdirSync(dirName);
+    }
     fs.writeFileSync(path, JSON.stringify(data));
   } catch (err) {
     console.error(err);
   }
 };
 
-export const loadData = async (path: string) => {
+export const loadData = <T>(path: string): T | false => {
+  if (!fs.existsSync(path)) {
+    return false;
+  }
   try {
-    const available = true;
-    // fetch file details
-    const stats = await fs.promises.stat(path);
+    const stats = fs.statSync(path);
     const now = new Date().getTime();
     const mtime = new Date(stats.mtime).getTime();
 
-    // return file if it's available and newer than 6 hours
-    if (now - mtime <= 3.6e6) {
-      const data = await fs.readFileSync(path, 'utf8');
-      return available ? JSON.parse(data) : false;
+    // return file if it's available and fresh
+    if (now - mtime <= JSONFILE_MAXAGE) {
+      const data = fs.readFileSync(path, 'utf8');
+      return JSON.parse(data);
     }
-    return false;
   } catch (err) {
     console.error(err);
-    return false;
   }
+  return false;
 };

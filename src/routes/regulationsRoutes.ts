@@ -47,7 +47,7 @@ export const regulationsRoutes: FastifyPluginCallback = (fastify, opts, done) =>
   // Use-case: Fetch "gildandi stofnreglugerðir" full text
   // for Ísland.is's general-purpo site search index.
   fastify.get('/regulations/all/current/full', opts, async (request, reply) => {
-    let data = await loadData('backup-json/all-current-full.json');
+    let data = loadData('backup-json/all-current-full.json');
     if (!data) {
       console.info('Fetching data from db');
       data = await getAllBaseRegulations({ full: true });
@@ -66,7 +66,7 @@ export const regulationsRoutes: FastifyPluginCallback = (fastify, opts, done) =>
       onRequest: fastify.basicAuth,
     }),
     async function (request, reply) {
-      let data = await loadData('backup-json/all-extra.json');
+      let data = loadData('backup-json/all-extra.json');
       if (!data) {
         console.info('Fetching data from db');
         data = await getAllBaseRegulations({

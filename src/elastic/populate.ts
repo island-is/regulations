@@ -108,9 +108,9 @@ export async function repopulateElastic(client: Client) {
   const t0 = performance.now();
   try {
     console.info('fetching regulations...');
-    let regulations = (await loadData('backup-json/all-extra.json')) as
-      | Array<RegulationListItemFull>
-      | false;
+    let regulations = loadData<Array<RegulationListItemFull>>(
+      'backup-json/all-extra.json',
+    );
     if (regulations) {
       console.info('returning data from file');
     } else {
