@@ -44,12 +44,6 @@ export const regulationsRoutes: FastifyPluginCallback = (fastify, opts, done) =>
 
   // ---------------------------------------------------------------------------
 
-  fastify.get('/regulations/all/current', opts, async (request, reply) => {
-    const data = await getAllBaseRegulations();
-    cache(reply, ALLCURRENT_TTL);
-    reply.send(data);
-  });
-
   fastify.get('/regulations/all/current/full', opts, async (request, reply) => {
     let data = await loadData('backup-json/all-current-full.json');
     if (!data) {
