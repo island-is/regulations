@@ -34,7 +34,7 @@ const validate: FastifyBasicAuthOptions['validate'] = (
     ROUTES_USERNAME &&
     username === ROUTES_USERNAME &&
     ROUTES_PASSWORD &&
-    password === process.env.ROUTES_PASSWORD
+    password === ROUTES_PASSWORD
   ) {
     done();
   } else {
@@ -48,11 +48,9 @@ if (process.env.PROXIED !== 'true') {
   fastify.register(fastifyCompress, { global: true });
 }
 
-const {
-  ELASTIC_CLOUD_ID,
-  ELASTIC_CLOUD_APIKEY_ID,
-  ELASTIC_CLOUD_APIKEY_KEY,
-} = process.env;
+const { ELASTIC_CLOUD_ID, ELASTIC_CLOUD_APIKEY_ID, ELASTIC_CLOUD_APIKEY_KEY } =
+  process.env;
+
 if (ELASTIC_CLOUD_ID && ELASTIC_CLOUD_APIKEY_ID && ELASTIC_CLOUD_APIKEY_KEY) {
   fastify.register(fastifyElasticsearch, {
     cloud: {
