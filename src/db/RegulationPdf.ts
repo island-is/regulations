@@ -1,5 +1,5 @@
 import { RegQueryName, Regulation, RegulationRedirect } from 'routes/types';
-import pdf from 'html-pdf';
+import html_pdf_node from 'html-pdf-node';
 import { getRegulation } from './Regulation';
 import { slugToName } from '../utils/misc';
 import fs from 'fs';
@@ -237,19 +237,22 @@ export async function makeRegulationPdf(
     return false;
   }
 
-  return new Promise((done) => {
-    pdf
-      .create(pdfTmplate(regulation), {
+  return html_pdf_node
+    .generatePdf(
+      { content: pdfTmplate(regulation) },
+      {
         format: 'A4',
-        orientation: 'portrait',
-        border: '2cm',
-      })
-      .toFile(fileName, (err) => {
-        if (err) {
-          console.error(err);
-          done(false);
-        }
-        done(true);
-      });
-  });
+        preferCSSPageSize: true,
+        printBackground: true,
+      },
+    )
+    .then((buffer) => {
+      // TODO: write buffer to file
+      console.log(fileName, buffer);
+    })
+    .then(() => true)
+    .catch((err) => {
+      console.error(err);
+      return false;
+    });
 }

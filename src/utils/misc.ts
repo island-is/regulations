@@ -2,6 +2,7 @@ import { ISODate, RegName, RegQueryName } from '../routes/types';
 import { FastifyReply } from 'fastify';
 import fs from 'fs';
 import { parse } from 'path';
+import { HOUR } from 'qj/time';
 
 /** Converts a Regulation `name` into a URL path segment
  *
@@ -120,7 +121,6 @@ export const cache = (res: FastifyReply, ttl_hrs: number): void => {
 
 // ---------------------------------------------------------------------------
 
-const HOUR = 60 * 60 * 1000;
 const JSONFILE_MAXAGE = 6 * HOUR;
 
 /* write json data to disk */
@@ -141,12 +141,10 @@ export const loadData = <T>(path: string): T | false => {
     return false;
   }
   try {
-    const stats = fs.statSync(path);
-    const now = new Date().getTime();
-    const mtime = new Date(stats.mtime).getTime();
+    const lastModified = fs.statSync(path).mtimeMs;
 
     // return file if it's available and fresh
-    if (now - mtime <= JSONFILE_MAXAGE) {
+    if (Date.now() - lastModified <= JSONFILE_MAXAGE) {
       const data = fs.readFileSync(path, 'utf8');
       return JSON.parse(data);
     }
