@@ -176,28 +176,22 @@ const augmentRegulation = async (
 ): Promise<Regulation> => {
   const { id, type, name, signatureDate, publishedDate, effectiveDate } = regulation;
 
-  const {
-    ministry,
-    history,
-    effects,
-    lawChapters,
-    lastAmendDate,
-    repealedDate,
-  } = await promiseAll({
-    ministry: getMinistry(regulationChange || regulation),
-    history: getRegulationHistory(regulation),
-    effects: getRegulationEffects(id),
-    lawChapters: getLawChapterList(id),
-    lastAmendDate: getLatestRegulationChange(id).then((change) => change?.date),
-    repealedDate: getRegulationCancel(id).then((cancel) => {
-      const date = cancel?.date;
-      // Skip if repeal/cancellation date is in the future
-      if (!date || new Date().toISOString() < date) {
-        return;
-      }
-      return date;
-    }),
-  });
+  const { ministry, history, effects, lawChapters, lastAmendDate, repealedDate } =
+    await promiseAll({
+      ministry: getMinistry(regulationChange || regulation),
+      history: getRegulationHistory(regulation),
+      effects: getRegulationEffects(id),
+      lawChapters: getLawChapterList(id),
+      lastAmendDate: getLatestRegulationChange(id).then((change) => change?.date),
+      repealedDate: getRegulationCancel(id).then((cancel) => {
+        const date = cancel?.date;
+        // Skip if repeal/cancellation date is in the future
+        if (!date || new Date().toISOString() < date) {
+          return;
+        }
+        return date;
+      }),
+    });
 
   const { text, appendixes, comments } = extractAppendixesAndComments(
     regulationChange ? regulationChange?.text : regulation.text,
@@ -312,7 +306,7 @@ export async function getRegulation(
 
   // Resolve/apply diff
 
-  const diffedRegulation = (augmentedRegulation as unknown) as RegulationDiff;
+  const diffedRegulation = augmentedRegulation as unknown as RegulationDiff;
 
   let earlierMinistry: Regulation['ministry'] | undefined;
   let earlierTitle: Regulation['title'];
