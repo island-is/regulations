@@ -136,9 +136,6 @@ export const storeData = (data: unknown, path: string) => {
   }
 };
 
-export const checkRegulationFile = (path: string) =>
-  fs.existsSync(`regulation-pdf/${path}.pdf`);
-
 export const loadData = <T>(path: string): T | false => {
   if (!fs.existsSync(path)) {
     return false;

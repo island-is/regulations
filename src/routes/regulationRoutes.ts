@@ -1,19 +1,10 @@
 import { getRegulation } from '../db/Regulation';
-import {
-  assertISODate,
-  assertNameSlug,
-  slugToName,
-  Pms,
-  cache,
-  checkRegulationFile,
-} from '../utils/misc';
+import { assertISODate, assertNameSlug, slugToName, Pms, cache } from '../utils/misc';
 
 import { DB_Regulation } from '../models/Regulation';
-import { ISODate, RegQueryName, Regulation } from './types';
+import { ISODate, RegQueryName } from './types';
 import { FastifyPluginCallback, FastifyReply } from 'fastify';
-
-import { getRegulationPdf } from '../db/RegulationPdf';
-import path from 'path';
+import { makeRegulationPdf, shouldMakePdf } from '../db/RegulationPdf';
 import fs from 'fs';
 
 const REGULATION_TTL = 0.1;
@@ -174,28 +165,24 @@ export const regulationRoutes: FastifyPluginCallback = (fastify, opts, done) => 
    * @returns pdf file
    */
   fastify.get<Pms<'name'>>('/regulation/:name/pdf', opts, async (req, res) => {
-    const name = assertNameSlug(req?.params?.name);
+    const name = assertNameSlug(req.params.name);
     if (!name) {
       res.code(400).send('Regulation not found!');
       return;
     }
+    const fileName = `./regulation-pdf/${name}.pdf`;
 
-    const regulationPdfUrl = await getRegulationPdf(name);
-    if (!regulationPdfUrl) {
-      res.code(400).send('Regulation not found!');
-      return false;
+    if (shouldMakePdf(fileName)) {
+      const success = await makeRegulationPdf(name, fileName);
+      if (!success) {
+        res.code(400).send('Regulation not found!');
+        return;
+      }
     }
-    res.send({ pdfUrl: regulationPdfUrl });
-  });
+    res.type('application/pdf').send(fs.readFileSync(fileName));
 
-  fastify.get<Pms<'name'>>('/regulation/:name/pdf/download', opts, (req, res) => {
-    const name = req?.params?.name;
-    if (!checkRegulationFile(name)) {
-      res.code(400).send('Regulation not found!');
-      return;
-    }
-    const regulationBuffer = fs.readFileSync(`regulation-pdf/${name}.pdf`);
-    res.type('application/pdf').send(regulationBuffer);
+    // FIXME: Remove this after debugging
+    fs.unlinkSync(fileName);
   });
 
   done();
