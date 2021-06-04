@@ -104,6 +104,8 @@ export async function recreateElastic(client: Client) {
   return { success: true };
 }
 
+// ---------------------------------------------------------------------------
+
 export async function repopulateElastic(client: Client) {
   const t0 = performance.now();
   try {

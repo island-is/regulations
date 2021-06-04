@@ -35,6 +35,7 @@ export const elasticSearchRoutes: FastifyPluginCallback = (fastify, opts, done) 
 export const elasticRebuildRoutes: FastifyPluginCallback = (fastify, opts, done) => {
   /**
    * Recreate regulations search index
+   * Does **not** popuplate it with any regulations or other data
    * @returns {success: boolean>}
    */
   fastify.get<QStr<'template'>>(
@@ -50,6 +51,7 @@ export const elasticRebuildRoutes: FastifyPluginCallback = (fastify, opts, done)
 
   /**
    * Repopulate regulations search index
+   * Throws out the old and refills the index with shiny fresh regulations data.
    * @returns {success: boolean>}
    */
   fastify.get<QStr<'template'>>(
