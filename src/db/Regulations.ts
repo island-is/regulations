@@ -131,7 +131,10 @@ export async function getNewestRegulations(opts: { skip?: number; take?: number 
         'effectiveDate',
         'ministryId',
       ],
-      order: [['publishedDate', 'DESC', 'id', 'DESC']],
+      order: [
+        ['publishedDate', 'DESC'],
+        ['id', 'DESC'],
+      ],
       offset: skip,
       limit: take,
     }) ?? [];
