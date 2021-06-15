@@ -131,7 +131,7 @@ export async function getNewestRegulations(opts: { skip?: number; take?: number 
         'effectiveDate',
         'ministryId',
       ],
-      order: [['publishedDate', 'DESC']],
+      order: [['publishedDate', 'DESC', 'id', 'DESC']],
       offset: skip,
       limit: take,
     }) ?? [];
@@ -186,7 +186,7 @@ export async function getAllBaseRegulations(opts?: {
     ${includeRepealed ? 'left join RegulationCancel as c on c.regulationId = r.id' : ''}
     left join Task as t on t.regulationId = r.id
     ${whereConds.length ? 'where ' + whereConds.join(' and ') : ''}
-    order by r.publishedDate DESC, r.id
+    order by r.publishedDate DESC, r.id DESC
   ;`;
 
   let regulations = <SQLRegulationsList>(
