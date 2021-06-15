@@ -47,6 +47,8 @@ const regulationToIndexItem = (reg: RegulationListItemFull) => {
   return indexBody;
 };
 
+// ---------------------------------------------------------------------------
+
 const checkIfIndexExists = async (client: Client, index: string): Promise<boolean> => {
   const result = await client.indices.exists({ index });
   return result.statusCode === 200;
@@ -167,6 +169,8 @@ export async function repopulateElastic(client: Client) {
   }
   return { success: true };
 }
+
+// ---------------------------------------------------------------------------
 
 const _updateItem = async (client: Client, regname: RegName) => {
   const newReg = (await getAllBaseRegulations({
