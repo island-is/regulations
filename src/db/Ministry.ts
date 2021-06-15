@@ -8,6 +8,7 @@ export async function getAllMinistries() {
         ['current', 'DESC'],
         ['`order`', 'ASC'],
         ['name', 'ASC'],
+        ['slug', 'DESC'],
       ],
     })) ?? [];
 
