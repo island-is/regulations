@@ -23,6 +23,18 @@ export type Year = number & { [_Year__Brand]: true };
 
 // ---------------------------------------------------------------------------
 
+// TODO: add link to original DOC/PDF file in Stjórnartíðindi's data store.
+/** Regulations are roughly classified based on whether they contain
+ * any original text/stipulations, or whether they **only**  prescribe
+ * changes to other regulations.
+ *
+ * `base` = Stofnreglugerð
+ * `amending` = Breytingareglugerð
+ */
+export type RegulationType = 'base' | 'amending';
+
+// ---------------------------------------------------------------------------
+
 // Years
 export type RegulationYears = ReadonlyArray<Year>;
 
@@ -165,15 +177,8 @@ export type Regulation = {
   /** Law chapters that this regulation is linked to */
   lawChapters: ReadonlyArray<LawChapter>;
 
-  // TODO: add link to original DOC/PDF file in Stjórnartíðindi's data store.
-  /** Regulations are roughly classified based on whether they contain
-   * any original text/stipulations, or whether they **only**  prescribe
-   * changes to other regulations.
-   *
-   * `base` = Stofnreglugerð
-   * `amending` = Breytingareglugerð
-   */
-  type: 'base' | 'amending';
+  type: RegulationType;
+
   /** List of change events (Amendments, Repeals) over the life time of this
    * regulation – **excluding** the original base/root regulation
    */
