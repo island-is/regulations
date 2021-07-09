@@ -17,6 +17,20 @@ export type HTMLText = string & { [_HTMLText__Brand]: true };
 /** Plain-text string – e.g. `I <3 You ` */
 export type PlainText = string & { [_HTMLText__Brand]?: false };
 
+declare const _MinistrySlug__Brand: unique symbol;
+/** Slug identifier for Ministries — e.g. `hr`
+ *
+ * (Human-readable, persistent id for for query strings, etc.)
+ */
+export type MinistrySlug = string & { [_MinistrySlug__Brand]: true };
+
+declare const _LawChapterSlug__Brand: unique symbol;
+/** Slug identifier for Law Chapters — e.g. `01b`
+ *
+ * (Human-readable, persistent id for for query strings, etc.)
+ */
+export type LawChapterSlug = string & { [_LawChapterSlug__Brand]: true };
+
 declare const _Year__Brand: unique symbol;
 /** Four letter positive integer that might reasonably be a year */
 export type Year = number & { [_Year__Brand]: true };
@@ -44,7 +58,7 @@ export type LawChapter = {
   /** Name (title) of the law chapter */
   name: string;
   /** Short, URL-friendly token to use for search filters, etc.  */
-  slug: string; // '01a' |'01b' |'01c' | etc.
+  slug: LawChapterSlug; // '01a' |'01b' |'01c' | etc.
 };
 
 export type LawChapterTree = Array<
@@ -64,7 +78,7 @@ export type Ministry = {
   /** Name (title) of the ministry */
   name: string;
   /** Short, URL-friendly token to use for search filters, etc.  */
-  slug: string;
+  slug: MinistrySlug;
   /** False if this ministry is not current */
   current: boolean;
 };

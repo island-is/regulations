@@ -1,3 +1,4 @@
+import { MinistrySlug } from 'routes/types';
 import {
   Model,
   Table,
@@ -10,7 +11,7 @@ import {
 
 type MinistryAttributes = {
   id: number;
-  slug: string;
+  slug: MinistrySlug;
   name: string;
   current: boolean;
   order?: number;
@@ -19,12 +20,13 @@ type MinistryAttributes = {
 @Table({ tableName: 'Ministry', timestamps: false })
 export class DB_Ministry
   extends Model<MinistryAttributes, MinistryAttributes>
-  implements MinistryAttributes {
+  implements MinistryAttributes
+{
   @Column({ primaryKey: true, type: DataType.INTEGER })
   id!: number;
 
   @Column({ type: DataType.STRING(8) })
-  slug!: string;
+  slug!: MinistrySlug;
 
   @Column({ type: DataType.STRING(128) })
   name!: string;

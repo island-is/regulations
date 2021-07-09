@@ -1,3 +1,4 @@
+import { LawChapterSlug } from 'routes/types';
 import {
   Model,
   Table,
@@ -10,7 +11,7 @@ import {
 
 type LawChapterAttributes = {
   id: number;
-  slug: string;
+  slug: LawChapterSlug;
   title: string;
   parentId?: number;
 };
@@ -18,12 +19,13 @@ type LawChapterAttributes = {
 @Table({ tableName: 'LawChapter', timestamps: false })
 export class DB_LawChapter
   extends Model<LawChapterAttributes, LawChapterAttributes>
-  implements LawChapterAttributes {
+  implements LawChapterAttributes
+{
   @Column({ primaryKey: true, autoIncrement: true, type: DataType.INTEGER })
   id!: number;
 
   @Column({ type: DataType.STRING(8) })
-  slug!: string;
+  slug!: LawChapterSlug;
 
   @Column({ type: DataType.STRING(256) })
   title!: string;
