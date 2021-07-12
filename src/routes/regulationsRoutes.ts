@@ -22,8 +22,8 @@ export const regulationsRoutes: FastifyPluginCallback = (fastify, opts, done) =>
    * Gets latest regulations as paged array
    * @returns {Array<DB_Regulation>}
    */
-  fastify.get<QStr<'page'>>('/regulations/newest', opts, async (request, reply) => {
-    const page = assertPosInt(request.query.page || '') || (1 as IntPositive);
+  fastify.get<QStr<'page'>>('/regulations/newest', opts, async (req, res) => {
+    const page = assertPosInt(req.query.page || '') || (1 as IntPositive);
 
     const data = await getNewestRegulations({
       skip: (page - 1) * PER_PAGE,
@@ -32,8 +32,8 @@ export const regulationsRoutes: FastifyPluginCallback = (fastify, opts, done) =>
     const totalItems: number = await getRegulationsCount();
     const totalPages = Math.ceil(totalItems / PER_PAGE);
 
-    cache(reply, NEWEST_TTL);
-    reply.send({
+    cache(res, NEWEST_TTL);
+    res.send({
       page,
       perPage: PER_PAGE,
       totalPages,
@@ -46,7 +46,7 @@ export const regulationsRoutes: FastifyPluginCallback = (fastify, opts, done) =>
 
   // Use-case: Fetch "gildandi stofnreglugerðir" full text
   // for Ísland.is's general-purpo site search index.
-  fastify.get('/regulations/all/current/full', opts, async (request, reply) => {
+  fastify.get('/regulations/all/current/full', opts, async (req, res) => {
     let data = loadData('backup-json/all-current-full.json');
     if (!data) {
       console.info('Fetching data from db');
@@ -55,7 +55,7 @@ export const regulationsRoutes: FastifyPluginCallback = (fastify, opts, done) =>
     } else {
       console.info('Returning all-current-full data from file');
     }
-    reply.send(data);
+    res.send(data);
   });
 
   // Use-case Fetch *all* regluations, full text to feed into
@@ -65,7 +65,7 @@ export const regulationsRoutes: FastifyPluginCallback = (fastify, opts, done) =>
     Object.assign({}, opts, {
       onRequest: fastify.basicAuth,
     }),
-    async function (request, reply) {
+    async function (req, res) {
       let data = loadData('backup-json/all-extra.json');
       if (!data) {
         console.info('Fetching data from db');
@@ -77,7 +77,7 @@ export const regulationsRoutes: FastifyPluginCallback = (fastify, opts, done) =>
       } else {
         console.info('Returning all-extra data from file');
       }
-      reply.send(data);
+      res.send(data);
     },
   );
 

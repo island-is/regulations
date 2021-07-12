@@ -10,16 +10,14 @@ export const ministryRoutes: FastifyPluginCallback = (fastify, opts, done) => {
    * Gets all minitries
    * @returns {MinistryList}
    */
-  fastify.get('/ministries', opts, async (request, reply) => {
+  fastify.get('/ministries', opts, async (req, res) => {
     const data = await getAllMinistries();
-    const ministries = data.map(
-      (m): MinistryListItem => {
-        const { id, ...ministry } = m.get();
-        return ministry;
-      },
-    );
-    cache(reply, MINISTRY_TTL);
-    reply.send(ministries);
+    const ministries = data.map((m): MinistryListItem => {
+      const { id, ...ministry } = m.get();
+      return ministry;
+    });
+    cache(res, MINISTRY_TTL);
+    res.send(ministries);
   });
 
   done();

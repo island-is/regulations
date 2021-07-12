@@ -10,20 +10,20 @@ export const lawChapterRoutes: FastifyPluginCallback = (fastify, opts, done) => 
    * Gets all LawChapters sorted by slug
    * @returns {Array<LawChapter>}
    */
-  fastify.get('/lawchapters', opts, async (request, reply) => {
+  fastify.get('/lawchapters', opts, async (req, res) => {
     const lawChapters = await getLawChapterList();
-    cache(reply, LAWCHAPTER_TTL);
-    reply.send(lawChapters);
+    cache(res, LAWCHAPTER_TTL);
+    res.send(lawChapters);
   });
 
   /**
    * Gets a tree containing all LawChapters sorted by slug
    * @returns {LawChapterTree}
    */
-  fastify.get('/lawchapters/tree', opts, async (request, reply) => {
+  fastify.get('/lawchapters/tree', opts, async (req, res) => {
     const lawChapterTree = await getLawChapterTree();
-    cache(reply, LAWCHAPTER_TTL);
-    reply.send(lawChapterTree);
+    cache(res, LAWCHAPTER_TTL);
+    res.send(lawChapterTree);
   });
 
   done();

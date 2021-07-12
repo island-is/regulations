@@ -9,10 +9,10 @@ export const redirectsRoutes: FastifyPluginCallback = (fastify, opts, done) => {
    * Gets all redirects
    * @returns Redirects
    */
-  fastify.get('/redirects', opts, async (request, reply) => {
+  fastify.get('/redirects', opts, async (req, res) => {
     const data = await getRegulationsRedirects();
-    cache(reply, REDIRECTS_TTL);
-    reply.send(data);
+    cache(res, REDIRECTS_TTL);
+    res.send(data);
   });
 
   done();
