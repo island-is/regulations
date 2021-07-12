@@ -1,17 +1,19 @@
 import { FastifyPluginCallback } from 'fastify';
-import { cache } from '../utils/misc';
+import { cache, QStr } from '../utils/misc';
 import { getAllMinistries } from '../db/Ministry';
-import { MinistryListItem } from './types';
+import { MinistryListItem, MinistrySlug } from './types';
 
 const MINISTRY_TTL = 1;
 
 export const ministryRoutes: FastifyPluginCallback = (fastify, opts, done) => {
   /**
    * Gets all minitries
+   * @param {string} slugs - Comma separated list of MinistrySlugs to filter
    * @returns {MinistryList}
    */
-  fastify.get('/ministries', opts, async (req, res) => {
-    const data = await getAllMinistries();
+  fastify.get<QStr<'slugs'>>('/ministries', opts, async (req, res) => {
+    const slugs = (req.query?.slugs?.split(',') as Array<MinistrySlug>) ?? undefined;
+    const data = await getAllMinistries(slugs);
     const ministries = data.map((m): MinistryListItem => {
       const { id, ...ministry } = m.get();
       return ministry;

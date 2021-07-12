@@ -1,9 +1,15 @@
 import { DB_Ministry, DB_Regulation } from '../models';
-import { Ministry } from 'routes/types';
+import { Ministry, MinistrySlug } from 'routes/types';
+import { Op } from 'sequelize';
 
-export async function getAllMinistries() {
+export async function getAllMinistries(slugs?: Array<MinistrySlug>) {
   const ministries =
     (await DB_Ministry.findAll({
+      where: slugs
+        ? {
+            slug: { [Op.in]: slugs },
+          }
+        : undefined,
       order: [
         ['current', 'DESC'],
         ['`order`', 'ASC'],

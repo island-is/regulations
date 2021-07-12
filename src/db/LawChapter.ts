@@ -1,7 +1,8 @@
 import { QueryTypes } from 'sequelize';
 import { db } from '../utils/sequelize';
 import { DB_LawChapter } from '../models';
-import { LawChapterTree, LawChapter } from '../routes/types';
+import { LawChapterTree, LawChapter, LawChapterSlug } from '../routes/types';
+import { Op } from 'sequelize';
 
 export async function getLawChapterTree(): Promise<LawChapterTree> {
   const chapters = await DB_LawChapter.findAll({ order: [['slug', 'ASC']] });
@@ -32,7 +33,32 @@ export async function getLawChapterTree(): Promise<LawChapterTree> {
 }
 
 export async function getLawChapterList(
-  regulationId?: number,
+  slugs?: Array<LawChapterSlug>,
+): Promise<ReadonlyArray<LawChapter>> {
+  const rawLawChapters = await DB_LawChapter.findAll({
+    where: slugs
+      ? {
+          slug: { [Op.in]: slugs },
+        }
+      : undefined,
+    order: [['slug', 'ASC']],
+  });
+
+  let lastParent = '';
+  return rawLawChapters.map(({ title, slug, parentId }): LawChapter => {
+    if (!parentId) {
+      lastParent = title;
+    }
+
+    return {
+      name: !parentId ? title : lastParent + ' - ' + title,
+      slug,
+    };
+  });
+}
+
+export async function getRegulationLawChapters(
+  regulationId: number,
 ): Promise<ReadonlyArray<LawChapter>> {
   const rawLawChapters =
     (await db.query<
@@ -42,11 +68,11 @@ export async function getLawChapterList(
         SELECT l.title, l.slug, pl.title AS parentTitle FROM LawChapter AS l
         RIGHT JOIN Regulation_LawChapter AS rl ON l.id = rl.chapterId
         LEFT JOIN LawChapter AS pl ON l.parentId = pl.id
-        ${regulationId ? 'WHERE rl.regulationId = :regulationId' : ''}
+        WHERE rl.regulationId = :regulationId
         ORDER BY l.slug, l.id
       `,
       {
-        replacements: regulationId ? { regulationId } : undefined,
+        replacements: { regulationId },
         type: QueryTypes.SELECT,
       },
     )) ?? [];

@@ -8,7 +8,7 @@ import {
   RegulationYears,
 } from '../routes/types';
 import { getMinistry } from './Ministry';
-import { getLawChapterList } from './LawChapter';
+import { getRegulationLawChapters } from './LawChapter';
 import { db } from '../utils/sequelize';
 import { QueryTypes } from 'sequelize';
 import promiseAll from 'qj/promiseAllObject';
@@ -85,7 +85,9 @@ const augmentRegulationList = async (
 
       const { ministry, lawChapters } = await promiseAll({
         ministry: await getMinistry(reg),
-        lawChapters: opts.lawChapters ? await getLawChapterList(reg.id) : undefined,
+        lawChapters: opts.lawChapters
+          ? await getRegulationLawChapters(reg.id)
+          : undefined,
       });
 
       const textWithoutComments =

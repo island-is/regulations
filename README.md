@@ -16,14 +16,18 @@ Set `process.env.PORT` to use a different port.
 ## LawChapter
 
 - `GET /api/v1/lawchapters`
+  `GET /api/v1/lawchapters?slugs=01,02a,36c`
   Returns all lawchapters
+  - optinally filter by lawchapter slugs
 - `GET /api/v1/lawchapters/tree`
   Returns all lawchapters in tree view with subchapters
 
 ## Ministry
 
 - `GET /api/v1/ministries`
+  `GET /api/v1/ministries?slugs=fsr,dmr`
   Returns all ministries
+  - optinally filter by ministry slugs
 
 ## Years
 
