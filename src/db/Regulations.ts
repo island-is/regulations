@@ -163,7 +163,7 @@ export async function getAllBaseRegulations(opts?: {
 
   if (!includeRepealed) {
     whereConds.push(
-      `where r.type = 'base' and (select date from RegulationCancel where regulationId = r.id limit 1) IS NULL`,
+      `r.type = 'base' and (select date from RegulationCancel where regulationId = r.id limit 1) IS NULL`,
     );
   }
   if (nameFilter) {
