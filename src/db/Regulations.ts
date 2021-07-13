@@ -61,7 +61,7 @@ export type RegulationListItemFull = Omit<RegulationListItem, 'ministry'> & {
 
 const augmentRegulationList = async (
   regulations: SQLRegulationsList,
-  opts: { text?: boolean; lawChapters?: boolean } = {},
+  opts: { text?: boolean; lawChapters?: boolean; ministry?: boolean } = {},
 ) => {
   const chunkSize = 200;
   const augmentedRegulations: Array<RegulationListItemFull> = [];
@@ -84,7 +84,7 @@ const augmentRegulationList = async (
       } = reg;
 
       const { ministry, lawChapters } = await promiseAll({
-        ministry: await getMinistry(reg),
+        ministry: opts.ministry ? await getMinistry(reg) : undefined,
         lawChapters: opts.lawChapters
           ? await getRegulationLawChapters(reg.id)
           : undefined,
@@ -141,13 +141,13 @@ export async function getNewestRegulations(opts: { skip?: number; take?: number 
       limit: take,
     }) ?? [];
 
-  return await augmentRegulationList(regulations);
+  return await augmentRegulationList(regulations, { ministry: true });
 }
 
 /**
  * Returns all base regulations
  * @param {boolean} full - Include text and minitry info
- * @param {boolean} extra - Also includ augmented regulation data
+ * @param {boolean} extra - Also includes lawchapter info
  * @param {boolean} includeRepealed - Include amending and repealed regulations
  * @returns {SQLRegulationsList | RegulationListItemFull[]}
  */
@@ -211,14 +211,9 @@ export async function getAllBaseRegulations(opts?: {
     });
   }
 
-  if (extra) {
-    return await augmentRegulationList(regulations, {
-      text: true,
-      lawChapters: true,
-    });
-  } else {
-    // FIXME: The items in this array have `publishedDate` and `effectiveDate`
-    // of type `Date` - not `ISODate`  O_o
-    return regulations;
-  }
+  return await augmentRegulationList(regulations, {
+    text: full || extra,
+    ministry: full || extra,
+    lawChapters: extra,
+  });
 }

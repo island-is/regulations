@@ -81,5 +81,19 @@ export const regulationsRoutes: FastifyPluginCallback = (fastify, opts, done) =>
     },
   );
 
+  // Use-case: Fetch all base regulations with minimal data
+  // for Ísland.is's regulation admin editor impacts registration
+  fastify.get('/regulations/all/current/minimal', opts, async (req, res) => {
+    let data = loadData('backup-json/all-current-minimal.json');
+    if (!data) {
+      console.info('Fetching data from db');
+      data = await getAllBaseRegulations();
+      storeData(data, 'backup-json/all-current-minimal.json');
+    } else {
+      console.info('Returning all-current-minimal data from file');
+    }
+    res.send(data);
+  });
+
   done();
 };
