@@ -28,22 +28,30 @@ import promiseAll from 'qj/promiseAllObject';
 
 const toHTML = (textContent: PlainText) => textContent.replace(/>/g, '&lg;') as HTMLText;
 
+const SLOW_DIFF_LIMIT = 1500;
+
 const getDiff = (older: HTMLText, newer: HTMLText, raw?: boolean) => {
-  const diffed = htmldiff.execute(older, newer);
-  if (raw) {
-    return diffed as HTMLText;
+  const startTime = Date.now();
+  let diffed = htmldiff.execute(older, newer);
+  if (!raw) {
+    diffed = diffed
+      .replace(/<del [^>]+>\n*<\/del>/g, '')
+      .replace(/<ins [^>]+>\n*<\/ins>/g, '') as HTMLText;
+    // // The old, more aggressive version of the cleanup
+    // return diffed
+    //   .replace(/<del [^>]+>\s+<\/del>/g, '')
+    //   .replace(/<ins [^>]+>\s+<\/ins>/g, '') as HTMLText;
   }
-  return diffed
-    .replace(/<del [^>]+>\n*<\/del>/g, '')
-    .replace(/<ins [^>]+>\n*<\/ins>/g, '') as HTMLText;
-  // // The old, more aggressive version of the cleanup
-  // return diffed
-  //   .replace(/<del [^>]+>\s+<\/del>/g, '')
-  //   .replace(/<ins [^>]+>\s+<\/ins>/g, '') as HTMLText;
+  const time = Date.now() - startTime;
+  return {
+    diff: diffed as HTMLText,
+    time,
+    slow: time > SLOW_DIFF_LIMIT,
+  };
 };
 
 const getTextContentDiff = (older: PlainText, newer: PlainText): HTMLText =>
-  older === newer ? toHTML(newer) : getDiff(toHTML(older), toHTML(newer));
+  older === newer ? toHTML(newer) : getDiff(toHTML(older), toHTML(newer)).diff;
 
 // ---------------------------------------------------------------------------
 
@@ -350,16 +358,16 @@ export async function getRegulation(
   }
 
   diffedRegulation.title = getTextContentDiff(earlierTitle, augmentedRegulation.title);
-  diffedRegulation.text = getDiff(earlierState.text, augmentedRegulation.text);
+  diffedRegulation.text = getDiff(earlierState.text, augmentedRegulation.text).diff;
   diffedRegulation.comments = getDiff(
     earlierState.comments,
     augmentedRegulation.comments,
-  );
+  ).diff;
   diffedRegulation.appendixes = augmentedRegulation.appendixes.map((baseAppendix, i) => {
     const { title, text } = earlierState.appendixes[i] || { title: '', text: '' };
     return {
       title: getTextContentDiff(title, baseAppendix.title),
-      text: getDiff(text, baseAppendix.text),
+      text: getDiff(text, baseAppendix.text).diff,
     };
   });
   diffedRegulation.prevMinistry = earlierMinistry || null;
