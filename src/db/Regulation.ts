@@ -81,7 +81,7 @@ type HistoryData = ReadonlyArray<{
   title: string;
   name: RegName;
   status: string;
-  type: 'base' | 'amending' | 'repealing';
+  type: 'base' | 'amending';
   effectiveDate: Date;
 }>;
 
@@ -198,7 +198,7 @@ const augmentRegulation = async (
   );
 
   return {
-    type: type === 'repealing' ? 'amending' : type,
+    type,
     name,
     title: regulationChange ? regulationChange.title : regulation.title,
     text,
@@ -232,10 +232,8 @@ async function isMigrated(regulation: DB_Regulation) {
   if (regulation.type === 'base') {
     const task = await getRegulationTask(regulation.id);
     migrated = !!task && task.done;
-  } else if (regulation.type === 'amending') {
-    migrated = ['text_locked', 'migrated'].includes(regulation.status);
   } else {
-    /* The regulation is of type 'repealing' which isn't really a thing and should just be ignored. */
+    migrated = ['text_locked', 'migrated'].includes(regulation.status);
   }
   return migrated;
 }

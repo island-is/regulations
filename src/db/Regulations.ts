@@ -94,7 +94,7 @@ const augmentRegulationList = async (
         !!migrated && opts.text && text ? extractComments(text).text : undefined;
 
       const itm: RegulationListItemFull = {
-        type: type === 'repealing' ? 'amending' : type,
+        type,
         title,
         text: textWithoutComments,
         name,

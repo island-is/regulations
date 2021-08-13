@@ -20,13 +20,14 @@ type RegulationAttributes = {
   effectiveDate: ISODate;
   updateComment?: string;
   status?: 'raw' | 'unsafe' | 'draft' | 'text_locked' | 'migrated';
-  type?: 'base' | 'amending' | 'repealing';
+  type?: 'base' | 'amending';
 };
 
 @Table({ tableName: 'Regulation', timestamps: false })
 export class DB_Regulation
   extends Model<RegulationAttributes, RegulationAttributes>
-  implements RegulationAttributes {
+  implements RegulationAttributes
+{
   @Column({
     primaryKey: true,
     autoIncrement: true,
@@ -67,11 +68,11 @@ export class DB_Regulation
   status!: 'raw' | 'unsafe' | 'draft' | 'text_locked' | 'migrated';
 
   @Column({
-    type: DataType.ENUM('base', 'amending', 'repealing'),
+    type: DataType.ENUM('base', 'amending'),
     comment:
       'Type of regulation, base (stofn) or amending (breytingar), base can still amend tho.',
   })
-  type!: 'base' | 'amending' | 'repealing';
+  type!: 'base' | 'amending';
 
   @Column({ type: DataType.INTEGER, comment: 'The ministry this Regulation belongs to' })
   ministryId!: number;
