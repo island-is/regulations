@@ -13,7 +13,6 @@ type MinistryAttributes = {
   id: number;
   slug: MinistrySlug;
   name: string;
-  current: boolean;
   order?: number;
 };
 
@@ -30,9 +29,6 @@ export class DB_Ministry
 
   @Column({ type: DataType.STRING(128) })
   name!: string;
-
-  @Column({ type: DataType.BOOLEAN })
-  current!: boolean;
 
   @Column({ allowNull: true, type: DataType.INTEGER })
   order?: number;

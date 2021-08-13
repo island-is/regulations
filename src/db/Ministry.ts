@@ -11,7 +11,6 @@ export async function getAllMinistries(slugs?: Array<MinistrySlug>) {
           }
         : undefined,
       order: [
-        ['current', 'DESC'],
         ['`order`', 'ASC'],
         ['name', 'ASC'],
         ['slug', 'DESC'],
@@ -21,15 +20,9 @@ export async function getAllMinistries(slugs?: Array<MinistrySlug>) {
   return ministries;
 }
 
-export const getMinistry = (regOrChange: Pick<DB_Regulation, 'ministryId'>) =>
-  (
-    DB_Ministry.findOne({
-      where: { id: regOrChange.ministryId },
-    }) as Promise<DB_Ministry>
-  ).then(
-    (m): Ministry => ({
-      slug: m.slug,
-      name: m.name,
-      current: m.current,
-    }),
-  );
+export const getMinistry = (id: DB_Regulation['ministryId']) =>
+  id
+    ? (DB_Ministry.findOne({ where: { id } }) as Promise<DB_Ministry>).then(
+        ({ slug, name }): Ministry => ({ slug, name }),
+      )
+    : Promise.resolve(undefined);

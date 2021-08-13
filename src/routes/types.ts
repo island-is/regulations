@@ -79,8 +79,6 @@ export type Ministry = {
   name: string;
   /** Short, URL-friendly token to use for search filters, etc.  */
   slug: MinistrySlug;
-  /** False if this ministry is not current */
-  current: boolean;
 };
 
 export type MinistryListItem = Ministry & {
@@ -128,7 +126,7 @@ export type RegulationListItem = {
   /** The title of the Regulation */
   title: string;
   /** The ministry that the regulation is linked to */
-  ministry: Ministry;
+  ministry?: Ministry;
   /** Publication date of this regulation */
   publishedDate: ISODate;
 };
@@ -187,7 +185,7 @@ export type Regulation = {
    */
   repealedDate?: ISODate | null;
   /** The ministry this regulation is published by/linked to */
-  ministry: Ministry;
+  ministry?: Ministry;
   /** Law chapters that this regulation is linked to */
   lawChapters: ReadonlyArray<LawChapter>;
 
@@ -222,9 +220,6 @@ export type RegulationDiff = Omit<Regulation, 'title' | 'appendixes' | 'showingD
       title: HTMLText;
     }
   >;
-  /** The ministry the base version being compared against was published by/linked to */
-  prevMinistry: Ministry | null;
-
   /** Present if the regulation contains inlined change-markers (via htmldiff-js) */
   showingDiff: {
     /** The date of the first change/diff being viewed */

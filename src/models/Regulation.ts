@@ -19,8 +19,9 @@ type RegulationAttributes = {
   publishedDate: ISODate;
   effectiveDate: ISODate;
   updateComment?: string;
-  status?: 'raw' | 'unsafe' | 'draft' | 'text_locked' | 'migrated';
+  status: 'raw' | 'unsafe' | 'draft' | 'text_locked' | 'migrated';
   type?: 'base' | 'amending';
+  ministryId?: number;
 };
 
 @Table({ tableName: 'Regulation', timestamps: false })
@@ -74,6 +75,10 @@ export class DB_Regulation
   })
   type!: 'base' | 'amending';
 
-  @Column({ type: DataType.INTEGER, comment: 'The ministry this Regulation belongs to' })
-  ministryId!: number;
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+    comment: 'The ministry this Regulation belongs to',
+  })
+  ministryId?: number;
 }

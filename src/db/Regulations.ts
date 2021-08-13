@@ -84,7 +84,7 @@ const augmentRegulationList = async (
       } = reg;
 
       const { ministry, lawChapters } = await promiseAll({
-        ministry: opts.ministry ? await getMinistry(reg) : undefined,
+        ministry: opts.ministry ? await getMinistry(reg.ministryId) : undefined,
         lawChapters: opts.lawChapters
           ? await getRegulationLawChapters(reg.id)
           : undefined,

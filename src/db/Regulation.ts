@@ -186,7 +186,7 @@ const augmentRegulation = async (
 
   const { ministry, history, effects, lawChapters, lastAmendDate, repealedDate } =
     await promiseAll({
-      ministry: getMinistry(regulationChange || regulation),
+      ministry: getMinistry(regulation.ministryId),
       history: getRegulationHistory(regulation),
       effects: getRegulationEffects(id),
       lawChapters: getRegulationLawChapters(id),
@@ -314,27 +314,18 @@ export async function getRegulation(
 
   const diffedRegulation = augmentedRegulation as unknown as RegulationDiff;
 
-  let earlierMinistry: Regulation['ministry'] | undefined;
   let earlierTitle: Regulation['title'];
   let earlierState: Pick<Regulation, 'text' | 'appendixes' | 'comments'> & {
     date?: ISODate;
   };
 
-  const _getMinistry = (regOrChange: DB_Regulation | DB_RegulationChange) =>
-    // reuse already fetched ministry if possible
-    regOrChange.ministryId === (regulationChange || regulation).ministryId
-      ? Promise.resolve(augmentedRegulation.ministry)
-      : getMinistry(regOrChange);
-
   if (!regulationChange) {
     // Here the "active" regulation is the original and any diffing should be against the empty string
     earlierState = extractAppendixesAndComments('');
     earlierTitle = '';
-    earlierMinistry = undefined;
   } else if (earlierDate === 'original') {
     earlierState = extractAppendixesAndComments(regulation.text);
     earlierTitle = regulation.title;
-    earlierMinistry = await _getMinistry(regulation);
   } else {
     let eDate = earlierDate;
     if (!eDate) {
@@ -349,11 +340,9 @@ export async function getRegulation(
         date: change.date,
       };
       earlierTitle = change.title;
-      earlierMinistry = await _getMinistry(change);
     } else {
       earlierState = extractAppendixesAndComments(regulation.text);
       earlierTitle = regulation.title;
-      earlierMinistry = await _getMinistry(regulation);
     }
   }
 
@@ -370,7 +359,6 @@ export async function getRegulation(
       text: getDiff(text, baseAppendix.text).diff,
     };
   });
-  diffedRegulation.prevMinistry = earlierMinistry || null;
 
   const fromChangeIdx = earlierState.date
     ? diffedRegulation.history.findIndex((item) => item.date === earlierState.date)

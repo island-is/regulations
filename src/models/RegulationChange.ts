@@ -23,7 +23,8 @@ type RegulationChangeAttributes = {
 @Table({ tableName: 'RegulationChange', timestamps: false })
 export class DB_RegulationChange
   extends Model<RegulationChangeAttributes, RegulationChangeAttributes>
-  implements RegulationChangeAttributes {
+  implements RegulationChangeAttributes
+{
   @Column({ primaryKey: true, autoIncrement: true, type: DataType.INTEGER })
   id!: number;
 
@@ -57,10 +58,4 @@ export class DB_RegulationChange
       'Changeset (diff) from changing regulation to the previous version of the regulation text',
   })
   changeset!: string;
-
-  @Column({
-    type: DataType.INTEGER,
-    comment: 'The ministry this Regulation belongs to after applying the change',
-  })
-  ministryId!: number;
 }
