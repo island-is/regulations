@@ -88,7 +88,8 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
   // build search body
   const requestBody = esb
     .requestBodySearch()
-    .query(esb.boolQuery().must(search).filter(filters));
+    .query(esb.boolQuery().must(search).filter(filters))
+    .sorts([esb.sort('_score', 'desc'), esb.sort('publishedDate', 'desc')]);
 
   // console.log(util.inspect(requestBody, true, null));
 
