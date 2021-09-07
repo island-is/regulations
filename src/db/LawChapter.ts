@@ -79,7 +79,7 @@ export async function getRegulationLawChapters(
 
   return rawLawChapters.map(
     ({ title, slug, parentTitle }): LawChapter => ({
-      name: parentTitle ? parentTitle + ' – ' + title : title,
+      name: parentTitle ? parentTitle + ' — ' + title : title,
       slug,
     }),
   );
