@@ -12,7 +12,7 @@ import { getRegulationLawChapters } from './LawChapter';
 import { db } from '../utils/sequelize';
 import { QueryTypes } from 'sequelize';
 import promiseAll from 'qj/promiseAllObject';
-import { extractComments } from '../utils/extractData';
+import { eliminateComments } from '../utils/extractData';
 
 export const PER_PAGE = 18;
 
@@ -91,7 +91,7 @@ const augmentRegulationList = async (
       });
 
       const textWithoutComments =
-        !!migrated && opts.text && text ? extractComments(text).text : undefined;
+        !!migrated && opts.text && text ? eliminateComments(text) : undefined;
 
       const itm: RegulationListItemFull = {
         type,

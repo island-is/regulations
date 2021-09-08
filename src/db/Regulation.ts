@@ -321,7 +321,7 @@ export async function getRegulation(
 
   if (!regulationChange) {
     // Here the "active" regulation is the original and any diffing should be against the empty string
-    earlierState = extractAppendixesAndComments('');
+    earlierState = extractAppendixesAndComments('' as HTMLText);
     earlierTitle = '';
   } else if (earlierDate === 'original') {
     earlierState = extractAppendixesAndComments(regulation.text);
