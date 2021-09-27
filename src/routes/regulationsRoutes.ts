@@ -15,7 +15,6 @@ import {
 } from '../utils/misc';
 
 const NEWEST_TTL = 0.5;
-const ALLCURRENT_TTL = 0.5;
 
 export const regulationsRoutes: FastifyPluginCallback = (
   fastify,

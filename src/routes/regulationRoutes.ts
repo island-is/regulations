@@ -7,6 +7,7 @@ import {
   cache,
 } from '../utils/misc';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { DB_Regulation } from '../models/Regulation';
 import { ISODate, RegQueryName } from './types';
 import { FastifyPluginCallback, FastifyReply } from 'fastify';
@@ -36,11 +37,10 @@ const handleRequest = async (
     const data = await getRegulation(slugToName(name), {
       date: date && new Date(date),
       diff,
-      earlierDate: !validEarlierDate
-        ? undefined
-        : earlierDate === 'original'
-        ? 'original'
-        : earlierDate && new Date(earlierDate),
+      earlierDate:
+        earlierDate === 'original'
+          ? 'original'
+          : earlierDate && new Date(earlierDate),
     });
     if (data) {
       cache(res, REGULATION_TTL);

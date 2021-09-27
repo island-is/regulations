@@ -1,5 +1,4 @@
-import { ISODate, RegName, Regulation } from '../routes/types';
-import { getRegulation } from '../db/Regulation';
+import { ISODate, RegName } from '../routes/types';
 import {
   RegulationListItemFull,
   getAllBaseRegulations,
@@ -133,10 +132,10 @@ export async function repopulateElastic(client: Client) {
       console.info('returning data from file');
     } else {
       console.info('fetching data from db (this takes a while)...');
-      regulations = (await getAllBaseRegulations({
+      regulations = await getAllBaseRegulations({
         extra: true,
         includeRepealed: true,
-      })) as Array<RegulationListItemFull>;
+      });
     }
 
     if (!regulations.length) {
@@ -191,13 +190,13 @@ export async function repopulateElastic(client: Client) {
 // ---------------------------------------------------------------------------
 
 const _updateItem = async (client: Client, regname: RegName) => {
-  const newReg = (await getAllBaseRegulations({
+  const newReg = await getAllBaseRegulations({
     extra: true,
     includeRepealed: true,
     nameFilter: `'${regname}'`,
-  })) as Array<RegulationListItemFull>;
+  });
 
-  if (newReg && newReg[0]) {
+  if (newReg[0]) {
     console.info('adding ' + regname + ' to index...');
     const aReg = await regulationToIndexItem(newReg[0]);
     await client.index({

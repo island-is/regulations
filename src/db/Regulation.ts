@@ -56,14 +56,6 @@ const getTextContentDiff = (older: PlainText, newer: PlainText): HTMLText =>
 
 // ---------------------------------------------------------------------------
 
-async function getRegulationById(regulationId: number) {
-  const regulation =
-    (await DB_Regulation.findOne({
-      where: { id: regulationId },
-    })) ?? undefined;
-  return regulation;
-}
-
 async function getRegulationByName(name: RegName) {
   const regulation =
     (await DB_Regulation.findOne({
@@ -98,12 +90,12 @@ type HistoryData = ReadonlyArray<{
 
 async function getRegulationHistory(regulation: DB_Regulation) {
   const historyData = <HistoryData>await db.query(
-      'call regulationHistoryByName(:name)',
-      {
-        replacements: { name: regulation.name },
-        type: QueryTypes.RAW,
-      },
-    ) ?? [];
+    'call regulationHistoryByName(:name)',
+    {
+      replacements: { name: regulation.name },
+      type: QueryTypes.RAW,
+    },
+  );
 
   return (
     historyData
@@ -136,9 +128,9 @@ async function getRegulationEffects(regulationId: number) {
     order by Regulation.publishedDate, Regulation.id
   ;`;
   const effectsData = <EffectsData>await db.query(effectsQuery, {
-      replacements: { changingId: regulationId },
-      type: QueryTypes.SELECT,
-    }) ?? [];
+    replacements: { changingId: regulationId },
+    type: QueryTypes.SELECT,
+  });
 
   return effectsData.map(
     ({ date, name, title, effect }): RegulationEffect => ({
@@ -231,7 +223,7 @@ const augmentRegulation = async (
     appendixes,
     comments,
     lastAmendDate,
-    lawChapters: lawChapters ?? [],
+    lawChapters,
     history,
     effects,
     // timelineDate: undefined,
@@ -399,7 +391,9 @@ export async function getRegulation(
         (item) => item.date === earlierState.date,
       )
     : -1;
-  const fromChange = diffedRegulation.history[fromChangeIdx + 1];
+  const fromChange = diffedRegulation.history[fromChangeIdx + 1] as
+    | RegulationHistoryItem
+    | undefined;
 
   diffedRegulation.showingDiff = {
     // from: earlierState.date || regulation.publishedDate,

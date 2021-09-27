@@ -77,15 +77,11 @@ fastify.register(redirectsRoutes, { prefix: '/api/v1' });
 const start = async () => {
   try {
     connectSequelize();
-
     const serverPort = process.env.PORT || 3000;
 
-    await fastify.listen(serverPort, '0.0.0.0', (err) => {
-      if (err) {
-        throw err;
-      }
-      console.info('API up and running on port ' + serverPort);
-    });
+    await fastify.listen(serverPort, '0.0.0.0');
+
+    console.info('API up and running on port ' + serverPort);
   } catch (err) {
     console.info(err);
     process.exit(1);

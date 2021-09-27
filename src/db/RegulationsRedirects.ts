@@ -3,10 +3,10 @@ import { db } from '../utils/sequelize';
 import { QueryTypes } from 'sequelize';
 import { nameToSlug } from '../utils/misc';
 
-type SQLRedirectList = Array<{
+type SQLRedirect = {
   id: number;
   name: RegName;
-}>;
+};
 
 type Redirects = Array<RegQueryName>;
 
@@ -17,13 +17,11 @@ export async function getRegulationsRedirects() {
   (select name from Regulation as r join Task as t on r.id = t.regulationId where t.done = true)
   ;`;
 
-  const redirectsData = <SQLRedirectList>(
-    ((await db.query(sql, { type: QueryTypes.SELECT })) ?? [])
-  );
-
-  const redirects: Redirects = redirectsData.map((itm) => {
-    return nameToSlug(itm.name);
+  const redirectsData = await db.query<SQLRedirect>(sql, {
+    type: QueryTypes.SELECT,
   });
+
+  const redirects: Redirects = redirectsData.map((itm) => nameToSlug(itm.name));
 
   return redirects;
 }

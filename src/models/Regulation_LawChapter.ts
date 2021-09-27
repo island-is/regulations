@@ -1,12 +1,4 @@
-import {
-  Model,
-  Table,
-  Column,
-  DataType,
-  Index,
-  Sequelize,
-  ForeignKey,
-} from 'sequelize-typescript';
+import { Model, Table, Column, DataType } from 'sequelize-typescript';
 
 type Regulation_LawChapterAttributes = {
   id: number;

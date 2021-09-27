@@ -60,24 +60,23 @@ export async function getLawChapterList(
 export async function getRegulationLawChapters(
   regulationId: number,
 ): Promise<ReadonlyArray<LawChapter>> {
-  const rawLawChapters =
-    (await db.query<
-      Pick<DB_LawChapter, 'title' | 'slug'> & {
-        parentTitle: DB_LawChapter['title'];
-      }
-    >(
-      `
+  const rawLawChapters = await db.query<
+    Pick<DB_LawChapter, 'title' | 'slug'> & {
+      parentTitle: DB_LawChapter['title'];
+    }
+  >(
+    `
         SELECT l.title, l.slug, pl.title AS parentTitle FROM LawChapter AS l
         RIGHT JOIN Regulation_LawChapter AS rl ON l.id = rl.chapterId
         LEFT JOIN LawChapter AS pl ON l.parentId = pl.id
         WHERE rl.regulationId = :regulationId
         ORDER BY l.slug, l.id
       `,
-      {
-        replacements: { regulationId },
-        type: QueryTypes.SELECT,
-      },
-    )) ?? [];
+    {
+      replacements: { regulationId },
+      type: QueryTypes.SELECT,
+    },
+  );
 
   return rawLawChapters.map(
     ({ title, slug, parentTitle }): LawChapter => ({
