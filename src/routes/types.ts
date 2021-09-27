@@ -211,7 +211,10 @@ export type Regulation = {
 
 // ---------------------------------------------------------------------------
 
-export type RegulationDiff = Omit<Regulation, 'title' | 'appendixes' | 'showingDiff'> & {
+export type RegulationDiff = Omit<
+  Regulation,
+  'title' | 'appendixes' | 'showingDiff'
+> & {
   /** The title of the regulation in HTML format */
   title: HTMLText;
   /** List of the regulation's appendixes */

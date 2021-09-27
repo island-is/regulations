@@ -1,11 +1,19 @@
 import { FastifyPluginCallback } from 'fastify';
 import { QStr } from '../utils/misc';
-import { recreateElastic, repopulateElastic, updateElasticItem } from './populate';
+import {
+  recreateElastic,
+  repopulateElastic,
+  updateElasticItem,
+} from './populate';
 import { searchElastic, SearchQueryParams } from './search';
 
 // ---------------------------------------------------------------------------
 
-export const elasticSearchRoutes: FastifyPluginCallback = (fastify, opts, done) => {
+export const elasticSearchRoutes: FastifyPluginCallback = (
+  fastify,
+  opts,
+  done,
+) => {
   /**
    * Search regulations
    * @returns RegulationSearchResults
@@ -23,16 +31,24 @@ export const elasticSearchRoutes: FastifyPluginCallback = (fastify, opts, done) 
    * Update single regulation in index by RegName
    * @returns {success: boolean>}
    */
-  fastify.get<QStr<'name'>>('/search/update', opts, async function (request, reply) {
-    await updateElasticItem(this.elastic, request.query);
+  fastify.get<QStr<'name'>>(
+    '/search/update',
+    opts,
+    async function (request, reply) {
+      await updateElasticItem(this.elastic, request.query);
 
-    reply.send({ success: true });
-  });
+      reply.send({ success: true });
+    },
+  );
 
   done();
 };
 
-export const elasticRebuildRoutes: FastifyPluginCallback = (fastify, opts, done) => {
+export const elasticRebuildRoutes: FastifyPluginCallback = (
+  fastify,
+  opts,
+  done,
+) => {
   /**
    * Recreate regulations search index
    * Does **not** popuplate it with any regulations or other data

@@ -62,7 +62,9 @@ export async function getRegulationLawChapters(
 ): Promise<ReadonlyArray<LawChapter>> {
   const rawLawChapters =
     (await db.query<
-      Pick<DB_LawChapter, 'title' | 'slug'> & { parentTitle: DB_LawChapter['title'] }
+      Pick<DB_LawChapter, 'title' | 'slug'> & {
+        parentTitle: DB_LawChapter['title'];
+      }
     >(
       `
         SELECT l.title, l.slug, pl.title AS parentTitle FROM LawChapter AS l

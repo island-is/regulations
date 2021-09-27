@@ -1,7 +1,11 @@
 import fetch from 'node-fetch';
 import promiseAll from 'qj/promiseAllObject';
 
-const getDictionaryFile = async (sha: string, locale: 'is', analyzer: string) => {
+const getDictionaryFile = async (
+  sha: string,
+  locale: 'is',
+  analyzer: string,
+) => {
   return await fetch(
     `https://github.com/island-is/elasticsearch-dictionaries/blob/${sha}/${locale}/${analyzer}.txt?raw=true`,
   )

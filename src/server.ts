@@ -57,7 +57,10 @@ if (ELASTIC_CLOUD_ID && ELASTIC_CLOUD_APIKEY_ID && ELASTIC_CLOUD_APIKEY_KEY) {
       id: ELASTIC_CLOUD_ID,
     },
     auth: {
-      apiKey: { id: ELASTIC_CLOUD_APIKEY_ID, api_key: ELASTIC_CLOUD_APIKEY_KEY },
+      apiKey: {
+        id: ELASTIC_CLOUD_APIKEY_ID,
+        api_key: ELASTIC_CLOUD_APIKEY_KEY,
+      },
     },
   });
   fastify.register(elasticSearchRoutes, { prefix: '/api/v1' });

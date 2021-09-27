@@ -20,7 +20,8 @@ type RegulationCancelAttributes = {
 @Table({ tableName: 'RegulationCancel', timestamps: false })
 export class DB_RegulationCancel
   extends Model<RegulationCancelAttributes, RegulationCancelAttributes>
-  implements RegulationCancelAttributes {
+  implements RegulationCancelAttributes
+{
   @Column({ primaryKey: true, autoIncrement: true, type: DataType.INTEGER })
   id!: number;
 
@@ -36,6 +37,9 @@ export class DB_RegulationCancel
   })
   changingId!: number;
 
-  @Column({ type: DataType.DATEONLY, comment: 'the "effectiveDate" of the cancellation' })
+  @Column({
+    type: DataType.DATEONLY,
+    comment: 'the "effectiveDate" of the cancellation',
+  })
   date!: ISODate;
 }

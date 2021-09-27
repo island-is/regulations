@@ -3,7 +3,11 @@ import esb from 'elastic-builder';
 import xss from 'xss';
 // import util from 'util';
 import { PER_PAGE } from '../db/Regulations';
-import { RegulationListItem, RegulationSearchResults, Year } from '../routes/types';
+import {
+  RegulationListItem,
+  RegulationSearchResults,
+  Year,
+} from '../routes/types';
 import range from 'qj/range';
 import zeroPad from 'qj/zeroPad';
 // import { RegulationsIndexBody } from './populate';
@@ -40,7 +44,8 @@ const cleanQuery = (q: string | undefined) => {
 // eslint-disable-next-line complexity
 export async function searchElastic(client: Client, query: SearchQueryParams) {
   const searchQuery = cleanQuery(query.q);
-  const isNameQuery = searchQuery && /^\d{1,4}([-/](19|20)\d{0,2})?$/.test(searchQuery);
+  const isNameQuery =
+    searchQuery && /^\d{1,4}([-/](19|20)\d{0,2})?$/.test(searchQuery);
 
   // add filters
   const filters: Array<esb.Query> = [];
@@ -70,7 +75,9 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
   if (searchQuery && isNameQuery) {
     const q = searchQuery.split(/[-/]/);
     q[0] = zeroPad(parseInt(q[0]), 4);
-    search.push(esb.matchPhrasePrefixQuery('name', q[0] + (q[1] ? '/' + q[1] : '')));
+    search.push(
+      esb.matchPhrasePrefixQuery('name', q[0] + (q[1] ? '/' + q[1] : '')),
+    );
   } else if (searchQuery) {
     // generic search
     search.push(
@@ -82,7 +89,9 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
     );
   } else if (filters.length) {
     // wild search with filters only
-    search.push(esb.queryStringQuery('*').analyzeWildcard(true).fields(['title']));
+    search.push(
+      esb.queryStringQuery('*').analyzeWildcard(true).fields(['title']),
+    );
   }
 
   // build search body
@@ -112,7 +121,7 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
     }
 
     searchHits =
-      search?.body?.hits?.hits?.map((hit: any) => {
+      search.body?.hits?.hits?.map((hit: any) => {
         return {
           name: hit._source.name,
           title: hit._source.title,
@@ -121,7 +130,7 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
         };
       }) ?? [];
 
-    totalItems = search?.body?.hits?.total?.value ?? 0;
+    totalItems = search.body?.hits?.total?.value ?? 0;
   }
 
   const results: RegulationSearchResults = {

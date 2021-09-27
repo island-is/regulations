@@ -1,5 +1,11 @@
 import { getRegulation } from '../db/Regulation';
-import { assertISODate, assertNameSlug, slugToName, Pms, cache } from '../utils/misc';
+import {
+  assertISODate,
+  assertNameSlug,
+  slugToName,
+  Pms,
+  cache,
+} from '../utils/misc';
 
 import { DB_Regulation } from '../models/Regulation';
 import { ISODate, RegQueryName } from './types';
@@ -20,7 +26,11 @@ const handleRequest = async (
   const { name, date, diff, earlierDate } = opts;
   const dateMissing = 'date' in opts && !date;
   const validEarlierDate =
-    !date || !diff || !earlierDate || earlierDate === 'original' || earlierDate <= date;
+    !date ||
+    !diff ||
+    !earlierDate ||
+    earlierDate === 'original' ||
+    earlierDate <= date;
 
   if (name && !dateMissing && validEarlierDate) {
     const data = await getRegulation(slugToName(name), {
@@ -53,7 +63,11 @@ const handleRequest = async (
   }
 };
 
-export const regulationRoutes: FastifyPluginCallback = (fastify, opts, done) => {
+export const regulationRoutes: FastifyPluginCallback = (
+  fastify,
+  opts,
+  done,
+) => {
   /**
    * Returns original version of a regulation
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
@@ -101,14 +115,18 @@ export const regulationRoutes: FastifyPluginCallback = (fastify, opts, done) => 
    * @param {string} date - ISODate (`YYYY-MM-DD`)
    * @returns {DB_Regulation}
    */
-  fastify.get<Pms<'name' | 'date'>>('/regulation/:name/d/:date', opts, (req, res) => {
-    const name = assertNameSlug(req.params.name);
-    const date = assertISODate(req.params.date);
-    return handleRequest(res, {
-      name,
-      date,
-    });
-  });
+  fastify.get<Pms<'name' | 'date'>>(
+    '/regulation/:name/d/:date',
+    opts,
+    (req, res) => {
+      const name = assertNameSlug(req.params.name);
+      const date = assertISODate(req.params.date);
+      return handleRequest(res, {
+        name,
+        date,
+      });
+    },
+  );
 
   /**
    * Returns a version of a regulation as it was on a specific date, showing the changes
@@ -147,7 +165,9 @@ export const regulationRoutes: FastifyPluginCallback = (fastify, opts, done) => 
       const name = assertNameSlug(p.name);
       const date = assertISODate(p.date);
       const earlierDate =
-        p.earlierDate === 'original' ? 'original' : assertISODate(p.earlierDate);
+        p.earlierDate === 'original'
+          ? 'original'
+          : assertISODate(p.earlierDate);
       handleRequest(res, {
         name,
         date,

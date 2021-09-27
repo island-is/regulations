@@ -43,7 +43,10 @@ export class DB_Regulation
   })
   title!: PlainText;
 
-  @Column({ type: DataType.STRING(9), comment: 'migrated as-is from old table' })
+  @Column({
+    type: DataType.STRING(9),
+    comment: 'migrated as-is from old table',
+  })
   name!: RegName;
 
   @Column({ type: DataType.STRING, comment: 'migrated as-is from old table' })

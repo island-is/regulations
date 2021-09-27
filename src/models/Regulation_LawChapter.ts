@@ -16,8 +16,12 @@ type Regulation_LawChapterAttributes = {
 
 @Table({ tableName: 'Regulation_LawChapter', timestamps: false })
 export class DB_Regulation_LawChapter
-  extends Model<Regulation_LawChapterAttributes, Regulation_LawChapterAttributes>
-  implements Regulation_LawChapterAttributes {
+  extends Model<
+    Regulation_LawChapterAttributes,
+    Regulation_LawChapterAttributes
+  >
+  implements Regulation_LawChapterAttributes
+{
   @Column({ primaryKey: true, autoIncrement: true, type: DataType.INTEGER })
   id!: number;
 

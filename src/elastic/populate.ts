@@ -1,6 +1,9 @@
 import { ISODate, RegName, Regulation } from '../routes/types';
 import { getRegulation } from '../db/Regulation';
-import { RegulationListItemFull, getAllBaseRegulations } from '../db/Regulations';
+import {
+  RegulationListItemFull,
+  getAllBaseRegulations,
+} from '../db/Regulations';
 import { Client } from '@elastic/elasticsearch';
 import { performance } from 'perf_hooks';
 import { getSettingsTemplate, mappingTemplate } from './template';
@@ -26,7 +29,7 @@ export type RegulationsIndexBody = {
 const regulationToIndexItem = (reg: RegulationListItemFull) => {
   const lawChapters: Array<string> = [];
   const lawChaptersSlugs: Array<string> = [];
-  reg?.lawChapters?.forEach((chapter) => {
+  reg.lawChapters?.forEach((chapter) => {
     lawChapters.push(chapter.name);
     lawChaptersSlugs.push(chapter.slug);
   });
@@ -39,8 +42,8 @@ const regulationToIndexItem = (reg: RegulationListItemFull) => {
     repealed: reg.repealed ?? false,
     repealedDate: reg.repealedDate ?? undefined,
     publishedDate: reg.publishedDate,
-    ministry: reg?.ministry?.name,
-    ministrySlug: reg?.ministry?.slug,
+    ministry: reg.ministry?.name,
+    ministrySlug: reg.ministry?.slug,
     lawChapters: lawChapters,
     lawChaptersSlugs: lawChaptersSlugs,
   };
@@ -49,7 +52,10 @@ const regulationToIndexItem = (reg: RegulationListItemFull) => {
 
 // ---------------------------------------------------------------------------
 
-const checkIfIndexExists = async (client: Client, index: string): Promise<boolean> => {
+const checkIfIndexExists = async (
+  client: Client,
+  index: string,
+): Promise<boolean> => {
   const result = await client.indices.exists({ index });
   return result.statusCode === 200;
 };
@@ -93,13 +99,21 @@ export async function recreateElastic(client: Client) {
 
     const t1 = performance.now();
     console.info(
-      'Recreating "' + INDEX_NAME + '" successful in ' + Math.round(t1 - t0) + 'ms.',
+      'Recreating "' +
+        INDEX_NAME +
+        '" successful in ' +
+        Math.round(t1 - t0) +
+        'ms.',
     );
   } catch (err) {
     const t1 = performance.now();
     console.info(err);
     console.info(
-      'Recreating "' + INDEX_NAME + '" failed in ' + Math.round(t1 - t0) + 'ms.',
+      'Recreating "' +
+        INDEX_NAME +
+        '" failed in ' +
+        Math.round(t1 - t0) +
+        'ms.',
     );
     return { success: false };
   }
@@ -157,7 +171,11 @@ export async function repopulateElastic(client: Client) {
 
     const t1 = performance.now();
     console.info(
-      'indexing "' + INDEX_NAME + '" successful in ' + Math.round(t1 - t0) + 'ms.',
+      'indexing "' +
+        INDEX_NAME +
+        '" successful in ' +
+        Math.round(t1 - t0) +
+        'ms.',
     );
   } catch (err) {
     const t1 = performance.now();
@@ -191,7 +209,10 @@ const _updateItem = async (client: Client, regname: RegName) => {
   return { success: true };
 };
 
-export async function updateElasticItem(client: Client, query: { name?: string }) {
+export async function updateElasticItem(
+  client: Client,
+  query: { name?: string },
+) {
   const name = query.name && assertRegName(query.name);
   if (!name) {
     return { success: false };

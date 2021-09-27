@@ -12,7 +12,8 @@ export const ministryRoutes: FastifyPluginCallback = (fastify, opts, done) => {
    * @returns {MinistryList}
    */
   fastify.get<QStr<'slugs'>>('/ministries', opts, async (req, res) => {
-    const slugs = (req.query?.slugs?.split(',') as Array<MinistrySlug>) ?? undefined;
+    const slugs =
+      (req.query.slugs?.split(',') as Array<MinistrySlug>) ?? undefined;
     const data = await getAllMinistries(slugs);
     const ministries = data.map((m): MinistryListItem => {
       const { id, ...ministry } = m.get();

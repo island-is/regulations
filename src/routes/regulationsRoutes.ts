@@ -17,7 +17,11 @@ import {
 const NEWEST_TTL = 0.5;
 const ALLCURRENT_TTL = 0.5;
 
-export const regulationsRoutes: FastifyPluginCallback = (fastify, opts, done) => {
+export const regulationsRoutes: FastifyPluginCallback = (
+  fastify,
+  opts,
+  done,
+) => {
   /**
    * Gets latest regulations as paged array
    * @returns {Array<DB_Regulation>}

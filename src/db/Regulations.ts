@@ -42,7 +42,13 @@ export async function getRegulationsYears(): Promise<RegulationYears> {
 export type SQLRegulationsList = ReadonlyArray<
   Pick<
     DB_Regulation,
-    'id' | 'name' | 'type' | 'title' | 'ministryId' | 'publishedDate' | 'effectiveDate'
+    | 'id'
+    | 'name'
+    | 'type'
+    | 'title'
+    | 'ministryId'
+    | 'publishedDate'
+    | 'effectiveDate'
   > & {
     repealedDate?: ISODate | null;
     text?: DB_Regulation['text'];
@@ -119,7 +125,10 @@ const augmentRegulationList = async (
 
 // ---------------------------------------------------------------------------
 
-export async function getNewestRegulations(opts: { skip?: number; take?: number }) {
+export async function getNewestRegulations(opts: {
+  skip?: number;
+  take?: number;
+}) {
   const { skip = 0, take = PER_PAGE } = opts;
 
   const regulations = <SQLRegulationsList>await DB_Regulation.findAll({
@@ -188,7 +197,11 @@ export async function getAllBaseRegulations(opts?: {
       ${includeRepealed ? 'c.date as repealedDate,' : ''}
       r.effectiveDate
     from Regulation as r
-    ${includeRepealed ? 'left join RegulationCancel as c on c.regulationId = r.id' : ''}
+    ${
+      includeRepealed
+        ? 'left join RegulationCancel as c on c.regulationId = r.id'
+        : ''
+    }
     left join Task as t on t.regulationId = r.id
     ${whereConds.length ? 'where ' + whereConds.join(' and ') : ''}
     order by r.publishedDate DESC, r.id DESC

@@ -30,7 +30,9 @@ const reRegQueryNameFlex = /^\d{1,4}-\d{4}$/;
  */
 export const assertNameSlug = (slug: string): RegQueryName | undefined => {
   if (reRegQueryNameFlex.test(slug)) {
-    return (slug.length === 9 ? slug : ('000' + slug).substr(-9)) as RegQueryName;
+    return (
+      slug.length === 9 ? slug : ('000' + slug).substr(-9)
+    ) as RegQueryName;
   }
 };
 
@@ -105,7 +107,9 @@ export type QStr<keys extends string> = {
 
 export const assertPosInt = (maybeNumber: string): IntPositive | undefined => {
   const num = Number(maybeNumber);
-  return num && num > 0 && num === Math.floor(num) ? (num as IntPositive) : undefined;
+  return num && num > 0 && num === Math.floor(num)
+    ? (num as IntPositive)
+    : undefined;
 };
 
 // ---------------------------------------------------------------------------

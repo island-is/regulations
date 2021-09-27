@@ -40,7 +40,10 @@ export class DB_RegulationChange
   })
   changingId!: number;
 
-  @Column({ type: DataType.DATEONLY, comment: 'the "effectiveDate" of the change' })
+  @Column({
+    type: DataType.DATEONLY,
+    comment: 'the "effectiveDate" of the change',
+  })
   date!: ISODate;
 
   @Column({
@@ -49,7 +52,10 @@ export class DB_RegulationChange
   })
   title!: PlainText;
 
-  @Column({ type: DataType.STRING, comment: 'Regulation text after applying change' })
+  @Column({
+    type: DataType.STRING,
+    comment: 'Regulation text after applying change',
+  })
   text!: HTMLText;
 
   @Column({
