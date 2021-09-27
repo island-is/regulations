@@ -46,20 +46,21 @@
     "xss": "^1.0.8"
   },
   "devDependencies": {
-    "@hugsmidjan/hxmstyle": "^4.1.0",
+    "@hugsmidjan/hxmstyle": "^5.0.1",
     "@types/node": "^14.0.13",
-    "@typescript-eslint/eslint-plugin": "^4.15.0",
-    "@typescript-eslint/parser": "^4.15.0",
+    "@typescript-eslint/eslint-plugin": "^4.31.1",
+    "@typescript-eslint/parser": "^4.31.1",
     "concurrently": "^6.0.1",
-    "eslint": "^7.10.0",
-    "eslint-config-prettier": "^7.2.0",
-    "eslint-plugin-deprecation": "^1.2.0",
-    "eslint-plugin-destructuring": "^2.2.0",
-    "eslint-plugin-prettier": "^3.3.1",
-    "eslint-plugin-react": "^7.22.0",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-deprecation": "^1.2.1",
+    "eslint-plugin-destructure-depth": "^1.0.1",
+    "eslint-plugin-destructuring": "^2.2.1",
+    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-react": "^7.25.2",
     "eslint-plugin-react-hooks": "^4.2.0",
     "nodemon": "^2.0.7",
-    "prettier": "^2.2.1"
+    "prettier": "^2.4.1"
   },
   "hxmstyle": {
     "options": {
@@ -72,6 +73,7 @@
       "eslint",
       "eslint-config-prettier",
       "eslint-plugin-deprecation",
+      "eslint-plugin-destructure-depth",
       "eslint-plugin-destructuring",
       "eslint-plugin-prettier",
       "eslint-plugin-react",

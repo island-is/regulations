@@ -6,7 +6,7 @@ root = true
 
 [*]
 end_of_line = lf
-indent_style = tab
+indent_style = space
 indent_size = 2
 max_line_length = 90
 charset = utf-8
@@ -21,4 +21,4 @@ trim_trailing_whitespace = false
 # __project_specific_rules__  Anything ABOVE this point will be automatically wiped/rewritten.
 
 [*]
-indent_style = space
+max_line_length = 80
