@@ -29,7 +29,7 @@ export const getSettingsTemplate = async (sha: string, locale: 'is') => {
     // autocompletestop,
   } = await promiseAll({
     stemmer: getDictionaryFile(sha, locale, 'stemmer'),
-    keywords: getDictionaryFile(sha, locale, 'keywords'),
+    keywords: getDictionaryFile(sha, locale, 'keywords'), // Empty at the moment – 2021-09
     synonyms: getDictionaryFile(sha, locale, 'synonyms'),
     stopwords: getDictionaryFile(sha, locale, 'stopwords'),
     hyphenwhitelist: getDictionaryFile(sha, locale, 'hyphenwhitelist'),
