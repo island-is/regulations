@@ -44,8 +44,6 @@ const cleanQuery = (q: string | undefined) => {
 // eslint-disable-next-line complexity
 export async function searchElastic(client: Client, query: SearchQueryParams) {
   const searchQuery = cleanQuery(query.q);
-  const isNameQuery =
-    searchQuery && /^\d{1,4}([-/](19|20)\d{0,2})?$/.test(searchQuery);
 
   // add filters
   const filters: Array<esb.Query> = [];
@@ -72,21 +70,23 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
 
   // build text search
   const search: Array<esb.Query> = [];
-  if (searchQuery && isNameQuery) {
-    const q = searchQuery.split(/[-/]/);
-    q[0] = zeroPad(parseInt(q[0]), 4);
-    search.push(
-      esb.matchPhrasePrefixQuery('name', q[0] + (q[1] ? '/' + q[1] : '')),
-    );
-  } else if (searchQuery) {
-    // generic search
-    search.push(
-      esb
-        .queryStringQuery('*' + searchQuery + '*')
-        .analyzeWildcard(true)
-        // .escape(true)
-        .fields(['name^10', 'title^4', 'text^1']),
-    );
+  if (searchQuery) {
+    const nameMatch = /^(\d{1,4})\s*[-/]\s*((?:19|20)\d{2})$/.exec(searchQuery);
+    if (nameMatch) {
+      const [numberShort, year] = nameMatch;
+      const number = zeroPad(parseInt(numberShort), 4);
+
+      search.push(esb.matchPhraseQuery('name', number + '/' + year));
+    } else {
+      // generic search
+      search.push(
+        esb
+          .queryStringQuery(searchQuery)
+          // .analyzeWildcard(true)
+          // .escape(true)
+          .fields(['name^10', 'title^6', 'title.stemmed^4', 'text.stemmed^1']),
+      );
+    }
   } else if (filters.length) {
     // wild search with filters only
     search.push(
