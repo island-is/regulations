@@ -38,7 +38,7 @@ Set `process.env.PORT` to use a different port.
 
 - `GET /api/v1/regulations/newest`  
   `GET /api/v1/regulations/newest?page=2`  
-  Returns all regulations ordered by publisheddate, default 18 items per page
+  Returns all regulations ordered by publisheddate, 30 items per page
 - `GET /api/v1/regulations/all/current/minimal`  
   Returns all current base regulations ordered by publisheddate
 - `GET /api/v1/regulations/all/current/full`  

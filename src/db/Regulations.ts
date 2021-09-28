@@ -13,7 +13,7 @@ import { QueryTypes } from 'sequelize';
 import promiseAll from 'qj/promiseAllObject';
 import { eliminateComments } from '../utils/extractData';
 
-export const PER_PAGE = 18;
+export const PER_PAGE = 30;
 
 export const getAllRegulations = () => DB_Regulation.findAll();
 
