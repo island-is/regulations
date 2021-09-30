@@ -189,6 +189,9 @@ export type Regulation = {
   /** Law chapters that this regulation is linked to */
   lawChapters: ReadonlyArray<LawChapter>;
 
+  /** URL linking to the originally published document as published in Stjórnartíðindi */
+  originalDoc?: string | null;
+
   type: RegulationType;
 
   /** List of change events (Amendments, Repeals) over the life time of this

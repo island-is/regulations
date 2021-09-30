@@ -180,8 +180,15 @@ const augmentRegulation = async (
   regulation: DB_Regulation,
   regulationChange?: DB_RegulationChange,
 ): Promise<Regulation> => {
-  const { id, type, name, signatureDate, publishedDate, effectiveDate } =
-    regulation;
+  const {
+    id,
+    type,
+    name,
+    signatureDate,
+    publishedDate,
+    effectiveDate,
+    _externalsource,
+  } = regulation;
 
   const {
     ministry,
@@ -226,6 +233,7 @@ const augmentRegulation = async (
     lawChapters,
     history,
     effects,
+    originalDoc: _externalsource,
     // timelineDate: undefined,
     // showingDiff: undefined,
   };

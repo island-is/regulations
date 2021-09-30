@@ -14,6 +14,7 @@ type RegulationAttributes = {
   status: 'raw' | 'unsafe' | 'draft' | 'text_locked' | 'migrated';
   type?: 'base' | 'amending';
   ministryId?: number;
+  _externalsource?: string;
 };
 
 @Table({ tableName: 'Regulation', timestamps: false })
@@ -76,4 +77,10 @@ export class DB_Regulation
     comment: 'The ministry this Regulation belongs to',
   })
   ministryId?: number;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  _externalsource?: string;
 }
