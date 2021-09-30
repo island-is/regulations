@@ -1,20 +1,23 @@
 declare const _RegName__Brand: unique symbol;
-/** Regulation name – `0123/2012` */
+/** Regulation name — `0123/2012` */
 export type RegName = string & { [_RegName__Brand]: true };
 
 declare const _RegNameQuery__Brand: unique symbol;
-/** Regulation name formatted for URL param insertion – `0123-2012` */
+/** Regulation name formatted for URL param insertion — `0123-2012` */
 export type RegQueryName = string & { [_RegNameQuery__Brand]: true };
 
 declare const _ISODate__Brand: unique symbol;
-/** Valid ISODate string – e.g. `2012-09-30` */
+/** Valid ISODate string — e.g. `2012-09-30` */
 export type ISODate = string & { [_ISODate__Brand]: true };
 
-declare const _HTMLText__Brand: unique symbol;
-/** HTMLText string – e.g. `I &lt;3 You ` */
-export type HTMLText = string & { [_HTMLText__Brand]: true };
+declare const _ISODateTime__Brand: unique symbol;
+/** Valid UTC ISODateTime string — e.g. `2012-09-30T12:00:00` */
+export type ISODateTime = string & { [_ISODateTime__Brand]: true };
 
-/** Plain-text string – e.g. `I <3 You ` */
+declare const _HTMLText__Brand: unique symbol;
+/** HTMLText string — e.g. `I &lt;3 You ` */
+export type HTMLText = string & { [_HTMLText__Brand]: true };
+/** Plain-text string — e.g. `I <3 You ` */
 export type PlainText = string & { [_HTMLText__Brand]?: false };
 
 declare const _MinistrySlug__Brand: unique symbol;
@@ -31,13 +34,6 @@ declare const _LawChapterSlug__Brand: unique symbol;
  */
 export type LawChapterSlug = string & { [_LawChapterSlug__Brand]: true };
 
-declare const _Year__Brand: unique symbol;
-/** Four letter positive integer that might reasonably be a year */
-export type Year = number & { [_Year__Brand]: true };
-
-// ---------------------------------------------------------------------------
-
-// TODO: add link to original DOC/PDF file in Stjórnartíðindi's data store.
 /** Regulations are roughly classified based on whether they contain
  * any original text/stipulations, or whether they **only**  prescribe
  * changes to other regulations.
@@ -46,6 +42,10 @@ export type Year = number & { [_Year__Brand]: true };
  * `amending` = Breytingareglugerð
  */
 export type RegulationType = 'base' | 'amending';
+
+declare const _Year__Brand: unique symbol;
+/** Four letter positive integer that might reasonably be a year */
+export type Year = number & { [_Year__Brand]: true };
 
 // ---------------------------------------------------------------------------
 
@@ -154,7 +154,7 @@ export type Appendix = {
   text: HTMLText;
 };
 
-// Single Regulation
+/** Single Regulation with up-to-date text */
 export type Regulation = {
   /** Publication name (NNNN/YYYY) of the regulation */
   name: RegName;
@@ -168,6 +168,7 @@ export type Regulation = {
    * known errors or ambiguities in the text.
    */
   comments: HTMLText;
+
   /** Date signed in the ministry */
   signatureDate: ISODate;
   /** Date officially published in Stjórnartíðindi */
@@ -192,16 +193,25 @@ export type Regulation = {
   /** URL linking to the originally published document as published in Stjórnartíðindi */
   originalDoc?: string | null;
 
+  /** Regulations are roughly classified based on whether they contain
+   * any original text/stipulations, or whether they **only**  prescribe
+   * changes to other regulations.
+   *
+   * `base` = Stofnreglugerð
+   * `amending` = Breytingareglugerð
+   */
   type: RegulationType;
 
   /** List of change events (Amendments, Repeals) over the life time of this
    * regulation – **excluding** the original base/root regulation
    */
   history: ReadonlyArray<RegulationHistoryItem>;
+
   /** Date sorted list of effects this regulations has on other regulations
    * text-changes or cacellations
    */
   effects: ReadonlyArray<RegulationEffect>;
+
   /** Present if a NON-CURRENT version of the regulation is being served
    *
    * Is undefined by default (when the "current" version is served).
@@ -228,9 +238,9 @@ export type RegulationDiff = Omit<
   >;
   /** Present if the regulation contains inlined change-markers (via htmldiff-js) */
   showingDiff: {
-    /** The date of the first change/diff being viewed */
+    /** The date of the base version being compared against */
     from: ISODate;
-    /** The date of the last change/diff being viewed
+    /** The date of the version being viewed
      *
      * Generally the same as `timelineDate` defaulting to `lastAmendDate` */
     to: ISODate;
