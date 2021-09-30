@@ -1,7 +1,6 @@
-import { Client } from '@elastic/elasticsearch';
+import { Client, errors } from '@elastic/elasticsearch';
 import esb from 'elastic-builder';
 import xss from 'xss';
-// import util from 'util';
 import { PER_PAGE } from '../db/Regulations';
 import {
   RegulationListItem,
@@ -32,18 +31,12 @@ const assertReasonableYear = (maybeYear?: string): Year | undefined =>
     ? (Math.max(1900, Math.min(2150, Number(maybeYear))) as Year)
     : undefined;
 
-const cleanQuery = (q: string | undefined) => {
-  return q
-    ? xss(q)
-        .replace(/[\r\n\s]+/g, ' ')
-        .trim()
-        .toLowerCase()
-    : q;
-};
+const cleanQuery = (q: string | undefined) =>
+  q && xss(q).replace(/\s+/g, ' ').trim().toLowerCase();
 
 // eslint-disable-next-line complexity
 export async function searchElastic(client: Client, query: SearchQueryParams) {
-  const searchQuery = cleanQuery(query.q);
+  let searchQuery = cleanQuery(query.q);
 
   // add filters
   const filters: Array<esb.Query> = [];
@@ -71,36 +64,62 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
   // build text search
   const search: Array<esb.Query> = [];
   if (searchQuery) {
-    const nameMatch = /^(\d{1,4})\s*[-/]\s*((?:19|20)\d{2})$/.exec(searchQuery);
-    if (nameMatch) {
-      const [numberShort, year] = nameMatch;
-      const number = zeroPad(parseInt(numberShort), 4);
+    const names: Array<string> = [];
+    searchQuery = searchQuery
+      .split(/\s+/)
+      .map((word) => {
+        const nameRe = /^(\d{1,4})\s*[-/]\s*((?:19|20)\d{2})$/;
+        const m = word.match(nameRe);
+        if (m) {
+          const [_, number, year] = m;
+          const numberPadded = zeroPad(parseInt(number), 4);
+          names.push(numberPadded + '/' + year);
+          return `"${number}-${year}"`;
+        } else {
+          return word;
+        }
+      })
+      .join(' ');
+    // generic search
 
-      search.push(esb.matchPhraseQuery('name', number + '/' + year));
-    } else {
-      // generic search
+    names.forEach((name) => {
       search.push(
         esb
-          .queryStringQuery(searchQuery)
+          .queryStringQuery(`"${name}"`)
           // .analyzeWildcard(true)
           // .escape(true)
-          .fields(['name^10', 'title^6', 'title.stemmed^4', 'text.stemmed^1']),
+          .fields(['name^100']),
       );
-    }
-  } else if (filters.length) {
-    // wild search with filters only
+    });
     search.push(
-      esb.queryStringQuery('*').analyzeWildcard(true).fields(['title']),
+      esb
+        .queryStringQuery(searchQuery)
+        // .analyzeWildcard(true)
+        // .escape(true)
+        .fields([
+          'title^23',
+          'title.stemmed^20',
+          'title.compound^10',
+          'text^7',
+          'text.stemmed^5',
+          'text.compound^1',
+        ]),
     );
   }
 
   // build search body
   const requestBody = esb
     .requestBodySearch()
-    .query(esb.boolQuery().must(search).filter(filters))
+    .query(
+      esb
+        .boolQuery()
+        .should(search)
+        //.minimumShouldMatch(1)
+        .filter(filters),
+    )
     .sorts([esb.sort('_score', 'desc'), esb.sort('publishedDate', 'desc')]);
 
-  // console.log(util.inspect(requestBody, true, null));
+  // esb.prettyPrint(requestBody);
 
   let totalItems = 0;
   const pagingPage = Math.max(parseInt('' + query.page) || 1, 1);
@@ -117,7 +136,8 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
         from: (pagingPage - 1) * PER_PAGE,
       });
     } catch (err) {
-      console.error(err);
+      const value = err instanceof errors.ResponseError ? err.meta : err;
+      console.error(value);
     }
 
     searchHits =
