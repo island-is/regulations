@@ -178,7 +178,7 @@ const pdfTmplate = (regulation: Regulation) => {
     appendixes,
     comments = '',
   } = regulation;
-  const prettyName = name.replace(/^0+/, '');
+  const prettyName = name ? name.replace(/^0+/, '') : '';
 
   return `
   <html>
@@ -189,7 +189,7 @@ const pdfTmplate = (regulation: Regulation) => {
   </head>
   <body>
     <div class="regulation__meta">
-      <div class="regulation__name">Reglugerð nr. ${prettyName}</div>
+      ${name ? `<div class="regulation__name">Reglugerð nr. ${prettyName}</div>` : ''}
       <div class="regulation__date">${
         lastAmendDate ? `Síðast breytt: ${lastAmendDate}` : `Tók gildi: ${effectiveDate}`
       }</div>
@@ -229,10 +229,13 @@ export async function makeRegulationPdf(
   name: RegQueryName,
   fileName: string,
   date?: Date,
+  regulationInput?: Regulation,
 ): Promise<boolean> {
-  const regulation = (await getRegulation(slugToName(name), {
-    date: date || new Date(),
-  })) as Regulation | RegulationRedirect;
+  const regulation =
+    regulationInput ||
+    ((await getRegulation(slugToName(name), {
+      date: date || new Date(),
+    })) as Regulation | RegulationRedirect);
 
   if (!regulation || !('text' in regulation)) {
     return false;

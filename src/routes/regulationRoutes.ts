@@ -1,8 +1,14 @@
 import { getRegulation } from '../db/Regulation';
-import { assertISODate, assertNameSlug, slugToName, Pms, cache } from '../utils/misc';
+import {
+  assertISODate,
+  assertNameSlug,
+  slugToName,
+  Pms,
+  cache,
+  nameToSlug,
+} from '../utils/misc';
 
-import { DB_Regulation } from '../models/Regulation';
-import { ISODate, RegQueryName } from './types';
+import { ISODate, RegQueryName, Regulation } from './types';
 import { FastifyPluginCallback, FastifyReply } from 'fastify';
 import {
   getRegulationNames,
@@ -190,9 +196,6 @@ export const regulationRoutes: FastifyPluginCallback = (fastify, opts, done) => 
       .type('application/pdf')
       .header('Content-Disposition', `attachment; filename=${fileNameWithExtension}`) // Not sure if we want this header. Keeping it in for now.
       .send(fs.readFileSync(fileName));
-
-    // FIXME: Remove this after debugging
-    fs.unlinkSync(fileName);
   });
 
   /**
@@ -227,11 +230,39 @@ export const regulationRoutes: FastifyPluginCallback = (fastify, opts, done) => 
         .type('application/pdf')
         .header('Content-Disposition', `attachment; filename=${fileNameWithExtension}`) // Not sure if we want this header. Keeping it in for now.
         .send(fs.readFileSync(fileName));
-
-      // FIXME: Remove this after debugging
-      fs.unlinkSync(fileName);
     },
   );
+
+  /**
+   * Accepts regulation data
+   * Returns the regulation data as a regulation, in pdf format
+   * @body {Regulation} Regulation object
+   * @returns pdf file
+   */
+  fastify.post('/regulation/generate-pdf', opts, async (req, res) => {
+    const body = req.body as Regulation;
+    // TODO: Check if the body truly is a Regulation body.
+
+    const name = body.name
+      ? nameToSlug(body.name)
+      : (new Date().getTime().toString() as RegQueryName);
+
+    const { fileNameWithExtension, fileName } = getRegulationNames(name);
+
+    const success = await makeRegulationPdf(name, fileName, undefined, body);
+    if (!success) {
+      res.code(400).send('Regulation PDF creation failed!');
+      return;
+    }
+
+    res
+      .status(200)
+      .type('application/pdf')
+      .header('Content-Disposition', `attachment; filename=${fileNameWithExtension}`) // Not sure if we want this header. Keeping it in for now.
+      .send(fs.readFileSync(fileName));
+
+    fs.unlinkSync(fileName); // This is a temporary file
+  });
 
   done();
 };
