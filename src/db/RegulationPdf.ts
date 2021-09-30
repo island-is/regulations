@@ -228,9 +228,10 @@ const pdfTmplate = (regulation: Regulation) => {
 export async function makeRegulationPdf(
   name: RegQueryName,
   fileName: string,
+  date?: Date,
 ): Promise<boolean> {
   const regulation = (await getRegulation(slugToName(name), {
-    date: new Date(),
+    date: date || new Date(),
   })) as Regulation | RegulationRedirect;
 
   if (!regulation || !('text' in regulation)) {
@@ -247,12 +248,23 @@ export async function makeRegulationPdf(
       },
     )
     .then((buffer) => {
-      // TODO: write buffer to file
-      console.log(fileName, buffer);
+      fs.writeFileSync(fileName, buffer, { encoding: 'binary' });
+      return true;
     })
-    .then(() => true)
     .catch((err) => {
       console.error(err);
       return false;
     });
+}
+
+// ===========================================================================
+
+export function getRegulationNames(name: string) {
+  const fileNameWithExtension = `${name}.pdf`;
+  const dirName = `${__dirname}/regulation-pdf`;
+  const fileName = `${dirName}/${fileNameWithExtension}`;
+
+  !fs.existsSync(dirName) && fs.mkdirSync(dirName, { recursive: true });
+
+  return { fileNameWithExtension, fileName };
 }

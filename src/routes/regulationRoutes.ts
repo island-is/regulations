@@ -4,7 +4,11 @@ import { assertISODate, assertNameSlug, slugToName, Pms, cache } from '../utils/
 import { DB_Regulation } from '../models/Regulation';
 import { ISODate, RegQueryName } from './types';
 import { FastifyPluginCallback, FastifyReply } from 'fastify';
-import { makeRegulationPdf, shouldMakePdf } from '../db/RegulationPdf';
+import {
+  getRegulationNames,
+  makeRegulationPdf,
+  shouldMakePdf,
+} from '../db/RegulationPdf';
 import fs from 'fs';
 
 const REGULATION_TTL = 0.1;
@@ -170,7 +174,8 @@ export const regulationRoutes: FastifyPluginCallback = (fastify, opts, done) => 
       res.code(400).send('Regulation not found!');
       return;
     }
-    const fileName = `./regulation-pdf/${name}.pdf`;
+
+    const { fileNameWithExtension, fileName } = getRegulationNames(name);
 
     if (shouldMakePdf(fileName)) {
       const success = await makeRegulationPdf(name, fileName);
@@ -179,11 +184,54 @@ export const regulationRoutes: FastifyPluginCallback = (fastify, opts, done) => 
         return;
       }
     }
-    res.type('application/pdf').send(fs.readFileSync(fileName));
+
+    res
+      .status(200)
+      .type('application/pdf')
+      .header('Content-Disposition', `attachment; filename=${fileNameWithExtension}`) // Not sure if we want this header. Keeping it in for now.
+      .send(fs.readFileSync(fileName));
 
     // FIXME: Remove this after debugging
     fs.unlinkSync(fileName);
   });
+
+  /**
+   * Returns a version of a regulation as it was on a specific date, in pdf format
+   * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
+   * @param {string} date - ISODate (`YYYY-MM-DD`)
+   * @returns pdf file
+   */
+  fastify.get<Pms<'name' | 'date'>>(
+    '/regulation/:name/d/:date/pdf',
+    opts,
+    async (req, res) => {
+      const name = assertNameSlug(req.params.name);
+      const date = assertISODate(req.params.date);
+      if (!name || !date) {
+        res.code(400).send('Regulation not found!');
+        return;
+      }
+
+      const { fileNameWithExtension, fileName } = getRegulationNames(`${name} (${date})`);
+
+      if (shouldMakePdf(fileName)) {
+        const success = await makeRegulationPdf(name, fileName, new Date(date));
+        if (!success) {
+          res.code(400).send('Regulation not found!');
+          return;
+        }
+      }
+
+      res
+        .status(200)
+        .type('application/pdf')
+        .header('Content-Disposition', `attachment; filename=${fileNameWithExtension}`) // Not sure if we want this header. Keeping it in for now.
+        .send(fs.readFileSync(fileName));
+
+      // FIXME: Remove this after debugging
+      fs.unlinkSync(fileName);
+    },
+  );
 
   done();
 };
