@@ -95,6 +95,25 @@
   resolved "https://registry.yarnpkg.com/@hugsmidjan/hxmstyle/-/hxmstyle-5.1.0.tgz#1e74c31b1c42cb924a7149ba7bf59633b419c20b"
   integrity sha512-wDNVBeLhVEQr8oH/Ps9mbJrAICXsjevoefwjOLOapOt3GsBWAOJEi/NOPp5abfCuwRJezF11WK1RC/KBC+RDGA==
 
+"@hugsmidjan/qj@^4.7.0", "qj@npm:@hugsmidjan/qj@^4.6.1":
+  name qj
+  version "4.7.0"
+  resolved "https://registry.yarnpkg.com/@hugsmidjan/qj/-/qj-4.7.0.tgz#ef2793bf1f349bc01b2118dc2d20d6f22163fa84"
+  integrity sha512-/kIAN1WvMTlzmtKXgIRl57KbTpAd9UmNgPfcO0NtZNllwhfKDRVOrN9c6ZeBxnrfWsYBP6/BFldYur1aBDBO2g==
+
+"@hugsmidjan/regulations-editor@0.4.3":
+  version "0.4.3"
+  resolved "https://registry.yarnpkg.com/@hugsmidjan/regulations-editor/-/regulations-editor-0.4.3.tgz#92fb0ff5c2666b5a5956e06dc234dd35fe45daf6"
+  integrity sha512-5D4A7r/xA0+0cdgvK1pRZxiEjpIa3LhvscyEbm3SbO9+01y+i5CAj4YvjLoVPHvL4fh+ITgdT96EGwv0ToSK5A==
+  dependencies:
+    "@hugsmidjan/qj" "^4.7.0"
+    "@tinymce/tinymce-react" "^3.8.4"
+    cleanup-prettier "npm:prettier@2.2.0"
+    htmldiff-js "^1.0.5"
+    jsdom "^16.4.0"
+    tinymce "^5.6.2"
+    translate.js "^1.3.2"
+
 "@humanwhocodes/config-array@^0.5.0":
   version "0.5.0"
   resolved "https://registry.yarnpkg.com/@humanwhocodes/config-array/-/config-array-0.5.0.tgz#1407967d4c6eecd7388f83acf1eaf4d0c6e58ef9"
@@ -214,6 +233,14 @@
   integrity sha512-XIB2XbzHTN6ieIjfIMV9hlVcfPU26s2vafYWQcZHWXHOxiaRZYEDKEwdl129Zyg50+foYV2jCgtrqSA6qNuNSA==
   dependencies:
     defer-to-connect "^1.0.1"
+
+"@tinymce/tinymce-react@^3.8.4":
+  version "3.12.6"
+  resolved "https://registry.yarnpkg.com/@tinymce/tinymce-react/-/tinymce-react-3.12.6.tgz#8a4e2a5c5026b7a0c9c4c839af4d691804aa0604"
+  integrity sha512-a7/Ns7uVsSr2N0fCxn+OhDx8f9JqfywTlHbXsgcwlWB6vIBMIjjRBJ6PGo/5H0y2vfzO6fBzd4gc6h05Cm5R7A==
+  dependencies:
+    prop-types "^15.6.2"
+    tinymce "^5.5.1"
 
 "@tootallnate/once@1":
   version "1.1.2"
@@ -1141,6 +1168,11 @@ clean-stack@^2.0.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/clean-stack/-/clean-stack-2.2.0.tgz#ee8472dbb129e727b31e8a10a427dee9dfe4008b"
   integrity sha512-4diC9HaTE+KRAMWhDhrGOECgWZxoevMc5TlkObMqNSsVU62PYzXZ/SMTjzyGAFF1YusgxGcSWTEXBhp0CPwQ1A==
+
+"cleanup-prettier@npm:prettier@2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.2.0.tgz#8a03c7777883b29b37fb2c4348c66a78e980418b"
+  integrity sha512-yYerpkvseM4iKD/BXLYUkQV5aKt4tQPqaGW6EsZjzyu0r7sVZZNPJW4Y8MyKmicp6t42XUPcBVA+H6sB3gqndw==
 
 cli-boxes@^2.2.1:
   version "2.2.1"
@@ -3392,7 +3424,7 @@ js-yaml@^3.13.1:
     argparse "^1.0.7"
     esprima "^4.0.0"
 
-jsdom@^16.5.2:
+jsdom@^16.4.0, jsdom@^16.5.2:
   version "16.7.0"
   resolved "https://registry.yarnpkg.com/jsdom/-/jsdom-16.7.0.tgz#918ae71965424b197c819f8183a754e18977b710"
   integrity sha512-u9Smc2G1USStM+s/x1ru5Sxrl6mPYCbByG1U/hUmqaVsm4tbNyS7CicOSRyuGQYZhTu0h84qkZZQ/I+dzizSVw==
@@ -4438,7 +4470,7 @@ progress@^2.0.0, progress@^2.0.1:
   resolved "https://registry.yarnpkg.com/progress/-/progress-2.0.3.tgz#7e8cf8d8f5b8f239c1bc68beb4eb78567d572ef8"
   integrity sha512-7PiHtLll5LdnKIMw100I+8xJXR5gW2QwWYkT6iJva0bXitZKa/XMrSbdmg3r2Xnaidz9Qumd0VPaMrZlF9V9sA==
 
-prop-types@^15.7.2:
+prop-types@^15.6.2, prop-types@^15.7.2:
   version "15.7.2"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.7.2.tgz#52c41e75b8c87e72b9d9360e0206b99dcbffa6c5"
   integrity sha512-8QQikdH7//R2vurIJSutZ1smHYTcLpRWEOlHnzcWHmBYrOGUysKwSsrC89BCiFj3CbrfJ/nXFdJepOVrY1GCHQ==
@@ -4538,11 +4570,6 @@ puppeteer@^5.1.0:
     tar-fs "^2.0.0"
     unbzip2-stream "^1.3.3"
     ws "^7.2.3"
-
-"qj@npm:@hugsmidjan/qj@^4.6.1":
-  version "4.7.0"
-  resolved "https://registry.yarnpkg.com/@hugsmidjan/qj/-/qj-4.7.0.tgz#ef2793bf1f349bc01b2118dc2d20d6f22163fa84"
-  integrity sha512-/kIAN1WvMTlzmtKXgIRl57KbTpAd9UmNgPfcO0NtZNllwhfKDRVOrN9c6ZeBxnrfWsYBP6/BFldYur1aBDBO2g==
 
 queue-microtask@^1.1.2, queue-microtask@^1.2.2:
   version "1.2.3"
@@ -5511,6 +5538,11 @@ tiny-lru@^7.0.0:
   resolved "https://registry.yarnpkg.com/tiny-lru/-/tiny-lru-7.0.6.tgz#b0c3cdede1e5882aa2d1ae21cb2ceccf2a331f24"
   integrity sha512-zNYO0Kvgn5rXzWpL0y3RS09sMK67eGaQj9805jlK9G6pSadfriTczzLHFXa/xcW4mIRfmlB9HyQ/+SgL0V1uow==
 
+tinymce@^5.5.1, tinymce@^5.6.2:
+  version "5.9.2"
+  resolved "https://registry.yarnpkg.com/tinymce/-/tinymce-5.9.2.tgz#c56a1d7800ac23026fbe6e0fcf444c0f157ccafe"
+  integrity sha512-/dHTsbxo0YwLvB5krRqiw/qHEm04/k6l0dvAQ3hO5oNw4e9QalKcUQCdr+g/b/FWcsUMP6scvKmm8MX50/j3Cg==
+
 to-absolute-glob@^2.0.0:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/to-absolute-glob/-/to-absolute-glob-2.0.2.tgz#1865f43d9e74b0822db9f145b78cff7d0f7c849b"
@@ -5600,6 +5632,11 @@ tr46@~0.0.3:
   version "0.0.3"
   resolved "https://registry.yarnpkg.com/tr46/-/tr46-0.0.3.tgz#8184fd347dac9cdc185992f3a6622e14b9d9ab6a"
   integrity sha1-gYT9NH2snNwYWZLzpmIuFLnZq2o=
+
+translate.js@^1.3.2:
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/translate.js/-/translate.js-1.3.2.tgz#73ec3a966867e9b0a06156b94c7e8833defe14a2"
+  integrity sha512-9jkppRMS5fiVqbaq57kQGnafGyjnCGCf3uBHLUN2OrCJJcCEIkgwqsTQHnTH7nCCUeqYyoQ59VagVi03qgKRFA==
 
 "traverse@>=0.3.0 <0.4":
   version "0.3.9"
