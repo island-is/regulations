@@ -1,5 +1,5 @@
 import { JSDOM } from 'jsdom';
-import _E from 'qj/E';
+import _E from '@hugsmidjan/qj/E';
 
 const jsdomWindow = new JSDOM(
   `<!DOCTYPE html><html><head><meta charset="utf-8"/></html><body></body></html>`,

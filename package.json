@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@hugsmidjan/gulp-rollup": "^0.8.1",
+    "@hugsmidjan/qj": "^4.6.1",
     "@types/jsdom": "^16.2.9",
     "@types/node-fetch": "^2.5.10",
     "del": "^6.0.0",
@@ -38,7 +39,6 @@
     "jsdom": "^16.5.2",
     "mysql2": "^2.2.5",
     "node-fetch": "^2.6.1",
-    "qj": "npm:@hugsmidjan/qj@^4.6.1",
     "reflect-metadata": "^0.1.13",
     "sequelize": "^6.6.2",
     "sequelize-typescript": "^2.1.0",

@@ -2,7 +2,7 @@ import { ISODate, RegName, RegQueryName } from '../routes/types';
 import { FastifyReply } from 'fastify';
 import fs from 'fs';
 import { parse } from 'path';
-import { HOUR } from 'qj/time';
+import { HOUR } from '@hugsmidjan/qj/time';
 
 /** Converts a Regulation `name` into a URL path segment
  *

@@ -3,7 +3,7 @@ import html_pdf_node from 'html-pdf-node';
 import { getRegulation } from './Regulation';
 import { slugToName } from '../utils/misc';
 import fs from 'fs';
-import { HOUR } from 'qj/time';
+import { HOUR } from '@hugsmidjan/qj/time';
 
 export const shouldMakePdf = (fileName: string) => {
   if (!fs.existsSync(fileName)) {

@@ -95,8 +95,7 @@
   resolved "https://registry.yarnpkg.com/@hugsmidjan/hxmstyle/-/hxmstyle-5.1.0.tgz#1e74c31b1c42cb924a7149ba7bf59633b419c20b"
   integrity sha512-wDNVBeLhVEQr8oH/Ps9mbJrAICXsjevoefwjOLOapOt3GsBWAOJEi/NOPp5abfCuwRJezF11WK1RC/KBC+RDGA==
 
-"@hugsmidjan/qj@^4.7.0", "qj@npm:@hugsmidjan/qj@^4.6.1":
-  name qj
+"@hugsmidjan/qj@^4.6.1", "@hugsmidjan/qj@^4.7.0":
   version "4.7.0"
   resolved "https://registry.yarnpkg.com/@hugsmidjan/qj/-/qj-4.7.0.tgz#ef2793bf1f349bc01b2118dc2d20d6f22163fa84"
   integrity sha512-/kIAN1WvMTlzmtKXgIRl57KbTpAd9UmNgPfcO0NtZNllwhfKDRVOrN9c6ZeBxnrfWsYBP6/BFldYur1aBDBO2g==
