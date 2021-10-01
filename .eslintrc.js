@@ -6,6 +6,6 @@ module.exports = require('@hugsmidjan/hxmstyle')({
   },
 
   parserOptions: {
-    // ecmaVersion: 9, // fantasy
+    ecmaVersion: 2020,
   },
 });

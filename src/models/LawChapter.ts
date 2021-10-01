@@ -1,13 +1,5 @@
 import { LawChapterSlug } from 'routes/types';
-import {
-  Model,
-  Table,
-  Column,
-  DataType,
-  Index,
-  Sequelize,
-  ForeignKey,
-} from 'sequelize-typescript';
+import { Model, Table, Column, DataType } from 'sequelize-typescript';
 
 type LawChapterAttributes = {
   id: number;

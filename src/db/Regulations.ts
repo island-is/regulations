@@ -3,7 +3,6 @@ import {
   ISODate,
   RegulationListItem,
   LawChapter,
-  RegName,
   Year,
   RegulationYears,
 } from '../routes/types';
@@ -12,14 +11,11 @@ import { getRegulationLawChapters } from './LawChapter';
 import { db } from '../utils/sequelize';
 import { QueryTypes } from 'sequelize';
 import promiseAll from 'qj/promiseAllObject';
-import { extractComments } from '../utils/extractData';
+import { eliminateComments } from '../utils/extractData';
 
-export const PER_PAGE = 18;
+export const PER_PAGE = 30;
 
-export async function getAllRegulations() {
-  const regulations = (await DB_Regulation.findAll()) ?? [];
-  return regulations;
-}
+export const getAllRegulations = () => DB_Regulation.findAll();
 
 export async function getRegulationsCount() {
   const regulationsCount = await DB_Regulation.count();
@@ -27,28 +23,32 @@ export async function getRegulationsCount() {
 }
 
 export async function getRegulationsYears(): Promise<RegulationYears> {
-  const years =
-    <Array<{ year: Year }>>(
-      await db.query(
-        'SELECT DISTINCT YEAR(publishedDate) AS `year` FROM Regulation ORDER BY `year` DESC',
-        { type: QueryTypes.SELECT },
-      )
-    ) ?? [];
+  const years = await db.query<{ year: Year }>(
+    'SELECT DISTINCT YEAR(publishedDate) AS `year` FROM Regulation ORDER BY `year` DESC',
+    { type: QueryTypes.SELECT },
+  );
   return years.map((y) => y.year);
 }
 
 // ---------------------------------------------------------------------------
 
-export type SQLRegulationsList = ReadonlyArray<
-  Pick<
-    DB_Regulation,
-    'id' | 'name' | 'type' | 'title' | 'ministryId' | 'publishedDate' | 'effectiveDate'
-  > & {
-    repealedDate?: ISODate | null;
-    text?: DB_Regulation['text'];
-    migrated?: DB_Task['done'];
-  }
->;
+type SQLRegulationsItem = Pick<
+  DB_Regulation,
+  | 'id'
+  | 'name'
+  | 'type'
+  | 'title'
+  | 'ministryId'
+  | 'publishedDate'
+  | 'effectiveDate'
+> & {
+  repealedDate?: ISODate | null;
+  text?: DB_Regulation['text'];
+  migrated?: DB_Task['done'];
+};
+
+export type SQLRegulationsList = ReadonlyArray<SQLRegulationsItem>;
+
 export type RegulationListItemFull = Omit<RegulationListItem, 'ministry'> & {
   type: 'amending' | 'base';
   ministry?: RegulationListItem['ministry'];
@@ -91,7 +91,7 @@ const augmentRegulationList = async (
       });
 
       const textWithoutComments =
-        !!migrated && opts.text && text ? extractComments(text).text : undefined;
+        !!migrated && opts.text && text ? eliminateComments(text) : undefined;
 
       const itm: RegulationListItemFull = {
         type,
@@ -119,27 +119,30 @@ const augmentRegulationList = async (
 
 // ---------------------------------------------------------------------------
 
-export async function getNewestRegulations(opts: { skip?: number; take?: number }) {
+export async function getNewestRegulations(opts: {
+  skip?: number;
+  take?: number;
+}) {
   const { skip = 0, take = PER_PAGE } = opts;
 
   const regulations = <SQLRegulationsList>await DB_Regulation.findAll({
-      // NOTE: This is leaky - as both title and ministryId might have changed
-      attributes: [
-        'id',
-        'type',
-        'name',
-        'title',
-        'publishedDate',
-        'effectiveDate',
-        'ministryId',
-      ],
-      order: [
-        ['publishedDate', 'DESC'],
-        ['id', 'DESC'],
-      ],
-      offset: skip,
-      limit: take,
-    }) ?? [];
+    // NOTE: This is leaky - as both title and ministryId might have changed
+    attributes: [
+      'id',
+      'type',
+      'name',
+      'title',
+      'publishedDate',
+      'effectiveDate',
+      'ministryId',
+    ],
+    order: [
+      ['publishedDate', 'DESC'],
+      ['id', 'DESC'],
+    ],
+    offset: skip,
+    limit: take,
+  });
 
   return await augmentRegulationList(regulations, { ministry: true });
 }
@@ -188,15 +191,19 @@ export async function getAllBaseRegulations(opts?: {
       ${includeRepealed ? 'c.date as repealedDate,' : ''}
       r.effectiveDate
     from Regulation as r
-    ${includeRepealed ? 'left join RegulationCancel as c on c.regulationId = r.id' : ''}
+    ${
+      includeRepealed
+        ? 'left join RegulationCancel as c on c.regulationId = r.id'
+        : ''
+    }
     left join Task as t on t.regulationId = r.id
     ${whereConds.length ? 'where ' + whereConds.join(' and ') : ''}
     order by r.publishedDate DESC, r.id DESC
   ;`;
 
-  let regulations = <SQLRegulationsList>(
-    ((await db.query(sql, { type: QueryTypes.SELECT })) ?? [])
-  );
+  let regulations = await db.query<SQLRegulationsItem>(sql, {
+    type: QueryTypes.SELECT,
+  });
 
   // FIXME: Remove this block once the Reglugerðagrunnur has been cleaned up
   // so that RegulationCancel.regulationId values are unique

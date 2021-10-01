@@ -1,7 +1,11 @@
 import fetch from 'node-fetch';
 import promiseAll from 'qj/promiseAllObject';
 
-const getDictionaryFile = async (sha: string, locale: 'is', analyzer: string) => {
+const getDictionaryFile = async (
+  sha: string,
+  locale: 'is',
+  analyzer: string,
+) => {
   return await fetch(
     `https://github.com/island-is/elasticsearch-dictionaries/blob/${sha}/${locale}/${analyzer}.txt?raw=true`,
   )
@@ -25,7 +29,7 @@ export const getSettingsTemplate = async (sha: string, locale: 'is') => {
     // autocompletestop,
   } = await promiseAll({
     stemmer: getDictionaryFile(sha, locale, 'stemmer'),
-    keywords: getDictionaryFile(sha, locale, 'keywords'),
+    keywords: getDictionaryFile(sha, locale, 'keywords'), // Empty at the moment – 2021-09
     synonyms: getDictionaryFile(sha, locale, 'synonyms'),
     stopwords: getDictionaryFile(sha, locale, 'stopwords'),
     hyphenwhitelist: getDictionaryFile(sha, locale, 'hyphenwhitelist'),

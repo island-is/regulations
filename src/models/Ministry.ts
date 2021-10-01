@@ -1,13 +1,5 @@
 import { MinistrySlug } from 'routes/types';
-import {
-  Model,
-  Table,
-  Column,
-  DataType,
-  Index,
-  Sequelize,
-  ForeignKey,
-} from 'sequelize-typescript';
+import { Model, Table, Column, DataType } from 'sequelize-typescript';
 
 type MinistryAttributes = {
   id: number;

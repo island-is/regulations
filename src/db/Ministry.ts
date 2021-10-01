@@ -3,19 +3,18 @@ import { Ministry, MinistrySlug } from 'routes/types';
 import { Op } from 'sequelize';
 
 export async function getAllMinistries(slugs?: Array<MinistrySlug>) {
-  const ministries =
-    (await DB_Ministry.findAll({
-      where: slugs
-        ? {
-            slug: { [Op.in]: slugs },
-          }
-        : undefined,
-      order: [
-        ['`order`', 'ASC'],
-        ['name', 'ASC'],
-        ['slug', 'DESC'],
-      ],
-    })) ?? [];
+  const ministries = await DB_Ministry.findAll({
+    where: slugs
+      ? {
+          slug: { [Op.in]: slugs },
+        }
+      : undefined,
+    order: [
+      ['`order`', 'ASC'],
+      ['name', 'ASC'],
+      ['slug', 'DESC'],
+    ],
+  });
 
   return ministries;
 }

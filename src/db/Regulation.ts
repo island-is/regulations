@@ -26,7 +26,8 @@ import promiseAll from 'qj/promiseAllObject';
 
 // ---------------------------------------------------------------------------
 
-const toHTML = (textContent: PlainText) => textContent.replace(/>/g, '&lg;') as HTMLText;
+const toHTML = (textContent: PlainText) =>
+  textContent.replace(/>/g, '&lg;') as HTMLText;
 
 const SLOW_DIFF_LIMIT = 1500;
 
@@ -55,14 +56,6 @@ const getTextContentDiff = (older: PlainText, newer: PlainText): HTMLText =>
 
 // ---------------------------------------------------------------------------
 
-async function getRegulationById(regulationId: number) {
-  const regulation =
-    (await DB_Regulation.findOne({
-      where: { id: regulationId },
-    })) ?? undefined;
-  return regulation;
-}
-
 async function getRegulationByName(name: RegName) {
   const regulation =
     (await DB_Regulation.findOne({
@@ -72,13 +65,15 @@ async function getRegulationByName(name: RegName) {
 }
 
 async function getRegulationTask(regulationId: number) {
-  const task = (await DB_Task.findOne({ where: { regulationId } })) ?? undefined;
+  const task =
+    (await DB_Task.findOne({ where: { regulationId } })) ?? undefined;
   return task;
 }
 
 async function getRegulationCancel(regulationId: number) {
   const regulationCancel =
-    (await DB_RegulationCancel.findOne({ where: { regulationId } })) ?? undefined;
+    (await DB_RegulationCancel.findOne({ where: { regulationId } })) ??
+    undefined;
   return regulationCancel;
 }
 
@@ -94,10 +89,13 @@ type HistoryData = ReadonlyArray<{
 }>;
 
 async function getRegulationHistory(regulation: DB_Regulation) {
-  const historyData = <HistoryData>await db.query('call regulationHistoryByName(:name)', {
+  const historyData = <HistoryData>await db.query(
+    'call regulationHistoryByName(:name)',
+    {
       replacements: { name: regulation.name },
       type: QueryTypes.RAW,
-    }) ?? [];
+    },
+  );
 
   return (
     historyData
@@ -130,9 +128,9 @@ async function getRegulationEffects(regulationId: number) {
     order by Regulation.publishedDate, Regulation.id
   ;`;
   const effectsData = <EffectsData>await db.query(effectsQuery, {
-      replacements: { changingId: regulationId },
-      type: QueryTypes.SELECT,
-    }) ?? [];
+    replacements: { changingId: regulationId },
+    type: QueryTypes.SELECT,
+  });
 
   return effectsData.map(
     ({ date, name, title, effect }): RegulationEffect => ({
@@ -182,27 +180,41 @@ const augmentRegulation = async (
   regulation: DB_Regulation,
   regulationChange?: DB_RegulationChange,
 ): Promise<Regulation> => {
-  const { id, type, name, signatureDate, publishedDate, effectiveDate } = regulation;
+  const {
+    id,
+    type,
+    name,
+    signatureDate,
+    publishedDate,
+    effectiveDate,
+    _externalsource,
+  } = regulation;
 
-  const { ministry, history, effects, lawChapters, lastAmendDate, repealedDate } =
-    await promiseAll({
-      ministry: getMinistry(regulation.ministryId),
-      history: getRegulationHistory(regulation),
-      effects: getRegulationEffects(id),
-      lawChapters: getRegulationLawChapters(id),
-      lastAmendDate: getLatestRegulationChange(id).then((change) => change?.date),
-      repealedDate: getRegulationCancel(id).then((cancel) => {
-        const date = cancel?.date;
-        // Skip if repeal/cancellation date is in the future
-        if (!date || new Date().toISOString() < date) {
-          return;
-        }
-        return date;
-      }),
-    });
+  const {
+    ministry,
+    history,
+    effects,
+    lawChapters,
+    lastAmendDate,
+    repealedDate,
+  } = await promiseAll({
+    ministry: getMinistry(regulation.ministryId),
+    history: getRegulationHistory(regulation),
+    effects: getRegulationEffects(id),
+    lawChapters: getRegulationLawChapters(id),
+    lastAmendDate: getLatestRegulationChange(id).then((change) => change?.date),
+    repealedDate: getRegulationCancel(id).then((cancel) => {
+      const date = cancel?.date;
+      // Skip if repeal/cancellation date is in the future
+      if (!date || new Date().toISOString() < date) {
+        return;
+      }
+      return date;
+    }),
+  });
 
   const { text, appendixes, comments } = extractAppendixesAndComments(
-    regulationChange ? regulationChange?.text : regulation.text,
+    regulationChange ? regulationChange.text : regulation.text,
   );
 
   return {
@@ -218,20 +230,24 @@ const augmentRegulation = async (
     appendixes,
     comments,
     lastAmendDate,
-    lawChapters: lawChapters ?? [],
+    lawChapters,
     history,
     effects,
+    originalDoc: _externalsource,
     // timelineDate: undefined,
     // showingDiff: undefined,
   };
 };
 
-const getRegulationRedirect = (regulation: DB_Regulation): RegulationRedirect => {
+const getRegulationRedirect = (
+  regulation: DB_Regulation,
+): RegulationRedirect => {
   const { name, title } = regulation;
   return {
     name,
     title,
-    redirectUrl: 'https://www.reglugerd.is/reglugerdir/allar/nr/' + nameToSlug(name),
+    redirectUrl:
+      'https://www.reglugerd.is/reglugerdir/allar/nr/' + nameToSlug(name),
   };
 };
 
@@ -246,7 +262,10 @@ async function isMigrated(regulation: DB_Regulation) {
   return migrated;
 }
 
-function isNonCurrent(regulation: Regulation, regulationVersion?: DB_RegulationChange) {
+function isNonCurrent(
+  regulation: Regulation,
+  regulationVersion?: DB_RegulationChange,
+) {
   // Check if we are seeing NON-CURRENT version of a regulation
   // -- `regulationVersion` is undefined but the augmentedRegulation has lastAmendDate
   // -- or there is `regulationVersion` but it does not match lastAmendDate
@@ -280,8 +299,12 @@ export async function getRegulation(
     return getRegulationRedirect(regulation);
   }
 
-  const regulationChange = date && (await getLatestRegulationChange(regulation.id, date));
-  const augmentedRegulation = await augmentRegulation(regulation, regulationChange);
+  const regulationChange =
+    date && (await getLatestRegulationChange(regulation.id, date));
+  const augmentedRegulation = await augmentRegulation(
+    regulation,
+    regulationChange,
+  );
 
   // Add timelineDate if regulation is NON-CURRENT
   // or has an earlierDate that's not "original"
@@ -321,7 +344,7 @@ export async function getRegulation(
 
   if (!regulationChange) {
     // Here the "active" regulation is the original and any diffing should be against the empty string
-    earlierState = extractAppendixesAndComments('');
+    earlierState = extractAppendixesAndComments('' as HTMLText);
     earlierTitle = '';
   } else if (earlierDate === 'original') {
     earlierState = extractAppendixesAndComments(regulation.text);
@@ -346,24 +369,39 @@ export async function getRegulation(
     }
   }
 
-  diffedRegulation.title = getTextContentDiff(earlierTitle, augmentedRegulation.title);
-  diffedRegulation.text = getDiff(earlierState.text, augmentedRegulation.text).diff;
+  diffedRegulation.title = getTextContentDiff(
+    earlierTitle,
+    augmentedRegulation.title,
+  );
+  diffedRegulation.text = getDiff(
+    earlierState.text,
+    augmentedRegulation.text,
+  ).diff;
   diffedRegulation.comments = getDiff(
     earlierState.comments,
     augmentedRegulation.comments,
   ).diff;
-  diffedRegulation.appendixes = augmentedRegulation.appendixes.map((baseAppendix, i) => {
-    const { title, text } = earlierState.appendixes[i] || { title: '', text: '' };
-    return {
-      title: getTextContentDiff(title, baseAppendix.title),
-      text: getDiff(text, baseAppendix.text).diff,
-    };
-  });
+  diffedRegulation.appendixes = augmentedRegulation.appendixes.map(
+    (baseAppendix, i) => {
+      const { title, text } = earlierState.appendixes[i] || {
+        title: '',
+        text: '',
+      };
+      return {
+        title: getTextContentDiff(title, baseAppendix.title),
+        text: getDiff(text, baseAppendix.text).diff,
+      };
+    },
+  );
 
   const fromChangeIdx = earlierState.date
-    ? diffedRegulation.history.findIndex((item) => item.date === earlierState.date)
+    ? diffedRegulation.history.findIndex(
+        (item) => item.date === earlierState.date,
+      )
     : -1;
-  const fromChange = diffedRegulation.history[fromChangeIdx + 1];
+  const fromChange = diffedRegulation.history[fromChangeIdx + 1] as
+    | RegulationHistoryItem
+    | undefined;
 
   diffedRegulation.showingDiff = {
     // from: earlierState.date || regulation.publishedDate,

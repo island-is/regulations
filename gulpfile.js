@@ -1,7 +1,6 @@
-const { parallel, series, src, dest } = require('gulp');
+const { parallel, series } = require('gulp');
 const rollupTaskFactory = require('@hugsmidjan/gulp-rollup');
 const del = require('del');
-const writeFile = require('fs').writeFileSync;
 
 const distFolder = 'dist/';
 const testsFolder = 'testing/__tests/';

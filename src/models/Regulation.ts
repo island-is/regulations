@@ -1,12 +1,4 @@
-import {
-  Model,
-  Table,
-  Column,
-  DataType,
-  Index,
-  Sequelize,
-  ForeignKey,
-} from 'sequelize-typescript';
+import { Model, Table, Column, DataType } from 'sequelize-typescript';
 
 import { HTMLText, ISODate, PlainText, RegName } from '../routes/types';
 
@@ -22,6 +14,7 @@ type RegulationAttributes = {
   status: 'raw' | 'unsafe' | 'draft' | 'text_locked' | 'migrated';
   type?: 'base' | 'amending';
   ministryId?: number;
+  _externalsource?: string;
 };
 
 @Table({ tableName: 'Regulation', timestamps: false })
@@ -43,7 +36,10 @@ export class DB_Regulation
   })
   title!: PlainText;
 
-  @Column({ type: DataType.STRING(9), comment: 'migrated as-is from old table' })
+  @Column({
+    type: DataType.STRING(9),
+    comment: 'migrated as-is from old table',
+  })
   name!: RegName;
 
   @Column({ type: DataType.STRING, comment: 'migrated as-is from old table' })
@@ -81,4 +77,10 @@ export class DB_Regulation
     comment: 'The ministry this Regulation belongs to',
   })
   ministryId?: number;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  _externalsource?: string;
 }
