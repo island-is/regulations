@@ -248,6 +248,12 @@ export async function makeRegulationPdf(
         format: 'A4',
         preferCSSPageSize: true,
         printBackground: true,
+        margin: {
+          top: 20,
+          bottom: 20,
+          left: 20,
+          right: 20,
+        },
       },
     )
     .then((buffer) => {

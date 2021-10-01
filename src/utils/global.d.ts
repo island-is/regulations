@@ -8,6 +8,12 @@ declare module 'html-pdf-node' {
     format?: string;
     preferCSSPageSize?: boolean;
     printBackground?: boolean;
+    margin?: {
+      top?: number | string;
+      bottom?: number | string;
+      left?: number | string;
+      right?: number | string;
+    };
   };
   export const generatePdf: (file: FileInfo, options: Options) => Promise<Buffer>;
 }
