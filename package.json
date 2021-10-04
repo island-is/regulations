@@ -21,6 +21,7 @@
     "yarn": "^1"
   },
   "dependencies": {
+    "@hugsmidjan/gulp-copy": "^1.0.1",
     "@hugsmidjan/gulp-rollup": "^0.8.1",
     "@hugsmidjan/qj": "^4.6.1",
     "@types/jsdom": "^16.2.9",

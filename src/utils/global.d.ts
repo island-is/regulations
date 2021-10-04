@@ -14,6 +14,12 @@ declare module 'html-pdf-node' {
       left?: number | string;
       right?: number | string;
     };
+    displayHeaderFooter?: boolean;
+    headerTemplate?: string;
+    footerTemplate?: string;
   };
-  export const generatePdf: (file: FileInfo, options: Options) => Promise<Buffer>;
+  export const generatePdf: (
+    file: FileInfo,
+    options: Options,
+  ) => Promise<Buffer>;
 }
