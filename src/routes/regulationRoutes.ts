@@ -6,17 +6,20 @@ import {
   Pms,
   cache,
   nameToSlug,
+  assertRegName,
 } from '../utils/misc';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { DB_Regulation } from '../models/Regulation';
-import { ISODate, RegQueryName, Regulation } from './types';
+import { InputRegulation, ISODate, RegQueryName, Regulation } from './types';
 import { FastifyPluginCallback, FastifyReply } from 'fastify';
 import {
   getRegulationNames,
   makeRegulationPdf,
   shouldMakePdf,
+  cleanUpRegulationBodyInput,
 } from '../db/RegulationPdf';
+import { cleanupAllEditorOutputs } from '@hugsmidjan/regulations-editor/cleanupEditorOutput';
 import fs from 'fs';
 
 const REGULATION_TTL = 0.1;
@@ -209,7 +212,10 @@ export const regulationRoutes: FastifyPluginCallback = (
     res
       .status(200)
       .type('application/pdf')
-      .header('Content-Disposition', `attachment; filename=${fileNameWithExtension}`) // Not sure if we want this header. Keeping it in for now.
+      .header(
+        'Content-Disposition',
+        `attachment; filename=${fileNameWithExtension}`,
+      ) // Not sure if we want this header. Keeping it in for now.
       .send(fs.readFileSync(fileName));
   });
 
@@ -230,7 +236,9 @@ export const regulationRoutes: FastifyPluginCallback = (
         return;
       }
 
-      const { fileNameWithExtension, fileName } = getRegulationNames(`${name} (${date})`);
+      const { fileNameWithExtension, fileName } = getRegulationNames(
+        `${name} (${date})`,
+      );
 
       if (shouldMakePdf(fileName)) {
         const success = await makeRegulationPdf(name, fileName, new Date(date));
@@ -243,7 +251,10 @@ export const regulationRoutes: FastifyPluginCallback = (
       res
         .status(200)
         .type('application/pdf')
-        .header('Content-Disposition', `attachment; filename=${fileNameWithExtension}`) // Not sure if we want this header. Keeping it in for now.
+        .header(
+          'Content-Disposition',
+          `attachment; filename=${fileNameWithExtension}`,
+        ) // Not sure if we want this header. Keeping it in for now.
         .send(fs.readFileSync(fileName));
     },
   );
@@ -255,16 +266,19 @@ export const regulationRoutes: FastifyPluginCallback = (
    * @returns pdf file
    */
   fastify.post('/regulation/generate-pdf', opts, async (req, res) => {
-    const body = req.body as Regulation;
-    // TODO: Check if the body truly is a Regulation body.
+    const cleanRegulation = cleanUpRegulationBodyInput(
+      req.body as InputRegulation,
+    );
 
-    const name = body.name
-      ? nameToSlug(body.name)
-      : (new Date().getTime().toString() as RegQueryName);
-
+    const name = nameToSlug(cleanRegulation.name);
     const { fileNameWithExtension, fileName } = getRegulationNames(name);
 
-    const success = await makeRegulationPdf(name, fileName, undefined, body);
+    const success = await makeRegulationPdf(
+      name,
+      fileName,
+      undefined,
+      cleanRegulation,
+    );
     if (!success) {
       res.code(400).send('Regulation PDF creation failed!');
       return;
@@ -273,7 +287,10 @@ export const regulationRoutes: FastifyPluginCallback = (
     res
       .status(200)
       .type('application/pdf')
-      .header('Content-Disposition', `attachment; filename=${fileNameWithExtension}`) // Not sure if we want this header. Keeping it in for now.
+      .header(
+        'Content-Disposition',
+        `attachment; filename=${fileNameWithExtension}`,
+      ) // Not sure if we want this header. Keeping it in for now.
       .send(fs.readFileSync(fileName));
 
     fs.unlinkSync(fileName); // This is a temporary file

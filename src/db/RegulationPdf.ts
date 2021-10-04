@@ -1,7 +1,16 @@
-import { RegQueryName, Regulation, RegulationRedirect } from 'routes/types';
+import {
+  RegQueryName,
+  Regulation,
+  RegulationRedirect,
+  Appendix,
+  InputRegulation,
+  RegName,
+  HTMLText,
+} from 'routes/types';
 import html_pdf_node from 'html-pdf-node';
 import { getRegulation } from './Regulation';
-import { slugToName } from '../utils/misc';
+import { slugToName, nameToSlug, assertISODate } from '../utils/misc';
+import { cleanupAllEditorOutputs } from '@hugsmidjan/regulations-editor/cleanupEditorOutput';
 import fs from 'fs';
 import { HOUR } from '@hugsmidjan/qj/time';
 
@@ -168,7 +177,7 @@ ol:not([type]) {
 }
 `;
 
-const pdfTmplate = (regulation: Regulation) => {
+const pdfTmplate = (regulation: Regulation | InputRegulation) => {
   const {
     name,
     title,
@@ -189,9 +198,17 @@ const pdfTmplate = (regulation: Regulation) => {
   </head>
   <body>
     <div class="regulation__meta">
-      ${name ? `<div class="regulation__name">Reglugerð nr. ${prettyName}</div>` : ''}
+      ${
+        name
+          ? `<div class="regulation__name">Reglugerð nr. ${prettyName}</div>`
+          : ''
+      }
       <div class="regulation__date">${
-        lastAmendDate ? `Síðast breytt: ${lastAmendDate}` : `Tók gildi: ${effectiveDate}`
+        lastAmendDate
+          ? `Síðast breytt: ${lastAmendDate}`
+          : effectiveDate
+          ? `Tók gildi: ${effectiveDate}`
+          : ''
       }</div>
     </div>
 
@@ -229,7 +246,7 @@ export async function makeRegulationPdf(
   name: RegQueryName,
   fileName: string,
   date?: Date,
-  regulationInput?: Regulation,
+  regulationInput?: InputRegulation,
 ): Promise<boolean> {
   const regulation =
     regulationInput ||
@@ -276,4 +293,35 @@ export function getRegulationNames(name: string) {
   !fs.existsSync(dirName) && fs.mkdirSync(dirName, { recursive: true });
 
   return { fileNameWithExtension, fileName };
+}
+
+// ===========================================================================
+
+export function cleanUpRegulationBodyInput(regBody: InputRegulation) {
+  const name = regBody.name
+    ? regBody.name
+    : (`temp_${new Date().getTime().toString()}` as RegName);
+
+  const simpleHtmlCleanRegex = /(&nbsp;|<([^>]+)>)/gi;
+
+  const lastAmendDate = assertISODate(regBody.lastAmendDate || '');
+  const effectiveDate = assertISODate(regBody.effectiveDate || '');
+
+  const cleanHTML = cleanupAllEditorOutputs({
+    text: regBody.text,
+    appendixes: regBody.appendixes as Appendix[],
+    comments: regBody.comments,
+  });
+
+  const cleanInputRegulation = {
+    name,
+    title: regBody.title.replace(simpleHtmlCleanRegex, ''),
+    text: cleanHTML.text as HTMLText,
+    appendixes: cleanHTML.appendixes as Appendix[],
+    comments: cleanHTML.comments as HTMLText,
+    lastAmendDate,
+    effectiveDate,
+  };
+
+  return cleanInputRegulation;
 }

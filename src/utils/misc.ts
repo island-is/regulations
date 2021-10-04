@@ -48,7 +48,7 @@ export const assertNameSlug = (slug: string): RegQueryName | undefined => {
  *  Example: '0123-202' --> undefined
  */
 export const assertRegName = (slug: string): RegName | undefined => {
-  slug = slug.replace('-', '/');
+  slug = slug && slug.replace('-', '/');
   if (/^\d{1,4}\/\d{4}$/.test(slug)) {
     return (slug.length === 9 ? slug : ('000' + slug).substr(-9)) as RegName;
   }

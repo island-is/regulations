@@ -185,6 +185,14 @@ export type Regulation = {
   showingDiff?: undefined;
 };
 
+export type InputRegulation = Pick<
+  Regulation,
+  'name' | 'title' | 'text' | 'appendixes' | 'comments'
+> & {
+  effectiveDate: ISODate | undefined;
+  lastAmendDate: ISODate | undefined;
+};
+
 // ---------------------------------------------------------------------------
 
 export type RegulationDiff = Omit<
