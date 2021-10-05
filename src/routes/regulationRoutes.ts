@@ -6,7 +6,7 @@ import {
   Pms,
   cache,
   nameToSlug,
-  assertRegName,
+  toISODate,
 } from '../utils/misc';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -24,15 +24,33 @@ import fs from 'fs';
 
 const REGULATION_TTL = 0.1;
 
+type RegHandlerOpts = {
+  name?: RegQueryName;
+  date?: ISODate;
+  diff?: boolean;
+  earlierDate?: ISODate | 'original';
+};
+type RefinedRegHandlerOpts = {
+  name: RegQueryName;
+  date?: Date;
+} & (
+  | {
+      diff: true;
+      earlierDate?: Date | 'original';
+    }
+  | {
+      diff?: false;
+      earlierDate?: undefined;
+    }
+);
+
+// ===========================================================================
+
 // eslint-disable-next-line complexity
 const handleRequest = async (
   res: FastifyReply,
-  opts: {
-    name?: RegQueryName;
-    date?: ISODate | Date;
-    diff?: boolean;
-    earlierDate?: ISODate | 'original';
-  },
+  opts: RegHandlerOpts,
+  handler: (res: FastifyReply, opts: RefinedRegHandlerOpts) => Promise<boolean>,
 ) => {
   const { name, date, diff, earlierDate } = opts;
   const dateMissing = 'date' in opts && !date;
@@ -44,18 +62,21 @@ const handleRequest = async (
     earlierDate <= date;
 
   if (name && !dateMissing && validEarlierDate) {
-    const data = await getRegulation(slugToName(name), {
+    const earlierDateDate =
+      earlierDate === 'original'
+        ? 'original'
+        : earlierDate && new Date(earlierDate);
+
+    const handlerOpts: RefinedRegHandlerOpts = {
+      name,
       date: date && new Date(date),
-      diff,
-      earlierDate:
-        earlierDate === 'original'
-          ? 'original'
-          : earlierDate && new Date(earlierDate),
-    });
-    if (data) {
-      cache(res, REGULATION_TTL);
-      res.send(data);
-    } else {
+      ...(earlierDateDate
+        ? { earlierDate: earlierDateDate, diff: true }
+        : { diff }),
+    };
+    const success = await handler(res, handlerOpts);
+
+    if (!success) {
       res.code(400).send('Regulation not found!');
     }
   } else {
@@ -73,6 +94,26 @@ const handleRequest = async (
   }
 };
 
+// ===========================================================================
+
+const handleDataRequest = async (res: FastifyReply, opts: RegHandlerOpts) =>
+  handleRequest(res, opts, async (res, opts) => {
+    const { name, date, diff, earlierDate } = opts;
+    const data = await getRegulation(slugToName(name), {
+      date,
+      diff,
+      earlierDate,
+    });
+    if (data) {
+      cache(res, REGULATION_TTL);
+      res.send(data);
+      return true;
+    }
+    return false;
+  });
+
+// ===========================================================================
+
 export const regulationRoutes: FastifyPluginCallback = (
   fastify,
   opts,
@@ -85,7 +126,7 @@ export const regulationRoutes: FastifyPluginCallback = (
    */
   fastify.get<Pms<'name'>>('/regulation/:name/original', opts, (req, res) => {
     const name = assertNameSlug(req.params.name);
-    return handleRequest(res, {
+    return handleDataRequest(res, {
       name,
     });
   });
@@ -97,9 +138,9 @@ export const regulationRoutes: FastifyPluginCallback = (
    */
   fastify.get<Pms<'name'>>('/regulation/:name/current', opts, (req, res) => {
     const name = assertNameSlug(req.params.name);
-    return handleRequest(res, {
+    return handleDataRequest(res, {
       name,
-      date: new Date(),
+      date: toISODate(new Date()),
     });
   });
 
@@ -111,9 +152,9 @@ export const regulationRoutes: FastifyPluginCallback = (
    */
   fastify.get<Pms<'name'>>('/regulation/:name/diff', opts, (req, res) => {
     const name = assertNameSlug(req.params.name);
-    return handleRequest(res, {
+    return handleDataRequest(res, {
       name,
-      date: new Date(),
+      date: toISODate(new Date()),
       diff: true,
       earlierDate: 'original',
     });
@@ -131,7 +172,7 @@ export const regulationRoutes: FastifyPluginCallback = (
     (req, res) => {
       const name = assertNameSlug(req.params.name);
       const date = assertISODate(req.params.date);
-      return handleRequest(res, {
+      return handleDataRequest(res, {
         name,
         date,
       });
@@ -151,7 +192,7 @@ export const regulationRoutes: FastifyPluginCallback = (
     (req, res) => {
       const name = assertNameSlug(req.params.name);
       const date = assertISODate(req.params.date);
-      handleRequest(res, {
+      handleDataRequest(res, {
         name,
         date,
         diff: true,
@@ -178,7 +219,7 @@ export const regulationRoutes: FastifyPluginCallback = (
         p.earlierDate === 'original'
           ? 'original'
           : assertISODate(p.earlierDate);
-      handleRequest(res, {
+      handleDataRequest(res, {
         name,
         date,
         diff: true,
