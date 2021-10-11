@@ -20,6 +20,20 @@ export const slugToName = (regulationName: RegQueryName): RegName =>
 
 // ---------------------------------------------------------------------------
 
+/** Pretty-formats a Regulation `name` for human consumption
+ *
+ * Chops off leading zeros and adds a bit of spacing.
+ */
+
+const THIN_SPACE = ' ';
+const HAIR_SPACE = ' ';
+const SPACE = HAIR_SPACE;
+
+export const prettyName = (regulationName: string) =>
+  regulationName.replace(/^0+/, '').replace('/', SPACE + '/' + SPACE);
+
+// ---------------------------------------------------------------------------
+
 const reRegQueryNameFlex = /^\d{1,4}-\d{4}$/;
 
 /** Returns a fully zero-padded RegQueryName.
@@ -122,6 +136,12 @@ export const cache = (res: FastifyReply, ttl_hrs: number): void => {
       'public, max-age=' + ttl_hrs * HOURS + (ttl_hrs ? ', immutable' : ''),
   });
 };
+
+// ---------------------------------------------------------------------------
+
+/** Type-guarding filter function to weed out nully values. */
+export const isNonNull = <T>(val: T): val is Exclude<T, undefined | null> =>
+  val !== null;
 
 // ---------------------------------------------------------------------------
 

@@ -34,7 +34,7 @@ export async function getLawChapterTree(): Promise<LawChapterTree> {
 
 export async function getLawChapterList(
   slugs?: Array<LawChapterSlug>,
-): Promise<ReadonlyArray<LawChapter>> {
+): Promise<Array<LawChapter>> {
   const rawLawChapters = await DB_LawChapter.findAll({
     where: slugs
       ? {
@@ -59,7 +59,7 @@ export async function getLawChapterList(
 
 export async function getRegulationLawChapters(
   regulationId: number,
-): Promise<ReadonlyArray<LawChapter>> {
+): Promise<Array<LawChapter>> {
   const rawLawChapters = await db.query<
     Pick<DB_LawChapter, 'title' | 'slug'> & {
       parentTitle: DB_LawChapter['title'];

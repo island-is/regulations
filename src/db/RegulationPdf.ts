@@ -1,42 +1,85 @@
 import {
-  RegQueryName,
   Regulation,
-  RegulationRedirect,
   Appendix,
-  InputRegulation,
-  RegName,
   HTMLText,
+  PlainText,
+  RegulationMaybeDiff,
+  RegulationRedirect,
+  RegulationDiff,
 } from 'routes/types';
-import html_pdf_node from 'html-pdf-node';
-import { getRegulation } from './Regulation';
-import { slugToName, nameToSlug, assertISODate } from '../utils/misc';
+import {
+  assertISODate,
+  assertRegName,
+  isNonNull,
+  prettyName,
+} from '../utils/misc';
 import { cleanupAllEditorOutputs } from '@hugsmidjan/regulations-editor/cleanupEditorOutput';
+import { cleanTitle } from '@hugsmidjan/regulations-editor/cleanTitle';
 import fs from 'fs';
+import { exec } from 'child_process';
+import { writeFile, unlink } from 'fs/promises';
 import { HOUR } from '@hugsmidjan/qj/time';
 
+export type InputRegulation = Pick<
+  Regulation,
+  'title' | 'text' | 'appendixes' | 'comments'
+> & {
+  name?: Regulation['name'];
+  showingDiff?: undefined;
+  lastAmendDate?: undefined;
+  timelineDate?: undefined;
+  repealedDate?: undefined;
+  publishedDate?: Regulation['publishedDate'];
+  effectiveDate?: Regulation['effectiveDate'];
+};
+
+// ---------------------------------------------------------------------------
+
+export const PDF_FILE_TTL = 1 * HOUR;
+
 export const shouldMakePdf = (fileName: string) => {
+  return true;
   if (!fs.existsSync(fileName)) {
     return true;
   }
   const age = Date.now() - fs.statSync(fileName).mtimeMs;
-  return age > 1 * HOUR;
+  return age > PDF_FILE_TTL;
 };
 
 // ===========================================================================
 
+const sanitizeTextContent = (text: PlainText): HTMLText =>
+  text.replace(/&/, '&amp;').replace(/</g, '&lt;') as HTMLText;
+
 const CSS = fs.readFileSync('./dist/RegulationPdf.css');
 
-const pdfTmplate = (regulation: Regulation | InputRegulation) => {
+const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
   const {
     name,
-    title,
     lastAmendDate,
+    timelineDate,
     effectiveDate,
+    publishedDate,
     text,
     appendixes,
     comments = '',
   } = regulation;
-  const prettyName = name ? name.replace(/^0+/, '') : '';
+
+  const title = regulation.showingDiff
+    ? regulation.title
+    : sanitizeTextContent(regulation.title);
+
+  const isOriginal = true;
+  const isCurrent = true;
+
+  const dateStr =
+    !timelineDate && lastAmendDate
+      ? `Með breytingum fram til `
+      : lastAmendDate
+      ? `Síðast breytt: ${lastAmendDate}`
+      : `Tók gildi: ${effectiveDate}`;
+
+  const footerStr = '';
 
   return `
 <html>
@@ -49,27 +92,26 @@ const pdfTmplate = (regulation: Regulation | InputRegulation) => {
     <div class="regulation__meta">
       ${
         name
-          ? `<div class="regulation__name">Reglugerð nr. ${prettyName}</div>`
+          ? `<div class="regulation__name">Nr. <strong>${prettyName(
+              name,
+            )}</strong></div>`
           : ''
       }
-      <div class="regulation__date">${
-        lastAmendDate
-          ? `Síðast breytt: ${lastAmendDate}`
-          : effectiveDate
-          ? `Tók gildi: ${effectiveDate}`
-          : ''
-      }</div>
-    </div>
+      ${dateStr ? `<div class="regulation__date">${dateStr}</div>` : ''}
+      ${footerStr ? `<div class="regulation__footer">${footerStr}</div>` : ''}
+      </div>
     <h1 class="regulation__title">${title}</h1>
 
     ${text}
 
     ${appendixes
       .map(
-        (appendix) => `
+        ({ title, text }) => `
     <section class="appendix">
-      <h2 class="appendix__title">${appendix.title}</h2>
-      ${appendix.text}
+      <h2 class="appendix__title">${
+        regulation.showingDiff ? title : sanitizeTextContent(title as PlainText)
+      }</h2>
+      ${text}
     </section>
     `,
       )
@@ -90,34 +132,39 @@ const pdfTmplate = (regulation: Regulation | InputRegulation) => {
 
 // ===========================================================================
 
-export async function makeRegulationPdf(
-  name: RegQueryName,
+export function makeRegulationPdf(
   fileName: string,
-  date?: Date,
-  regulationInput?: InputRegulation,
+  regulation?:
+    | InputRegulation
+    | Regulation
+    | RegulationDiff
+    | RegulationRedirect,
 ): Promise<boolean> {
-  const regulation =
-    regulationInput ||
-    ((await getRegulation(slugToName(name), {
-      date: date || new Date(),
-    })) as Regulation | RegulationRedirect);
-
-  if (!regulation || !('text' in regulation)) {
-    return false;
+  if (!regulation || 'redirectUrl' in regulation) {
+    return Promise.resolve(false);
   }
 
-  return html_pdf_node
-    .generatePdf(
-      { content: pdfTmplate(regulation) },
-      {
-        preferCSSPageSize: true,
-        printBackground: true,
-      },
+  const htmlFile = fileName + '.html';
+
+  return writeFile(htmlFile, pdfTmplate(regulation))
+    .then(
+      () =>
+        new Promise<boolean>((resolve, reject) => {
+          exec(
+            // Increasing context to 5 lines (effectively: words) seems reasonable
+            // since each line is so short (contains so little actual context)
+            `pagedjs-cli ${htmlFile} --output ${fileName}`,
+            (err) => {
+              unlink(htmlFile);
+              if (!err) {
+                resolve(true);
+              } else {
+                reject(err);
+              }
+            },
+          );
+        }),
     )
-    .then((buffer) => {
-      fs.writeFileSync(fileName, buffer, { encoding: 'binary' });
-      return true;
-    })
     .catch((err) => {
       console.error(err);
       return false;
@@ -126,43 +173,62 @@ export async function makeRegulationPdf(
 
 // ===========================================================================
 
-export function getRegulationNames(name: string) {
-  const fileNameWithExtension = `${name}.pdf`;
+export function getPdfFileName(name: string) {
   const dirName = `${__dirname}/regulation-pdf`;
-  const fileName = `${dirName}/${fileNameWithExtension}`;
-
-  !fs.existsSync(dirName) && fs.mkdirSync(dirName, { recursive: true });
-
-  return { fileNameWithExtension, fileName };
+  if (!fs.existsSync(dirName)) {
+    fs.mkdirSync(dirName, { recursive: true });
+  }
+  return `${dirName}/${name}.pdf`;
 }
 
 // ===========================================================================
 
-export function cleanUpRegulationBodyInput(regBody: InputRegulation) {
-  const name = regBody.name
-    ? regBody.name
-    : (`temp_${new Date().getTime().toString()}` as RegName);
+export function cleanUpRegulationBodyInput(
+  reqBody: unknown,
+): InputRegulation | undefined {
+  if (typeof reqBody !== 'object' || reqBody == null) {
+    return;
+  }
+  const body = reqBody as Record<string, unknown>;
 
-  const simpleHtmlCleanRegex = /(&nbsp;|<([^>]+)>)/gi;
+  const name = assertRegName(String(body.name));
+  const effectiveDate = assertISODate(String(body.effectiveDate));
+  const publishedDate = assertISODate(String(body.publishedDate));
 
-  const lastAmendDate = assertISODate(regBody.lastAmendDate || '');
-  const effectiveDate = assertISODate(regBody.effectiveDate || '');
+  const dirtyTitle = String(body.title);
+  const dirtyText = String(body.text) as HTMLText;
+  const dirtyCommments = String(body.comments || '') as HTMLText;
+  const dirtyAppendixes = (
+    Array.isArray(body.appendixes) ? body.appendixes : []
+  )
+    .map((wat: unknown): Appendix | undefined => {
+      if (typeof wat !== 'object' || wat == null) {
+        return;
+      }
+      const appendix = wat as Record<string, unknown>;
+      return {
+        title: cleanTitle(String(appendix.title)),
+        text: String(appendix.text) as HTMLText,
+      };
+    })
+    .filter(isNonNull);
 
-  const cleanHTML = cleanupAllEditorOutputs({
-    text: regBody.text,
-    appendixes: regBody.appendixes as Appendix[],
-    comments: regBody.comments,
-  });
+  const title = cleanTitle(dirtyTitle);
+  const { text, appendixes, comments } = cleanupAllEditorOutputs({
+    text: dirtyText,
+    appendixes: dirtyAppendixes,
+    comments: dirtyCommments,
+  }) as Pick<Regulation, 'text' | 'appendixes' | 'comments'>;
 
-  const cleanInputRegulation = {
-    name,
-    title: regBody.title.replace(simpleHtmlCleanRegex, ''),
-    text: cleanHTML.text as HTMLText,
-    appendixes: cleanHTML.appendixes as Appendix[],
-    comments: cleanHTML.comments as HTMLText,
-    lastAmendDate,
-    effectiveDate,
-  };
-
-  return cleanInputRegulation;
+  if (title && text) {
+    return {
+      title,
+      text,
+      appendixes,
+      comments,
+      name,
+      effectiveDate,
+      publishedDate,
+    };
+  }
 }

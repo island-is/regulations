@@ -13,7 +13,7 @@ export * from '@hugsmidjan/regulations-editor/types';
 // ---------------------------------------------------------------------------
 
 // Years
-export type RegulationYears = ReadonlyArray<Year>;
+export type RegulationYears = Array<Year>;
 
 // ---------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ export type LawChapterTree = Array<
      *
      * NOTE: The "tree" never goes more than one level down.
      */
-    subChapters: ReadonlyArray<LawChapter>;
+    subChapters: Array<LawChapter>;
   }
 >;
 
@@ -52,7 +52,7 @@ export type MinistryListItem = Ministry & {
   order?: number | null;
 };
 
-export type MinistryList = ReadonlyArray<MinistryListItem>;
+export type MinistryList = Array<MinistryListItem>;
 
 // ---------------------------------------------------------------------------
 
@@ -126,7 +126,7 @@ export type Regulation = {
   /* The regulation text in HTML format */
   text: HTMLText;
   /** List of the regulation's appendixes */
-  appendixes: ReadonlyArray<Appendix>;
+  appendixes: Array<Appendix>;
   /** Optional HTML formatted comments from the editor pointing out
    * known errors or ambiguities in the text.
    */
@@ -151,7 +151,7 @@ export type Regulation = {
   /** The ministry this regulation is published by/linked to */
   ministry?: Ministry;
   /** Law chapters that this regulation is linked to */
-  lawChapters: ReadonlyArray<LawChapter>;
+  lawChapters: Array<LawChapter>;
 
   /** URL linking to the originally published document as published in Stjórnartíðindi */
   originalDoc?: string | null;
@@ -168,12 +168,12 @@ export type Regulation = {
   /** List of change events (Amendments, Repeals) over the life time of this
    * regulation – **excluding** the original base/root regulation
    */
-  history: ReadonlyArray<RegulationHistoryItem>;
+  history: Array<RegulationHistoryItem>;
 
   /** Date sorted list of effects this regulations has on other regulations
    * text-changes or cacellations
    */
-  effects: ReadonlyArray<RegulationEffect>;
+  effects: Array<RegulationEffect>;
 
   /** Present if a NON-CURRENT version of the regulation is being served
    *
@@ -185,14 +185,6 @@ export type Regulation = {
   showingDiff?: undefined;
 };
 
-export type InputRegulation = Pick<
-  Regulation,
-  'name' | 'title' | 'text' | 'appendixes' | 'comments'
-> & {
-  effectiveDate: ISODate | undefined;
-  lastAmendDate: ISODate | undefined;
-};
-
 // ---------------------------------------------------------------------------
 
 export type RegulationDiff = Omit<
@@ -202,7 +194,7 @@ export type RegulationDiff = Omit<
   /** The title of the regulation in HTML format */
   title: HTMLText;
   /** List of the regulation's appendixes */
-  appendixes: ReadonlyArray<
+  appendixes: Array<
     Omit<Appendix, 'title'> & {
       title: HTMLText;
     }

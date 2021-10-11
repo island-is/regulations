@@ -5,33 +5,34 @@ import {
   slugToName,
   Pms,
   cache,
-  nameToSlug,
   toISODate,
 } from '../utils/misc';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { DB_Regulation } from '../models/Regulation';
-import { InputRegulation, ISODate, RegQueryName, Regulation } from './types';
+import { ISODate, RegQueryName } from './types';
 import { FastifyPluginCallback, FastifyReply } from 'fastify';
 import {
-  getRegulationNames,
+  getPdfFileName,
   makeRegulationPdf,
   shouldMakePdf,
   cleanUpRegulationBodyInput,
+  PDF_FILE_TTL,
 } from '../db/RegulationPdf';
-import { cleanupAllEditorOutputs } from '@hugsmidjan/regulations-editor/cleanupEditorOutput';
 import fs from 'fs';
 
 const REGULATION_TTL = 0.1;
 
-type RegHandlerOpts = {
-  name?: RegQueryName;
+// ---------------------------------------------------------------------------
+
+type RegHandlerOpts<N extends string = RegQueryName> = {
+  name?: RegQueryName | N;
   date?: ISODate;
   diff?: boolean;
   earlierDate?: ISODate | 'original';
 };
-type RefinedRegHandlerOpts = {
-  name: RegQueryName;
+type RefinedRegHandlerOpts<N extends string = RegQueryName> = {
+  name: RegQueryName | N;
   date?: Date;
 } & (
   | {
@@ -47,10 +48,13 @@ type RefinedRegHandlerOpts = {
 // ===========================================================================
 
 // eslint-disable-next-line complexity
-const handleRequest = async (
+const handleRequest = async <N extends string = RegQueryName>(
   res: FastifyReply,
-  opts: RegHandlerOpts,
-  handler: (res: FastifyReply, opts: RefinedRegHandlerOpts) => Promise<boolean>,
+  opts: RegHandlerOpts<N>,
+  handler: (
+    res: FastifyReply,
+    opts: RefinedRegHandlerOpts<N>,
+  ) => Promise<boolean>,
 ) => {
   const { name, date, diff, earlierDate } = opts;
   const dateMissing = 'date' in opts && !date;
@@ -67,7 +71,7 @@ const handleRequest = async (
         ? 'original'
         : earlierDate && new Date(earlierDate);
 
-    const handlerOpts: RefinedRegHandlerOpts = {
+    const handlerOpts: RefinedRegHandlerOpts<N> = {
       name,
       date: date && new Date(date),
       ...(earlierDateDate
@@ -96,7 +100,7 @@ const handleRequest = async (
 
 // ===========================================================================
 
-const handleDataRequest = async (res: FastifyReply, opts: RegHandlerOpts) =>
+const handleDataRequest = (res: FastifyReply, opts: RegHandlerOpts) =>
   handleRequest(res, opts, async (res, opts) => {
     const { name, date, diff, earlierDate } = opts;
     const data = await getRegulation(slugToName(name), {
@@ -104,12 +108,51 @@ const handleDataRequest = async (res: FastifyReply, opts: RegHandlerOpts) =>
       diff,
       earlierDate,
     });
-    if (data) {
-      cache(res, REGULATION_TTL);
-      res.send(data);
-      return true;
+    if (!data) {
+      return false;
     }
-    return false;
+    cache(res, REGULATION_TTL);
+    res.send(data);
+    return true;
+  });
+
+// ===========================================================================
+
+const handlePdfRequest = (
+  res: FastifyReply,
+  opts: RegHandlerOpts<'new'>,
+  body?: unknown,
+) =>
+  handleRequest(res, opts, async (res, opts) => {
+    const { date, diff } = opts;
+
+    const name = opts.name !== 'new' ? opts.name : undefined;
+
+    const fileName = getPdfFileName(name || 'new_' + toISODate(new Date()));
+
+    if (body || shouldMakePdf(fileName)) {
+      const regulation = body
+        ? cleanUpRegulationBodyInput(body)
+        : name
+        ? await getRegulation(slugToName(name), { date, diff })
+        : undefined;
+
+      if (!regulation) {
+        return false;
+      }
+
+      const success = await makeRegulationPdf(fileName, regulation);
+
+      if (!success) {
+        return false;
+      }
+    }
+    const pdfContents = fs.readFileSync(fileName);
+    body && fs.unlinkSync(fileName); // This is a temporary file
+
+    cache(res, PDF_FILE_TTL);
+    res.status(200).type('application/pdf').send(pdfContents);
+    return true;
   });
 
 // ===========================================================================
@@ -130,6 +173,20 @@ export const regulationRoutes: FastifyPluginCallback = (
       name,
     });
   });
+  /**
+   * Returns original version of a regulation in PDF format
+   * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
+   * @returns pdf file
+   */
+  fastify.get<Pms<'name'>>(
+    '/regulation/:name/original/pdf',
+    opts,
+    (req, res) => {
+      handlePdfRequest(res, {
+        name: assertNameSlug(req.params.name),
+      });
+    },
+  );
 
   /**
    * Returns current version of a regulation with all changes applied
@@ -143,6 +200,22 @@ export const regulationRoutes: FastifyPluginCallback = (
       date: toISODate(new Date()),
     });
   });
+
+  /**
+   * Returns current version of a regulation with all changes applied in PDF format
+   * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
+   * @returns pdf file
+   */
+  fastify.get<Pms<'name'>>(
+    '/regulation/:name/current/pdf',
+    opts,
+    (req, res) => {
+      handlePdfRequest(res, {
+        name: assertNameSlug(req.params.name),
+        date: toISODate(new Date()),
+      });
+    },
+  );
 
   /**
    * Returns current version of a regulation with all changes applied, showing
@@ -175,6 +248,22 @@ export const regulationRoutes: FastifyPluginCallback = (
       return handleDataRequest(res, {
         name,
         date,
+      });
+    },
+  );
+  /**
+   * Returns a version of a regulation as it was on a specific date in PDF format
+   * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
+   * @param {string} date - ISODate (`YYYY-MM-DD`)
+   * @returns pdf file
+   */
+  fastify.get<Pms<'name' | 'date'>>(
+    '/regulation/:name/d/:date/pdf',
+    opts,
+    (req, res) => {
+      handlePdfRequest(res, {
+        name: assertNameSlug(req.params.name),
+        date: assertISODate(req.params.date),
       });
     },
   );
@@ -228,113 +317,16 @@ export const regulationRoutes: FastifyPluginCallback = (
     },
   );
 
-  /**
-   * Returns current version of a regulation with all changes applied in pdf format
-   * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
-   * @returns pdf file
-   */
-  fastify.get<Pms<'name'>>('/regulation/:name/pdf', opts, async (req, res) => {
-    const name = assertNameSlug(req.params.name);
-    if (!name) {
-      res.code(400).send('Regulation not found!');
-      return;
-    }
-
-    const { fileNameWithExtension, fileName } = getRegulationNames(name);
-
-    if (shouldMakePdf(fileName)) {
-      const success = await makeRegulationPdf(name, fileName);
-      if (!success) {
-        res.code(400).send('Regulation not found!');
-        return;
-      }
-    }
-
-    res
-      .status(200)
-      .type('application/pdf')
-      .header(
-        'Content-Disposition',
-        `attachment; filename=${fileNameWithExtension}`,
-      ) // Not sure if we want this header. Keeping it in for now.
-      .send(fs.readFileSync(fileName));
-  });
-
-  /**
-   * Returns a version of a regulation as it was on a specific date, in pdf format
-   * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
-   * @param {string} date - ISODate (`YYYY-MM-DD`)
-   * @returns pdf file
-   */
-  fastify.get<Pms<'name' | 'date'>>(
-    '/regulation/:name/d/:date/pdf',
-    opts,
-    async (req, res) => {
-      const name = assertNameSlug(req.params.name);
-      const date = assertISODate(req.params.date);
-      if (!name || !date) {
-        res.code(400).send('Regulation not found!');
-        return;
-      }
-
-      const { fileNameWithExtension, fileName } = getRegulationNames(
-        `${name} (${date})`,
-      );
-
-      if (shouldMakePdf(fileName)) {
-        const success = await makeRegulationPdf(name, fileName, new Date(date));
-        if (!success) {
-          res.code(400).send('Regulation not found!');
-          return;
-        }
-      }
-
-      res
-        .status(200)
-        .type('application/pdf')
-        .header(
-          'Content-Disposition',
-          `attachment; filename=${fileNameWithExtension}`,
-        ) // Not sure if we want this header. Keeping it in for now.
-        .send(fs.readFileSync(fileName));
-    },
-  );
+  // ---------------------------------------------------------------------------
 
   /**
    * Accepts regulation data
-   * Returns the regulation data as a regulation, in pdf format
-   * @body {Regulation} Regulation object
+   * Returns the regulation data as a regulation, in PDF format
+   * @body {Regulation} Regulation object with optional name
    * @returns pdf file
    */
-  fastify.post('/regulation/generate-pdf', opts, async (req, res) => {
-    const cleanRegulation = cleanUpRegulationBodyInput(
-      req.body as InputRegulation,
-    );
-
-    const name = nameToSlug(cleanRegulation.name);
-    const { fileNameWithExtension, fileName } = getRegulationNames(name);
-
-    const success = await makeRegulationPdf(
-      name,
-      fileName,
-      undefined,
-      cleanRegulation,
-    );
-    if (!success) {
-      res.code(400).send('Regulation PDF creation failed!');
-      return;
-    }
-
-    res
-      .status(200)
-      .type('application/pdf')
-      .header(
-        'Content-Disposition',
-        `attachment; filename=${fileNameWithExtension}`,
-      ) // Not sure if we want this header. Keeping it in for now.
-      .send(fs.readFileSync(fileName));
-
-    fs.unlinkSync(fileName); // This is a temporary file
+  fastify.post('/regulation/generate-pdf', opts, (req, res) => {
+    handlePdfRequest(res, { name: 'new' }, req.body);
   });
 
   done();
