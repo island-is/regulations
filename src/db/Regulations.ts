@@ -41,6 +41,7 @@ type SQLRegulationsItem = Pick<
   | 'ministryId'
   | 'publishedDate'
   | 'effectiveDate'
+  | 'repealedBeacuseReasons'
 > & {
   repealedDate?: ISODate | null;
   text?: DB_Regulation['text'];
@@ -81,6 +82,7 @@ const augmentRegulationList = async (
         publishedDate,
         effectiveDate,
         repealedDate,
+        repealedBeacuseReasons,
       } = reg;
 
       const { ministry, lawChapters } = await promiseAll({
@@ -101,7 +103,9 @@ const augmentRegulationList = async (
         publishedDate,
         effectiveDate,
         repealedDate: repealedDate ?? undefined,
-        repealed: repealedDate ? new Date(repealedDate) <= today : false,
+        repealed: repealedDate
+          ? new Date(repealedDate) <= today
+          : repealedBeacuseReasons,
         ministry,
         lawChapters,
       };
@@ -165,8 +169,9 @@ export async function getAllBaseRegulations(opts?: {
   const whereConds: Array<string> = [];
 
   if (!includeRepealed) {
+    whereConds.push(`r.repealedBeacuseReasons == FALSE`);
     whereConds.push(
-      `r.type = 'base' and (select date from RegulationCancel where regulationId = r.id limit 1) IS NULL`,
+      `(select date from RegulationCancel where regulationId = r.id AND date <= now() limit 1) IS NULL`,
     );
   }
   if (nameFilter) {

@@ -78,6 +78,9 @@ export class DB_Regulation
   })
   ministryId?: number;
 
+  @Column({ type: DataType.BOOLEAN })
+  repealedBeacuseReasons!: boolean;
+
   @Column({
     type: DataType.STRING,
     allowNull: true,
