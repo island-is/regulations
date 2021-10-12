@@ -3,7 +3,7 @@ import {
   PER_PAGE,
   getNewestRegulations,
   getRegulationsCount,
-  getAllBaseRegulations,
+  getAllRegulations,
 } from '../db/Regulations';
 import {
   assertPosInt,
@@ -53,7 +53,7 @@ export const regulationsRoutes: FastifyPluginCallback = (
     let data = loadData('backup-json/all-current-full.json');
     if (!data) {
       console.info('Fetching data from db');
-      data = await getAllBaseRegulations({ full: true });
+      data = await getAllRegulations({ full: true });
       storeData(data, 'backup-json/all-current-full.json');
     } else {
       console.info('Returning all-current-full data from file');
@@ -72,7 +72,7 @@ export const regulationsRoutes: FastifyPluginCallback = (
       let data = loadData('backup-json/all-extra.json');
       if (!data) {
         console.info('Fetching data from db');
-        data = await getAllBaseRegulations({
+        data = await getAllRegulations({
           extra: true,
           includeRepealed: true,
         });
@@ -90,7 +90,7 @@ export const regulationsRoutes: FastifyPluginCallback = (
     let data = loadData('backup-json/all-current-minimal.json');
     if (!data) {
       console.info('Fetching data from db');
-      data = await getAllBaseRegulations();
+      data = await getAllRegulations();
       storeData(data, 'backup-json/all-current-minimal.json');
     } else {
       console.info('Returning all-current-minimal data from file');

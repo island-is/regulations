@@ -1,8 +1,5 @@
 import { ISODate, RegName } from '../routes/types';
-import {
-  RegulationListItemFull,
-  getAllBaseRegulations,
-} from '../db/Regulations';
+import { RegulationListItemFull, getAllRegulations } from '../db/Regulations';
 import { Client } from '@elastic/elasticsearch';
 import { performance } from 'perf_hooks';
 import { getSettingsTemplate, mappingTemplate } from './template';
@@ -132,7 +129,7 @@ export async function repopulateElastic(client: Client) {
       console.info('returning data from file');
     } else {
       console.info('fetching data from db (this takes a while)...');
-      regulations = await getAllBaseRegulations({
+      regulations = await getAllRegulations({
         extra: true,
         includeRepealed: true,
       });
@@ -190,7 +187,7 @@ export async function repopulateElastic(client: Client) {
 // ---------------------------------------------------------------------------
 
 const _updateItem = async (client: Client, regname: RegName) => {
-  const newReg = await getAllBaseRegulations({
+  const newReg = await getAllRegulations({
     extra: true,
     includeRepealed: true,
     nameFilter: `'${regname}'`,

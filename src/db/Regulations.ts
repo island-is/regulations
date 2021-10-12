@@ -15,8 +15,6 @@ import { eliminateComments } from '../utils/extractData';
 
 export const PER_PAGE = 30;
 
-export const getAllRegulations = () => DB_Regulation.findAll();
-
 export async function getRegulationsCount() {
   const regulationsCount = await DB_Regulation.count();
   return regulationsCount;
@@ -158,7 +156,7 @@ export async function getNewestRegulations(opts: {
  * @param {boolean} includeRepealed - Include amending and repealed regulations
  * @returns {SQLRegulationsList | RegulationListItemFull[]}
  */
-export async function getAllBaseRegulations(opts?: {
+export async function getAllRegulations(opts?: {
   full?: boolean;
   extra?: boolean;
   includeRepealed?: boolean;
