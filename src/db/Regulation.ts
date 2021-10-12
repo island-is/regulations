@@ -188,6 +188,7 @@ const augmentRegulation = async (
     publishedDate,
     effectiveDate,
     _externalsource,
+    repealedBeacuseReasons,
   } = regulation;
 
   const {
@@ -203,14 +204,16 @@ const augmentRegulation = async (
     effects: getRegulationEffects(id),
     lawChapters: getRegulationLawChapters(id),
     lastAmendDate: getLatestRegulationChange(id).then((change) => change?.date),
-    repealedDate: getRegulationCancel(id).then((cancel) => {
-      const date = cancel?.date;
-      // Skip if repeal/cancellation date is in the future
-      if (!date || new Date().toISOString() < date) {
-        return;
-      }
-      return date;
-    }),
+    repealedDate: repealedBeacuseReasons
+      ? undefined
+      : getRegulationCancel(id).then((cancel) => {
+          const date = cancel?.date;
+          // Skip if repeal/cancellation date is in the future
+          if (!date || new Date().toISOString() < date) {
+            return;
+          }
+          return date;
+        }),
   });
 
   const { text, appendixes, comments } = extractAppendixesAndComments(
@@ -226,6 +229,7 @@ const augmentRegulation = async (
     publishedDate,
     effectiveDate,
     ministry,
+    repealed: !!repealedDate || repealedBeacuseReasons,
     repealedDate,
     appendixes,
     comments,
