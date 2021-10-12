@@ -8,8 +8,13 @@ import {
 } from '../utils/misc';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { DB_Regulation } from '../models/Regulation';
-import { ISODate, RegQueryName } from './types';
+import {
+  ISODate,
+  RegQueryName,
+  RegulationRedirect,
+  Regulation,
+  RegulationDiff,
+} from './types';
 import { FastifyPluginCallback, FastifyReply } from 'fastify';
 
 const REGULATION_TTL = 0.1;
@@ -71,7 +76,7 @@ export const regulationRoutes: FastifyPluginCallback = (
   /**
    * Returns original version of a regulation
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
-   * @returns {DB_Regulation}
+   * @returns {Regulation | RegulationRedirect}
    */
   fastify.get<Pms<'name'>>('/regulation/:name/original', opts, (req, res) => {
     const name = assertNameSlug(req.params.name);
@@ -83,7 +88,7 @@ export const regulationRoutes: FastifyPluginCallback = (
   /**
    * Returns current version of a regulation with all changes applied
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
-   * @returns {DB_Regulation}
+   * @returns {Regulation | RegulationRedirect}
    */
   fastify.get<Pms<'name'>>('/regulation/:name/current', opts, (req, res) => {
     const name = assertNameSlug(req.params.name);
@@ -97,7 +102,7 @@ export const regulationRoutes: FastifyPluginCallback = (
    * Returns current version of a regulation with all changes applied, showing
    * the total changes the "original" verion.
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
-   * @returns {DB_Regulation}
+   * @returns {RegulationDiff | RegulationRedirect}
    */
   fastify.get<Pms<'name'>>('/regulation/:name/diff', opts, (req, res) => {
     const name = assertNameSlug(req.params.name);
@@ -113,7 +118,7 @@ export const regulationRoutes: FastifyPluginCallback = (
    * Returns a version of a regulation as it was on a specific date
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
    * @param {string} date - ISODate (`YYYY-MM-DD`)
-   * @returns {DB_Regulation}
+   * @returns {Regulation | RegulationRedirect}
    */
   fastify.get<Pms<'name' | 'date'>>(
     '/regulation/:name/d/:date',
@@ -133,7 +138,7 @@ export const regulationRoutes: FastifyPluginCallback = (
    * that occurred on that date
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
    * @param {string} date - ISODate (`YYYY-MM-DD`)
-   * @returns {DB_Regulation}
+   * @returns {RegulationDiff | RegulationRedirect}
    */
   fastify.get<Pms<'name' | 'date'>>(
     '/regulation/:name/d/:date/diff',
@@ -155,7 +160,7 @@ export const regulationRoutes: FastifyPluginCallback = (
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
    * @param {string} date - ISODate (`YYYY-MM-DD`)
    * @param {string} earlierDate - ISODate (`YYYY-MM-DD`) or 'original'
-   * @returns {DB_Regulation}
+   * @returns {RegulationDiff | RegulationRedirect}
    */
   fastify.get<Pms<'name' | 'date' | 'earlierDate'>>(
     '/regulation/:name/d/:date/diff/:earlierDate',
