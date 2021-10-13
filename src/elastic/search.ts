@@ -62,7 +62,8 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
   }
 
   // build text search
-  const search: Array<esb.Query> = [];
+  const textSearch: Array<esb.Query> = [];
+
   if (searchQuery) {
     const names: Array<string> = [];
     searchQuery = searchQuery
@@ -83,7 +84,7 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
     // generic search
 
     names.forEach((name) => {
-      search.push(
+      textSearch.push(
         esb
           .queryStringQuery(`"${name}"`)
           // .analyzeWildcard(true)
@@ -91,7 +92,7 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
           .fields(['name^100']),
       );
     });
-    search.push(
+    textSearch.push(
       esb
         .queryStringQuery(searchQuery)
         // .analyzeWildcard(true)
@@ -113,7 +114,7 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
     .query(
       esb
         .boolQuery()
-        .should(search)
+        .should(textSearch)
         //.minimumShouldMatch(1)
         .filter(filters),
     )
@@ -125,11 +126,11 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
   const pagingPage = Math.max(parseInt('' + query.page) || 1, 1);
   let searchHits: Array<RegulationListItem> = [];
 
-  if (filters.length || search.length) {
-    let search: Record<string, any> = {};
+  if (filters.length || textSearch.length) {
+    let elasticResponse: Record<string, any> = {};
 
     try {
-      search = await client.search({
+      elasticResponse = await client.search({
         index: 'regulations',
         size: PER_PAGE,
         body: requestBody.toJSON(),
@@ -139,9 +140,10 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
       const value = err instanceof errors.ResponseError ? err.meta : err;
       console.error(value);
     }
+    const hits = elasticResponse.body?.hits || {};
 
     searchHits =
-      search.body?.hits?.hits?.map((hit: any) => {
+      hits.hits?.map((hit: any) => {
         return {
           name: hit._source.name,
           title: hit._source.title,
@@ -150,7 +152,7 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
         };
       }) ?? [];
 
-    totalItems = search.body?.hits?.total?.value ?? 0;
+    totalItems = hits.total?.value ?? 0;
   }
 
   const results: RegulationSearchResults = {
