@@ -39,6 +39,7 @@ export const PDF_FILE_TTL = 1 * HOUR;
 
 export const shouldMakePdf = (fileName: string) => {
   return true;
+  // FIXME: Write to S3 instead of Heroku's fickle fs.
   if (!fs.existsSync(fileName)) {
     return true;
   }
