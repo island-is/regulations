@@ -1,56 +1,19 @@
-declare const _RegName__Brand: unique symbol;
-/** Regulation name — `0123/2012` */
-export type RegName = string & { [_RegName__Brand]: true };
-
-declare const _RegNameQuery__Brand: unique symbol;
-/** Regulation name formatted for URL param insertion — `0123-2012` */
-export type RegQueryName = string & { [_RegNameQuery__Brand]: true };
-
-declare const _ISODate__Brand: unique symbol;
-/** Valid ISODate string — e.g. `2012-09-30` */
-export type ISODate = string & { [_ISODate__Brand]: true };
-
-declare const _ISODateTime__Brand: unique symbol;
-/** Valid UTC ISODateTime string — e.g. `2012-09-30T12:00:00` */
-export type ISODateTime = string & { [_ISODateTime__Brand]: true };
-
-declare const _HTMLText__Brand: unique symbol;
-/** HTMLText string — e.g. `I &lt;3 You ` */
-export type HTMLText = string & { [_HTMLText__Brand]: true };
-/** Plain-text string — e.g. `I <3 You ` */
-export type PlainText = string & { [_HTMLText__Brand]?: false };
-
-declare const _MinistrySlug__Brand: unique symbol;
-/** Slug identifier for Ministries — e.g. `hr`
- *
- * (Human-readable, persistent id for for query strings, etc.)
- */
-export type MinistrySlug = string & { [_MinistrySlug__Brand]: true };
-
-declare const _LawChapterSlug__Brand: unique symbol;
-/** Slug identifier for Law Chapters — e.g. `01b`
- *
- * (Human-readable, persistent id for for query strings, etc.)
- */
-export type LawChapterSlug = string & { [_LawChapterSlug__Brand]: true };
-
-/** Regulations are roughly classified based on whether they contain
- * any original text/stipulations, or whether they **only**  prescribe
- * changes to other regulations.
- *
- * `base` = Stofnreglugerð
- * `amending` = Breytingareglugerð
- */
-export type RegulationType = 'base' | 'amending';
-
-declare const _Year__Brand: unique symbol;
-/** Four letter positive integer that might reasonably be a year */
-export type Year = number & { [_Year__Brand]: true };
+import {
+  LawChapterSlug,
+  MinistrySlug,
+  RegName,
+  ISODate,
+  PlainText,
+  HTMLText,
+  RegulationType,
+  Year,
+} from '@hugsmidjan/regulations-editor/types';
+export * from '@hugsmidjan/regulations-editor/types';
 
 // ---------------------------------------------------------------------------
 
 // Years
-export type RegulationYears = ReadonlyArray<Year>;
+export type RegulationYears = Array<Year>;
 
 // ---------------------------------------------------------------------------
 
@@ -67,7 +30,7 @@ export type LawChapterTree = Array<
      *
      * NOTE: The "tree" never goes more than one level down.
      */
-    subChapters: ReadonlyArray<LawChapter>;
+    subChapters: Array<LawChapter>;
   }
 >;
 
@@ -89,7 +52,7 @@ export type MinistryListItem = Ministry & {
   order?: number | null;
 };
 
-export type MinistryList = ReadonlyArray<MinistryListItem>;
+export type MinistryList = Array<MinistryListItem>;
 
 // ---------------------------------------------------------------------------
 
@@ -163,7 +126,7 @@ export type Regulation = {
   /* The regulation text in HTML format */
   text: HTMLText;
   /** List of the regulation's appendixes */
-  appendixes: ReadonlyArray<Appendix>;
+  appendixes: Array<Appendix>;
   /** Optional HTML formatted comments from the editor pointing out
    * known errors or ambiguities in the text.
    */
@@ -198,7 +161,7 @@ export type Regulation = {
   /** The ministry this regulation is published by/linked to */
   ministry?: Ministry;
   /** Law chapters that this regulation is linked to */
-  lawChapters: ReadonlyArray<LawChapter>;
+  lawChapters: Array<LawChapter>;
 
   /** URL linking to the originally published document as published in Stjórnartíðindi */
   originalDoc?: string | null;
@@ -215,12 +178,12 @@ export type Regulation = {
   /** List of change events (Amendments, Repeals) over the life time of this
    * regulation – **excluding** the original base/root regulation
    */
-  history: ReadonlyArray<RegulationHistoryItem>;
+  history: Array<RegulationHistoryItem>;
 
   /** Date sorted list of effects this regulations has on other regulations
    * text-changes or cacellations
    */
-  effects: ReadonlyArray<RegulationEffect>;
+  effects: Array<RegulationEffect>;
 
   /** Present if a NON-CURRENT version of the regulation is being served
    *
@@ -241,7 +204,7 @@ export type RegulationDiff = Omit<
   /** The title of the regulation in HTML format */
   title: HTMLText;
   /** List of the regulation's appendixes */
-  appendixes: ReadonlyArray<
+  appendixes: Array<
     Omit<Appendix, 'title'> & {
       title: HTMLText;
     }

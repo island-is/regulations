@@ -1,4 +1,4 @@
-import qq from 'qj/qq';
+import qq from '@hugsmidjan/qj/qq';
 import { asDiv } from './serverDOM';
 import { HTMLText, Regulation as UiRegulation } from '../routes/types';
 

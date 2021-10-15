@@ -4,10 +4,10 @@ API layer on top of the associated database.
 
 ## Installation
 
-`yarn dev` builds and runs the project on port 3000 by default.
+`yarn run dev` builds and runs the project on port 3000 by default, and
+concurrently starts a watch task that rebuilds when source files change.
 
-`yarn dev-watch` runs the watch task in second terminal. All routes can then be
-accessed under `localhost:3000/api/v1/[route]`
+All routes can then be accessed under `localhost:3000/api/v1/[route]`
 
 Set `process.env.PORT` to use a different port.
 

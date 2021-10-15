@@ -1,14 +1,16 @@
 const { parallel, series } = require('gulp');
 const rollupTaskFactory = require('@hugsmidjan/gulp-rollup');
+const copyTaskFactory = require('@hugsmidjan/gulp-copy');
 const del = require('del');
 
-const distFolder = 'dist/';
+const src = 'src/';
+const dist = 'dist/';
 const testsFolder = 'testing/__tests/';
 
 // ===========================================================================
 
 const baseOpts = {
-  src: 'src/',
+  src,
   format: 'cjs',
   minify: false,
   codeSplit: false,
@@ -21,20 +23,25 @@ const baseOpts = {
 
 // ===========================================================================
 
-const cleanup = () => del([distFolder, testsFolder]);
+const cleanup = () => del([dist, testsFolder]);
 
 const [scriptsBundle, scriptsWatch] = rollupTaskFactory({
   ...baseOpts,
   name: 'build_server',
   dest: './dist',
   glob: ['server.ts'],
-  dist: distFolder,
+  dist,
 });
 
-const bundle = series(cleanup, parallel(scriptsBundle));
-const watch = parallel(scriptsWatch);
+const [copyStatic, copyStaticWatch] = copyTaskFactory({
+  src,
+  glob: ['*.css'],
+  dist,
+});
+const bundle = series(cleanup, parallel(scriptsBundle, copyStatic));
+const watch = parallel(scriptsWatch, copyStaticWatch);
 
 exports.dev = series(bundle, watch);
-exports.watch = series(watch);
-exports.build = series(bundle);
+exports.watch = watch;
+exports.build = bundle;
 exports.default = exports.build;

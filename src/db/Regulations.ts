@@ -10,7 +10,7 @@ import { getMinistry } from './Ministry';
 import { getRegulationLawChapters } from './LawChapter';
 import { db } from '../utils/sequelize';
 import { QueryTypes } from 'sequelize';
-import promiseAll from 'qj/promiseAllObject';
+import promiseAll from '@hugsmidjan/qj/promiseAllObject';
 import { eliminateComments } from '../utils/extractData';
 
 export const PER_PAGE = 30;

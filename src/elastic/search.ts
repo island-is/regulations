@@ -7,8 +7,8 @@ import {
   RegulationSearchResults,
   Year,
 } from '../routes/types';
-import range from 'qj/range';
-import zeroPad from 'qj/zeroPad';
+import range from '@hugsmidjan/qj/range';
+import zeroPad from '@hugsmidjan/qj/zeroPad';
 // import { RegulationsIndexBody } from './populate';
 
 export type SearchQueryParams = {

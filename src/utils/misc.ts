@@ -2,6 +2,7 @@ import { ISODate, RegName, RegQueryName } from '../routes/types';
 import { FastifyReply } from 'fastify';
 import fs from 'fs';
 import { parse } from 'path';
+import { HOUR } from '@hugsmidjan/qj/time';
 
 /** Converts a Regulation `name` into a URL path segment
  *
@@ -19,6 +20,20 @@ export const slugToName = (regulationName: RegQueryName): RegName =>
 
 // ---------------------------------------------------------------------------
 
+/** Pretty-formats a Regulation `name` for human consumption
+ *
+ * Chops off leading zeros and adds a bit of spacing.
+ */
+
+const THIN_SPACE = ' ';
+const HAIR_SPACE = ' ';
+const SPACE = HAIR_SPACE;
+
+export const prettyName = (regulationName: string) =>
+  regulationName.replace(/^0+/, '').replace('/', SPACE + '/' + SPACE);
+
+// ---------------------------------------------------------------------------
+
 const reRegQueryNameFlex = /^\d{1,4}-\d{4}$/;
 
 /** Returns a fully zero-padded RegQueryName.
@@ -28,8 +43,8 @@ const reRegQueryNameFlex = /^\d{1,4}-\d{4}$/;
  *  Example: '23-2020' --> '0023-2020'
  *  Example: '0123-202' --> undefined
  */
-export const assertNameSlug = (slug: string): RegQueryName | undefined => {
-  if (reRegQueryNameFlex.test(slug)) {
+export const assertNameSlug = (slug?: string): RegQueryName | undefined => {
+  if (slug && reRegQueryNameFlex.test(slug)) {
     return (
       slug.length === 9 ? slug : ('000' + slug).substr(-9)
     ) as RegQueryName;
@@ -46,9 +61,9 @@ export const assertNameSlug = (slug: string): RegQueryName | undefined => {
  *  Example: '23/2020' --> '0023/2020'
  *  Example: '0123-202' --> undefined
  */
-export const assertRegName = (slug: string): RegName | undefined => {
-  slug = slug.replace('-', '/');
-  if (/^\d{1,4}\/\d{4}$/.test(slug)) {
+export const assertRegName = (slug?: string): RegName | undefined => {
+  slug = slug && slug.replace('-', '/');
+  if (slug && /^\d{1,4}\/\d{4}$/.test(slug)) {
     return (slug.length === 9 ? slug : ('000' + slug).substr(-9)) as RegName;
   }
 };
@@ -67,8 +82,8 @@ export function toISODate(date: Date | string | null | undefined) {
 
 // ---------------------------------------------------------------------------
 
-const smellsLikeISODate = (maybeISODate: string): boolean =>
-  /^\d{4}-\d{2}-\d{2}$/.test(maybeISODate);
+const smellsLikeISODate = (maybeISODate?: string): maybeISODate is string =>
+  /^\d{4}-\d{2}-\d{2}$/.test(maybeISODate || '');
 
 /** Asserts that the incoming string is a valid ISODate.
  *
@@ -77,7 +92,7 @@ const smellsLikeISODate = (maybeISODate: string): boolean =>
  * Example: `2012-09-30` --> `2012-09-30`
  * Example: `2012-09-31` --> undefined
  */
-export const assertISODate = (maybeISODate: string): ISODate | undefined => {
+export const assertISODate = (maybeISODate?: string): ISODate | undefined => {
   if (smellsLikeISODate(maybeISODate)) {
     const date = new Date(maybeISODate).toISOString().substr(0, 10) as ISODate;
     if (date === maybeISODate) {
@@ -105,7 +120,7 @@ export type QStr<keys extends string> = {
 
 // ---------------------------------------------------------------------------
 
-export const assertPosInt = (maybeNumber: string): IntPositive | undefined => {
+export const assertPosInt = (maybeNumber?: string): IntPositive | undefined => {
   const num = Number(maybeNumber);
   return num && num > 0 && num === Math.floor(num)
     ? (num as IntPositive)
@@ -124,7 +139,12 @@ export const cache = (res: FastifyReply, ttl_hrs: number): void => {
 
 // ---------------------------------------------------------------------------
 
-const HOUR = 60 * 60 * 1000;
+/** Type-guarding filter function to weed out nully values. */
+export const isNonNull = <T>(val: T): val is Exclude<T, undefined | null> =>
+  val !== null;
+
+// ---------------------------------------------------------------------------
+
 const JSONFILE_MAXAGE = 6 * HOUR;
 
 /* write json data to disk */
@@ -145,12 +165,10 @@ export const loadData = <T>(path: string): T | false => {
     return false;
   }
   try {
-    const stats = fs.statSync(path);
-    const now = new Date().getTime();
-    const mtime = new Date(stats.mtime).getTime();
+    const lastModified = fs.statSync(path).mtimeMs;
 
     // return file if it's available and fresh
-    if (now - mtime <= JSONFILE_MAXAGE) {
+    if (Date.now() - lastModified <= JSONFILE_MAXAGE) {
       const data = fs.readFileSync(path, 'utf8');
       return JSON.parse(data);
     }

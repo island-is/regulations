@@ -2,6 +2,7 @@
 .env.secret
 node_modules/
 dist/
+regulation-pdf/
 backup-json/
 npm-debug.log*
 yarn-debug.log*

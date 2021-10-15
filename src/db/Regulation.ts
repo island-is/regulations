@@ -22,7 +22,7 @@ import {
 } from '../routes/types';
 import { extractAppendixesAndComments } from '../utils/extractData';
 import { nameToSlug, toISODate } from '../utils/misc';
-import promiseAll from 'qj/promiseAllObject';
+import promiseAll from '@hugsmidjan/qj/promiseAllObject';
 
 // ---------------------------------------------------------------------------
 
