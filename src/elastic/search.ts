@@ -38,28 +38,7 @@ const cleanQuery = (q: string | undefined) =>
 export async function searchElastic(client: Client, query: SearchQueryParams) {
   let searchQuery = cleanQuery(query.q);
 
-  // add filters
-  const filters: Array<esb.Query> = [];
-
-  if (!query.iA || query.iA !== 'true') {
-    filters.push(esb.termQuery('type', 'base'));
-  }
-  if (!query.iR || query.iR !== 'true') {
-    filters.push(esb.termQuery('repealed', false));
-  }
-
-  const yearFrom = assertReasonableYear(query.year);
-  if (yearFrom) {
-    const yearTo = Math.max(yearFrom, assertReasonableYear(query.yearTo) || 0);
-    const years = range(yearFrom, yearTo);
-    filters.push(esb.termsQuery('year', years));
-  }
-  if (query.rn) {
-    filters.push(esb.termQuery('ministrySlug', xss(query.rn)));
-  }
-  if (query.ch) {
-    filters.push(esb.termQuery('lawChaptersSlugs', xss(query.ch)));
-  }
+  const nameSearch: Array<esb.Query> = [];
 
   // build text search
   const textSearch: Array<esb.Query> = [];
@@ -106,6 +85,29 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
           'text.compound^1',
         ]),
     );
+  }
+
+  // add filters
+  const filters: Array<esb.Query> = [];
+
+  if (!query.iA || query.iA !== 'true') {
+    filters.push(esb.termQuery('type', 'base'));
+  }
+  if (!query.iR || query.iR !== 'true') {
+    filters.push(esb.termQuery('repealed', false));
+  }
+
+  const yearFrom = assertReasonableYear(query.year);
+  if (yearFrom) {
+    const yearTo = Math.max(yearFrom, assertReasonableYear(query.yearTo) || 0);
+    const years = range(yearFrom, yearTo);
+    filters.push(esb.termsQuery('year', years));
+  }
+  if (query.rn) {
+    filters.push(esb.termQuery('ministrySlug', xss(query.rn)));
+  }
+  if (query.ch) {
+    filters.push(esb.termQuery('lawChaptersSlugs', xss(query.ch)));
   }
 
   // build search body
