@@ -25,11 +25,13 @@ const REGULATION_TTL = 0.1;
 
 // ---------------------------------------------------------------------------
 
+type EarlierDate = ISODate | 'original';
+
 type RegHandlerOpts<N extends string = RegQueryName> = {
   name?: RegQueryName | N;
   date?: ISODate;
   diff?: boolean;
-  earlierDate?: ISODate | 'original';
+  earlierDate?: EarlierDate;
 };
 type RefinedRegHandlerOpts<N extends string = RegQueryName> = {
   name: RegQueryName | N;
@@ -46,6 +48,11 @@ type RefinedRegHandlerOpts<N extends string = RegQueryName> = {
 );
 
 // ===========================================================================
+
+const assertEarlierDate = (maybeEDate?: string): EarlierDate | undefined =>
+  maybeEDate === 'original' ? 'original' : assertISODate(maybeEDate);
+
+// ---------------------------------------------------------------------------
 
 // eslint-disable-next-line complexity
 const handleRequest = async <N extends string = RegQueryName>(
@@ -103,16 +110,16 @@ const handleRequest = async <N extends string = RegQueryName>(
 const handleDataRequest = (res: FastifyReply, opts: RegHandlerOpts) =>
   handleRequest(res, opts, async (res, opts) => {
     const { name, date, diff, earlierDate } = opts;
-    const data = await getRegulation(slugToName(name), {
+    const regulation = await getRegulation(slugToName(name), {
       date,
       diff,
       earlierDate,
     });
-    if (!data) {
+    if (!regulation) {
       return false;
     }
     cache(res, REGULATION_TTL);
-    res.send(data);
+    res.send(regulation);
     return true;
   });
 
@@ -124,7 +131,7 @@ const handlePdfRequest = (
   body?: unknown,
 ) =>
   handleRequest(res, opts, async (res, opts) => {
-    const { date, diff } = opts;
+    const { date, diff, earlierDate } = opts;
 
     const name = opts.name !== 'new' ? opts.name : undefined;
 
@@ -134,7 +141,11 @@ const handlePdfRequest = (
       const regulation = body
         ? cleanUpRegulationBodyInput(body)
         : name
-        ? await getRegulation(slugToName(name), { date, diff })
+        ? await getRegulation(slugToName(name), {
+            date,
+            diff,
+            earlierDate,
+          })
         : undefined;
 
       if (!regulation) {
@@ -157,6 +168,10 @@ const handlePdfRequest = (
 
 // ===========================================================================
 
+//
+
+// ===========================================================================
+
 export const regulationRoutes: FastifyPluginCallback = (
   fastify,
   opts,
@@ -168,9 +183,8 @@ export const regulationRoutes: FastifyPluginCallback = (
    * @returns {DB_Regulation}
    */
   fastify.get<Pms<'name'>>('/regulation/:name/original', opts, (req, res) => {
-    const name = assertNameSlug(req.params.name);
-    return handleDataRequest(res, {
-      name,
+    handleDataRequest(res, {
+      name: assertNameSlug(req.params.name),
     });
   });
   /**
@@ -194,13 +208,11 @@ export const regulationRoutes: FastifyPluginCallback = (
    * @returns {DB_Regulation}
    */
   fastify.get<Pms<'name'>>('/regulation/:name/current', opts, (req, res) => {
-    const name = assertNameSlug(req.params.name);
-    return handleDataRequest(res, {
-      name,
+    handleDataRequest(res, {
+      name: assertNameSlug(req.params.name),
       date: toISODate(new Date()),
     });
   });
-
   /**
    * Returns current version of a regulation with all changes applied in PDF format
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
@@ -224,9 +236,22 @@ export const regulationRoutes: FastifyPluginCallback = (
    * @returns {DB_Regulation}
    */
   fastify.get<Pms<'name'>>('/regulation/:name/diff', opts, (req, res) => {
-    const name = assertNameSlug(req.params.name);
-    return handleDataRequest(res, {
-      name,
+    handleDataRequest(res, {
+      name: assertNameSlug(req.params.name),
+      date: toISODate(new Date()),
+      diff: true,
+      earlierDate: 'original',
+    });
+  });
+  /**
+   * Returns current version of a regulation with all changes applied, showing
+   * the total changes the "original" verion in PDF format
+   * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
+   * @returns pdf file
+   */
+  fastify.get<Pms<'name'>>('/regulation/:name/diff/pdf', opts, (req, res) => {
+    handlePdfRequest(res, {
+      name: assertNameSlug(req.params.name),
       date: toISODate(new Date()),
       diff: true,
       earlierDate: 'original',
@@ -243,11 +268,9 @@ export const regulationRoutes: FastifyPluginCallback = (
     '/regulation/:name/d/:date',
     opts,
     (req, res) => {
-      const name = assertNameSlug(req.params.name);
-      const date = assertISODate(req.params.date);
-      return handleDataRequest(res, {
-        name,
-        date,
+      handleDataRequest(res, {
+        name: assertNameSlug(req.params.name),
+        date: assertISODate(req.params.date),
       });
     },
   );
@@ -279,11 +302,27 @@ export const regulationRoutes: FastifyPluginCallback = (
     '/regulation/:name/d/:date/diff',
     opts,
     (req, res) => {
-      const name = assertNameSlug(req.params.name);
-      const date = assertISODate(req.params.date);
       handleDataRequest(res, {
-        name,
-        date,
+        name: assertNameSlug(req.params.name),
+        date: assertISODate(req.params.date),
+        diff: true,
+      });
+    },
+  );
+  /**
+   * Returns a version of a regulation as it was on a specific date, showing the changes
+   * that occurred on that date in PDF format
+   * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
+   * @param {string} date - ISODate (`YYYY-MM-DD`)
+   * @returns pdf file
+   */
+  fastify.get<Pms<'name' | 'date'>>(
+    '/regulation/:name/d/:date/diff/pdf',
+    opts,
+    (req, res) => {
+      handlePdfRequest(res, {
+        name: assertNameSlug(req.params.name),
+        date: assertISODate(req.params.date),
         diff: true,
       });
     },
@@ -301,18 +340,31 @@ export const regulationRoutes: FastifyPluginCallback = (
     '/regulation/:name/d/:date/diff/:earlierDate',
     opts,
     (req, res) => {
-      const p = req.params;
-      const name = assertNameSlug(p.name);
-      const date = assertISODate(p.date);
-      const earlierDate =
-        p.earlierDate === 'original'
-          ? 'original'
-          : assertISODate(p.earlierDate);
       handleDataRequest(res, {
-        name,
-        date,
+        name: assertNameSlug(req.params.name),
+        date: assertISODate(req.params.date),
         diff: true,
-        earlierDate,
+        earlierDate: assertEarlierDate(req.params.earlierDate),
+      });
+    },
+  );
+  /**
+   * Returns a version of a regulation as it was on a specific date, showing the changes
+   * that occurred on that date in PDF format
+   * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
+   * @param {string} date - ISODate (`YYYY-MM-DD`)
+   * @param {string} earlierDate - ISODate (`YYYY-MM-DD`) or 'original'
+   * @returns pdf file
+   */
+  fastify.get<Pms<'name' | 'date' | 'earlierDate'>>(
+    '/regulation/:name/d/:date/diff/:earlierDate/pdf',
+    opts,
+    (req, res) => {
+      handlePdfRequest(res, {
+        name: assertNameSlug(req.params.name),
+        date: assertISODate(req.params.date),
+        diff: true,
+        earlierDate: assertEarlierDate(req.params.earlierDate),
       });
     },
   );
