@@ -43,8 +43,8 @@ const reRegQueryNameFlex = /^\d{1,4}-\d{4}$/;
  *  Example: '23-2020' --> '0023-2020'
  *  Example: '0123-202' --> undefined
  */
-export const assertNameSlug = (slug: string): RegQueryName | undefined => {
-  if (reRegQueryNameFlex.test(slug)) {
+export const assertNameSlug = (slug?: string): RegQueryName | undefined => {
+  if (slug && reRegQueryNameFlex.test(slug)) {
     return (
       slug.length === 9 ? slug : ('000' + slug).substr(-9)
     ) as RegQueryName;
@@ -61,9 +61,9 @@ export const assertNameSlug = (slug: string): RegQueryName | undefined => {
  *  Example: '23/2020' --> '0023/2020'
  *  Example: '0123-202' --> undefined
  */
-export const assertRegName = (slug: string): RegName | undefined => {
+export const assertRegName = (slug?: string): RegName | undefined => {
   slug = slug && slug.replace('-', '/');
-  if (/^\d{1,4}\/\d{4}$/.test(slug)) {
+  if (slug && /^\d{1,4}\/\d{4}$/.test(slug)) {
     return (slug.length === 9 ? slug : ('000' + slug).substr(-9)) as RegName;
   }
 };
@@ -82,8 +82,8 @@ export function toISODate(date: Date | string | null | undefined) {
 
 // ---------------------------------------------------------------------------
 
-const smellsLikeISODate = (maybeISODate: string): boolean =>
-  /^\d{4}-\d{2}-\d{2}$/.test(maybeISODate);
+const smellsLikeISODate = (maybeISODate?: string): maybeISODate is string =>
+  /^\d{4}-\d{2}-\d{2}$/.test(maybeISODate || '');
 
 /** Asserts that the incoming string is a valid ISODate.
  *
@@ -92,7 +92,7 @@ const smellsLikeISODate = (maybeISODate: string): boolean =>
  * Example: `2012-09-30` --> `2012-09-30`
  * Example: `2012-09-31` --> undefined
  */
-export const assertISODate = (maybeISODate: string): ISODate | undefined => {
+export const assertISODate = (maybeISODate?: string): ISODate | undefined => {
   if (smellsLikeISODate(maybeISODate)) {
     const date = new Date(maybeISODate).toISOString().substr(0, 10) as ISODate;
     if (date === maybeISODate) {
@@ -120,7 +120,7 @@ export type QStr<keys extends string> = {
 
 // ---------------------------------------------------------------------------
 
-export const assertPosInt = (maybeNumber: string): IntPositive | undefined => {
+export const assertPosInt = (maybeNumber?: string): IntPositive | undefined => {
   const num = Number(maybeNumber);
   return num && num > 0 && num === Math.floor(num)
     ? (num as IntPositive)
