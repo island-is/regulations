@@ -154,7 +154,7 @@ export function makeRegulationPdf(
           exec(
             // Increasing context to 5 lines (effectively: words) seems reasonable
             // since each line is so short (contains so little actual context)
-            `pagedjs-cli ${htmlFile}  --browserArgs '--no-sandbox'  --output ${fileName}`,
+            `pagedjs-cli ${htmlFile}  --browserArgs --no-sandbox,--font-render-hinting=none  --output ${fileName}`,
             (err) => {
               unlink(htmlFile);
               if (!err) {
