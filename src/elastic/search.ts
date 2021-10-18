@@ -60,17 +60,13 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
         }
       })
       .join(' ');
-    // generic search
 
     names.forEach((name) => {
-      textSearch.push(
-        esb
-          .queryStringQuery(`"${name}"`)
-          // .analyzeWildcard(true)
-          // .escape(true)
-          .fields(['name^100']),
+      nameSearch.push(
+        esb.queryStringQuery('"' + name + '"').fields(['name^100']),
       );
     });
+
     textSearch.push(
       esb
         .queryStringQuery(searchQuery)
@@ -114,12 +110,22 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
     filters.push(esb.termQuery('lawChaptersSlugs', xss(query.ch)));
   }
 
+  const searchSections: Array<esb.Query> = [
+    // String searches must be filtered for repealed state, regulation type, ministry, etc., etc.
+    esb.boolQuery().must(textSearch).filter(filters),
+  ];
+  if (nameSearch.length) {
+    // Name searches, however, should ignore all filters.
+    // Just return the the named regulations regardless of their state.
+    searchSections.push(
+      esb.boolQuery().should(nameSearch).minimumShouldMatch(1),
+    );
+  }
+
   // build search body
   const requestBody = esb
     .requestBodySearch()
-    .query(
-      esb.boolQuery().should(textSearch).minimumShouldMatch(1).filter(filters),
-    )
+    .query(esb.boolQuery().should(searchSections).minimumShouldMatch(1))
     .sorts([esb.sort('_score', 'desc'), esb.sort('publishedDate', 'desc')]);
 
   // esb.prettyPrint(requestBody);
