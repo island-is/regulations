@@ -154,7 +154,7 @@ export function makeRegulationPdf(
           exec(
             // Increasing context to 5 lines (effectively: words) seems reasonable
             // since each line is so short (contains so little actual context)
-            `pagedjs-cli ${htmlFile} --output ${fileName}`,
+            `pagedjs-cli ${htmlFile}  --browserArgs '--no-sandbox'  --output ${fileName}`,
             (err) => {
               unlink(htmlFile);
               if (!err) {
@@ -175,7 +175,7 @@ export function makeRegulationPdf(
 // ===========================================================================
 
 export function getPdfFileName(name: string) {
-  const dirName = `${__dirname}/regulation-pdf`;
+  const dirName = './regulation-pdf';
   if (!fs.existsSync(dirName)) {
     fs.mkdirSync(dirName, { recursive: true });
   }
