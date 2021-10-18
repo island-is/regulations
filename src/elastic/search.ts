@@ -85,6 +85,10 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
           'text.compound^1',
         ]),
     );
+  } else {
+    textSearch.push(
+      esb.queryStringQuery('*').analyzeWildcard(true).fields(['title']),
+    );
   }
 
   // add filters
