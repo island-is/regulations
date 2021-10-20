@@ -10,8 +10,10 @@ import {
 import {
   assertISODate,
   assertRegName,
+  formatDate as fmt,
   isNonNull,
   prettyName,
+  toISODate,
 } from '../utils/misc';
 import { cleanupAllEditorOutputs } from '@hugsmidjan/regulations-editor/cleanupEditorOutput';
 import { cleanTitle } from '@hugsmidjan/regulations-editor/cleanTitle';
@@ -19,6 +21,7 @@ import fs from 'fs';
 import { exec } from 'child_process';
 import { writeFile, unlink } from 'fs/promises';
 import { HOUR } from '@hugsmidjan/qj/time';
+import arrayToObject from '@hugsmidjan/qj/arrayToObject';
 
 export type InputRegulation = Pick<
   Regulation,
@@ -29,9 +32,11 @@ export type InputRegulation = Pick<
   lastAmendDate?: undefined;
   timelineDate?: undefined;
   repealedDate?: undefined;
+  repealed?: undefined;
   signatureDate?: Regulation['signatureDate'];
   publishedDate?: Regulation['publishedDate'];
   effectiveDate?: Regulation['effectiveDate'];
+  history?: undefined;
 };
 
 // ---------------------------------------------------------------------------
@@ -53,17 +58,101 @@ export const shouldMakePdf = (fileName: string) => {
 const sanitizeTextContent = (text: PlainText): HTMLText =>
   text.replace(/&/, '&amp;').replace(/</g, '&lt;') as HTMLText;
 
+// ---------------------------------------------------------------------------
+
+const getStatusText = (regulation: RegulationMaybeDiff): string => {
+  const {
+    timelineDate,
+    lastAmendDate,
+    publishedDate,
+    history,
+    showingDiff,
+    repealed,
+    repealedDate,
+  } = regulation;
+  const today = toISODate(new Date());
+  const printoutDateStr =
+    ' <small class="printoutdate">(prentað ' + fmt(today) + ')</small>';
+
+  if (showingDiff) {
+    const { from: dateFrom, to: dateTo } = showingDiff;
+
+    const affectingRegulations = Object.values(
+      arrayToObject(
+        history.filter(
+          ({ effect, date }) =>
+            effect === 'amend' && dateFrom <= date && date <= dateTo,
+        ),
+        'name',
+      ),
+    );
+    const affectingNames = affectingRegulations
+      .map((affectingReg, i, arr) => {
+        const separator = i === 0 ? '' : i < arr.length - 1 ? ', ' : ' og ';
+        return separator + prettyName(affectingReg.name);
+      })
+      .join('');
+
+    const isFuture = today < dateTo;
+
+    return (
+      'Sýnir breytingar ' +
+      (isFuture ? 'væntanlegar' : 'gerðar') +
+      (affectingRegulations.length === 1
+        ? ` þann ${fmt(dateTo)}`
+        : ` á tímabilinu ${fmt(dateFrom)} – ${fmt(dateTo)}`) +
+      `\n<small class="affecting">af rg.nr. ${affectingNames}</small>` +
+      ' ' +
+      printoutDateStr +
+      (isFuture ? ' ' + printoutDateStr : '')
+    );
+  }
+
+  if (!timelineDate || timelineDate === lastAmendDate) {
+    const fmtLastModified = fmt(lastAmendDate || publishedDate);
+
+    if (repealed) {
+      return (
+        `Útgáfa sem gilti frá ${fmtLastModified} fram að ` +
+        (repealedDate ? ` brottfellingu ${fmt(repealedDate)}` : 'ógildingu')
+      );
+    }
+    return `Útgáfa í gildi frá ${fmtLastModified}` + printoutDateStr;
+  }
+
+  const nextTimelineDate = (() => {
+    const idx = history.findIndex((item) => item.date === timelineDate);
+    const nextItem = idx > -1 && history[idx + 1];
+    return nextItem ? nextItem.date : undefined;
+  })();
+  const fmtDateFrom = fmt(timelineDate);
+  const fmtDateTo = fmt(nextTimelineDate || today);
+
+  if (today < timelineDate) {
+    if (nextTimelineDate) {
+      return (
+        `Væntanleg útgáfa sem á að gilda frá ${fmtDateFrom} – ${fmtDateTo}` +
+        printoutDateStr
+      );
+    }
+    return (
+      `Væntanleg útgáfa sem á að taka gildi ${fmtDateFrom}` + printoutDateStr
+    );
+  }
+
+  return `Útgáfa sem gilti á tímabilinu ${fmtDateFrom} – ${fmtDateTo}`;
+};
+
+// ---------------------------------------------------------------------------
 const CSS = fs.readFileSync('./dist/RegulationPdf.css');
 
 const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
   const {
     name,
-    lastAmendDate,
-    timelineDate,
-    effectiveDate,
     text,
     appendixes,
     comments = '',
+    // effectiveDate,
     // signatureDate,
     publishedDate,
   } = regulation;
@@ -73,12 +162,13 @@ const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
     : sanitizeTextContent(regulation.title);
   const nameStr = name && prettyName(name);
 
-  const statusText =
-    !timelineDate && lastAmendDate
-      ? `Með breytingum fram til `
-      : lastAmendDate
-      ? `Síðast breytt: ${lastAmendDate}`
-      : `Tók gildi: ${effectiveDate}`;
+  let statusText: string | undefined;
+
+  if (!regulation.history) {
+    statusText = publishedDate && `Útgáfudagur ${fmt(publishedDate)}`;
+  } else {
+    statusText = getStatusText(regulation);
+  }
 
   const footerStr = '';
 

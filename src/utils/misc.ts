@@ -1,3 +1,5 @@
+import { format as _formatDate } from 'date-fns';
+import { is as locale } from 'date-fns/locale';
 import { ISODate, RegName, RegQueryName } from '../routes/types';
 import { FastifyReply } from 'fastify';
 import fs from 'fs';
@@ -103,6 +105,11 @@ export const assertISODate = (maybeISODate?: string): ISODate | undefined => {
     }
   }
 };
+
+// ---------------------------------------------------------------------------
+
+export const formatDate = (date: ISODate, format = 'd. MMM yyyy'): string =>
+  _formatDate(new Date(date), format, { locale });
 
 // ---------------------------------------------------------------------------
 
