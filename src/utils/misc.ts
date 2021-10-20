@@ -22,15 +22,10 @@ export const slugToName = (regulationName: RegQueryName): RegName =>
 
 /** Pretty-formats a Regulation `name` for human consumption
  *
- * Chops off leading zeros and adds a bit of spacing.
+ * Chops off leading zeros.
  */
-
-const THIN_SPACE = ' ';
-const HAIR_SPACE = ' ';
-const SPACE = HAIR_SPACE;
-
-export const prettyName = (regulationName: string) =>
-  regulationName.replace(/^0+/, '').replace('/', SPACE + '/' + SPACE);
+export const prettyName = (regulationName: RegName) =>
+  regulationName.replace(/^0+/, '');
 
 // ---------------------------------------------------------------------------
 
