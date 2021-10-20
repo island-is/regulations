@@ -29,6 +29,7 @@ export type InputRegulation = Pick<
   lastAmendDate?: undefined;
   timelineDate?: undefined;
   repealedDate?: undefined;
+  signatureDate?: Regulation['signatureDate'];
   publishedDate?: Regulation['publishedDate'];
   effectiveDate?: Regulation['effectiveDate'];
 };
@@ -60,10 +61,11 @@ const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
     lastAmendDate,
     timelineDate,
     effectiveDate,
-    publishedDate,
     text,
     appendixes,
     comments = '',
+    // signatureDate,
+    publishedDate,
   } = regulation;
 
   const title = regulation.showingDiff
@@ -194,6 +196,7 @@ export function cleanUpRegulationBodyInput(
   const name = assertRegName(String(body.name));
   const effectiveDate = assertISODate(String(body.effectiveDate));
   const publishedDate = assertISODate(String(body.publishedDate));
+  const signatureDate = assertISODate(String(body.signatureDate));
 
   const dirtyTitle = String(body.title);
   const dirtyText = String(body.text) as HTMLText;
@@ -227,8 +230,9 @@ export function cleanUpRegulationBodyInput(
       appendixes,
       comments,
       name,
-      effectiveDate,
+      signatureDate,
       publishedDate,
+      effectiveDate,
     };
   }
 }
