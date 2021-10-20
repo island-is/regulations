@@ -90,7 +90,7 @@
       content: element(regName);
     }
     @top-right {
-      content: element(dateBox);
+      content: element(statusBox);
     }
     @bottom-left {
       content: element(footerInfo);
@@ -405,8 +405,8 @@
   .regulation__name > strong {
     font-weight: var(--font-weight--bold);
   }
-  .regulation__date {
-    position: running(dateBox);
+  .regulation__status {
+    position: running(statusBox);
     font-style: italic;
     font-size: var(--font-size--metainfo);
   }

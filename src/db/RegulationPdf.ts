@@ -73,10 +73,7 @@ const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
     : sanitizeTextContent(regulation.title);
   const nameStr = name && prettyName(name);
 
-  const isOriginal = true;
-  const isCurrent = true;
-
-  const dateStr =
+  const statusText =
     !timelineDate && lastAmendDate
       ? `Með breytingum fram til `
       : lastAmendDate
@@ -99,7 +96,7 @@ const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
           ? `<div class="regulation__name">Nr. <strong>${nameStr}</strong></div>`
           : ''
       }
-      ${dateStr ? `<div class="regulation__date">${dateStr}</div>` : ''}
+      ${statusText ? `<div class="regulation__status">${statusText}</div>` : ''}
       ${footerStr ? `<div class="regulation__footer">${footerStr}</div>` : ''}
       </div>
     <h1 class="regulation__title">${title}</h1>
