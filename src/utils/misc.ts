@@ -65,14 +65,22 @@ export const assertRegName = (slug?: string): RegName | undefined => {
 
 // ---------------------------------------------------------------------------
 
-export function toISODate(date: Date | string | null | undefined) {
+export function toISODate(date: Date): ISODate;
+export function toISODate(date: null | undefined): null;
+export function toISODate(
+  date: Date | string | null | undefined,
+): ISODate | null;
+
+export function toISODate(
+  date: Date | string | null | undefined,
+): ISODate | null {
   if (typeof date === 'string') {
     date = new Date(date);
     if (isNaN(date.getTime())) {
       date = undefined;
     }
   }
-  return date ? (date.toISOString().substr(0, 10) as ISODate) : undefined;
+  return date ? (date.toISOString().substr(0, 10) as ISODate) : null;
 }
 
 // ---------------------------------------------------------------------------
