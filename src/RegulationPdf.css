@@ -385,12 +385,12 @@
 
   del {
     padding: 0 0.125rem;
-    background-color: #9fc;
+    background-color: #faa;
   }
   ins {
     padding: 0 0.125rem;
-    text-decoration-color: rgba(0, 0, 0, 0.5);
-    background-color: #faa;
+    text-decoration-color: rgba(245, 240, 240, 0.5);
+    background-color: #9fc;
   }
 
   /* ======================================================================= */
