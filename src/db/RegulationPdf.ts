@@ -69,6 +69,7 @@ const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
   const title = regulation.showingDiff
     ? regulation.title
     : sanitizeTextContent(regulation.title);
+  const nameStr = name && prettyName(name);
 
   const isOriginal = true;
   const isCurrent = true;
@@ -93,9 +94,7 @@ const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
     <div class="regulation__meta">
       ${
         name
-          ? `<div class="regulation__name">Nr. <strong>${prettyName(
-              name,
-            )}</strong></div>`
+          ? `<div class="regulation__name">Nr. <strong>${nameStr}</strong></div>`
           : ''
       }
       ${dateStr ? `<div class="regulation__date">${dateStr}</div>` : ''}
