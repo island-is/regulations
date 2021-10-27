@@ -29,7 +29,7 @@ const [scriptsBundle, scriptsWatch] = rollupTaskFactory({
   ...baseOpts,
   name: 'build_server',
   dest: './dist',
-  glob: ['server.ts'],
+  glob: ['server.ts', 'proxyServer.ts'],
   dist,
 });
 
