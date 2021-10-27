@@ -12,6 +12,7 @@
     "dev": "concurrently -k \"yarn dev-watch\" \"yarn dev-proxy-server\"",
     "dev-proxy": "concurrently -k \"yarn dev-watch\" \"yarn dev-server\"",
     "start": "NODE_ENV=production node -r dotenv/config dist/server.js",
+    "start-proxy": "NODE_ENV=production node -r dotenv/config dist/proxyServer.js",
     "lint:eslint": "eslint \"*.{js,ts,tsx}\" \"src/**/*.{js,ts,tsx}\"",
     "lint": "concurrently yarn:lint:*",
     "format:eslint": "eslint --fix  \"*.{js,ts,tsx}\" \"src/**/*.{js,ts,tsx}\"",

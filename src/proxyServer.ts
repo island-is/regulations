@@ -15,7 +15,7 @@ if (!AWS_BUCKET_NAME || !AWS_REGION_NAME) {
 
 fastify.register(proxy, {
   upstream: `https://${AWS_BUCKET_NAME}.s3.${AWS_REGION_NAME}.amazonaws.com`,
-  prefix: '/',
+  prefix: '',
   // http2: false,
 });
 
