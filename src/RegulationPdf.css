@@ -428,6 +428,13 @@
     font-size: var(--font-size--metainfo);
     font-style: italic;
   }
+  .regulation__footer > a.pdfurl {
+    display: block;
+    font-size: var(--font-size--metainfoSmall);
+    white-space: nowrap;
+    color: inherit;
+    text-decoration: none;
+  }
 
   .regulation__title {
     font-size: 1.667em;

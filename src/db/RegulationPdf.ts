@@ -37,6 +37,7 @@ export type InputRegulation = Pick<
   publishedDate?: Regulation['publishedDate'];
   effectiveDate?: Regulation['effectiveDate'];
   history?: undefined;
+  pdfVersion?: undefined;
 };
 
 // ---------------------------------------------------------------------------
@@ -155,6 +156,7 @@ const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
     // effectiveDate,
     // signatureDate,
     publishedDate,
+    pdfVersion,
   } = regulation;
 
   const title = regulation.showingDiff
@@ -170,7 +172,9 @@ const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
     statusText = getStatusText(regulation);
   }
 
-  const footerStr = '';
+  const footerStr = pdfVersion
+    ? `<a class="pdfurl" href="${pdfVersion}">${pdfVersion}</a>`
+    : '';
 
   return `
 <html>
