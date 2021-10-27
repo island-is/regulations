@@ -193,7 +193,8 @@ async function getLatestRegulationChange(
 
 const augmentRegulation = async (
   regulation: DB_Regulation,
-  regulationChange?: DB_RegulationChange,
+  regulationChange: DB_RegulationChange | undefined,
+  pdfVersion: string,
 ): Promise<Regulation> => {
   const {
     id,
@@ -253,6 +254,7 @@ const augmentRegulation = async (
     history,
     effects,
     originalDoc: _externalsource,
+    pdfVersion,
     // timelineDate: undefined,
     // showingDiff: undefined,
   };
@@ -296,18 +298,24 @@ function isNonCurrent(
   );
 }
 
+// ---------------------------------------------------------------------------
+
+const getPdfVersion = (routePath: string) =>
+  FILE_SERVER + '/pdf' + routePath.replace(/\?.+$/, '').replace(/\/pdf/, '');
+
 // ===========================================================================
 
 // eslint-disable-next-line complexity
 export async function getRegulation(
   regulationName: RegName,
-  opts?: {
+  opts: {
     diff?: boolean;
     date?: Date;
     earlierDate?: Date | 'original';
   },
+  routePath: string,
 ) {
-  const { date, diff, earlierDate } = opts || {};
+  const { date, diff, earlierDate } = opts;
   const regulation = await getRegulationByName(regulationName);
   if (!regulation) {
     return null;
@@ -323,6 +331,7 @@ export async function getRegulation(
   const augmentedRegulation = await augmentRegulation(
     regulation,
     regulationChange,
+    getPdfVersion(routePath),
   );
 
   // Add timelineDate if regulation is NON-CURRENT

@@ -16,7 +16,7 @@ import {
   Regulation,
   RegulationDiff,
 } from './types';
-import { FastifyPluginCallback, FastifyReply } from 'fastify';
+import { FastifyPluginCallback, FastifyReply, FastifyRequest } from 'fastify';
 import {
   getPdfFileName,
   makeRegulationPdf,
@@ -61,11 +61,13 @@ const assertEarlierDate = (maybeEDate?: string): EarlierDate | undefined =>
 
 // eslint-disable-next-line complexity
 const handleRequest = async <N extends string = RegQueryName>(
+  req: FastifyRequest,
   res: FastifyReply,
   opts: RegHandlerOpts<N>,
   handler: (
     res: FastifyReply,
     opts: RefinedRegHandlerOpts<N>,
+    routePath: string,
   ) => Promise<boolean>,
 ) => {
   const { name, date, diff, earlierDate } = opts;
@@ -90,7 +92,12 @@ const handleRequest = async <N extends string = RegQueryName>(
         ? { earlierDate: earlierDateDate, diff: true }
         : { diff }),
     };
-    const success = await handler(res, handlerOpts);
+
+    // NOTE: Is there a better/cleaner/more robust way to
+    // provide this info?
+    const routePath = req.url.replace(/^\/api\/v[0-9]+\/regulation/, '');
+
+    const success = await handler(res, handlerOpts, routePath);
 
     if (!success) {
       res.code(400).send('Regulation not found!');
@@ -112,14 +119,22 @@ const handleRequest = async <N extends string = RegQueryName>(
 
 // ===========================================================================
 
-const handleDataRequest = (res: FastifyReply, opts: RegHandlerOpts) =>
-  handleRequest(res, opts, async (res, opts) => {
+const handleDataRequest = (
+  req: FastifyRequest,
+  res: FastifyReply,
+  opts: RegHandlerOpts,
+) =>
+  handleRequest(req, res, opts, async (res, opts, routePath) => {
     const { name, date, diff, earlierDate } = opts;
-    const regulation = await getRegulation(slugToName(name), {
-      date,
-      diff,
-      earlierDate,
-    });
+    const regulation = await getRegulation(
+      slugToName(name),
+      {
+        date,
+        diff,
+        earlierDate,
+      },
+      routePath,
+    );
     if (!regulation) {
       return false;
     }
@@ -131,11 +146,12 @@ const handleDataRequest = (res: FastifyReply, opts: RegHandlerOpts) =>
 // ===========================================================================
 
 const handlePdfRequest = (
+  req: FastifyRequest,
   res: FastifyReply,
   opts: RegHandlerOpts<'new'>,
   body?: unknown,
 ) =>
-  handleRequest(res, opts, async (res, opts) => {
+  handleRequest(req, res, opts, async (res, opts, routePath) => {
     const { date, diff, earlierDate } = opts;
 
     const name = opts.name !== 'new' ? opts.name : undefined;
@@ -146,11 +162,15 @@ const handlePdfRequest = (
       const regulation = body
         ? cleanUpRegulationBodyInput(body)
         : name
-        ? await getRegulation(slugToName(name), {
-            date,
-            diff,
-            earlierDate,
-          })
+        ? await getRegulation(
+            slugToName(name),
+            {
+              date,
+              diff,
+              earlierDate,
+            },
+            routePath,
+          )
         : undefined;
 
       if (!regulation) {
@@ -188,7 +208,7 @@ export const regulationRoutes: FastifyPluginCallback = (
    * @returns {Regulation | RegulationRedirect}
    */
   fastify.get<Pms<'name'>>('/regulation/:name/original', opts, (req, res) => {
-    handleDataRequest(res, {
+    handleDataRequest(req, res, {
       name: assertNameSlug(req.params.name),
     });
   });
@@ -201,7 +221,7 @@ export const regulationRoutes: FastifyPluginCallback = (
     '/regulation/:name/original/pdf',
     opts,
     (req, res) => {
-      handlePdfRequest(res, {
+      handlePdfRequest(req, res, {
         name: assertNameSlug(req.params.name),
       });
     },
@@ -213,7 +233,7 @@ export const regulationRoutes: FastifyPluginCallback = (
    * @returns {Regulation | RegulationRedirect}
    */
   fastify.get<Pms<'name'>>('/regulation/:name/current', opts, (req, res) => {
-    handleDataRequest(res, {
+    handleDataRequest(req, res, {
       name: assertNameSlug(req.params.name),
       date: toISODate(new Date()),
     });
@@ -227,7 +247,7 @@ export const regulationRoutes: FastifyPluginCallback = (
     '/regulation/:name/current/pdf',
     opts,
     (req, res) => {
-      handlePdfRequest(res, {
+      handlePdfRequest(req, res, {
         name: assertNameSlug(req.params.name),
         date: toISODate(new Date()),
       });
@@ -241,7 +261,7 @@ export const regulationRoutes: FastifyPluginCallback = (
    * @returns {RegulationDiff | RegulationRedirect}
    */
   fastify.get<Pms<'name'>>('/regulation/:name/diff', opts, (req, res) => {
-    handleDataRequest(res, {
+    handleDataRequest(req, res, {
       name: assertNameSlug(req.params.name),
       date: toISODate(new Date()),
       diff: true,
@@ -255,7 +275,7 @@ export const regulationRoutes: FastifyPluginCallback = (
    * @returns pdf file
    */
   fastify.get<Pms<'name'>>('/regulation/:name/diff/pdf', opts, (req, res) => {
-    handlePdfRequest(res, {
+    handlePdfRequest(req, res, {
       name: assertNameSlug(req.params.name),
       date: toISODate(new Date()),
       diff: true,
@@ -273,7 +293,7 @@ export const regulationRoutes: FastifyPluginCallback = (
     '/regulation/:name/d/:date',
     opts,
     (req, res) => {
-      handleDataRequest(res, {
+      handleDataRequest(req, res, {
         name: assertNameSlug(req.params.name),
         date: assertISODate(req.params.date),
       });
@@ -289,7 +309,7 @@ export const regulationRoutes: FastifyPluginCallback = (
     '/regulation/:name/d/:date/pdf',
     opts,
     (req, res) => {
-      handlePdfRequest(res, {
+      handlePdfRequest(req, res, {
         name: assertNameSlug(req.params.name),
         date: assertISODate(req.params.date),
       });
@@ -307,7 +327,7 @@ export const regulationRoutes: FastifyPluginCallback = (
     '/regulation/:name/d/:date/diff',
     opts,
     (req, res) => {
-      handleDataRequest(res, {
+      handleDataRequest(req, res, {
         name: assertNameSlug(req.params.name),
         date: assertISODate(req.params.date),
         diff: true,
@@ -325,7 +345,7 @@ export const regulationRoutes: FastifyPluginCallback = (
     '/regulation/:name/d/:date/diff/pdf',
     opts,
     (req, res) => {
-      handlePdfRequest(res, {
+      handlePdfRequest(req, res, {
         name: assertNameSlug(req.params.name),
         date: assertISODate(req.params.date),
         diff: true,
@@ -345,7 +365,7 @@ export const regulationRoutes: FastifyPluginCallback = (
     '/regulation/:name/d/:date/diff/:earlierDate',
     opts,
     (req, res) => {
-      handleDataRequest(res, {
+      handleDataRequest(req, res, {
         name: assertNameSlug(req.params.name),
         date: assertISODate(req.params.date),
         diff: true,
@@ -365,7 +385,7 @@ export const regulationRoutes: FastifyPluginCallback = (
     '/regulation/:name/d/:date/diff/:earlierDate/pdf',
     opts,
     (req, res) => {
-      handlePdfRequest(res, {
+      handlePdfRequest(req, res, {
         name: assertNameSlug(req.params.name),
         date: assertISODate(req.params.date),
         diff: true,
@@ -383,7 +403,7 @@ export const regulationRoutes: FastifyPluginCallback = (
    * @returns pdf file
    */
   fastify.post('/regulation/generate-pdf', opts, (req, res) => {
-    handlePdfRequest(res, { name: 'new' }, req.body);
+    handlePdfRequest(req, res, { name: 'new' }, req.body);
   });
 
   done();
