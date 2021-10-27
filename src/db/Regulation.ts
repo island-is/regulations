@@ -23,6 +23,7 @@ import {
 import { extractAppendixesAndComments } from '../utils/extractData';
 import { nameToSlug, toISODate } from '../utils/misc';
 import promiseAll from '@hugsmidjan/qj/promiseAllObject';
+import { FILE_SERVER } from '../constants';
 
 // ---------------------------------------------------------------------------
 
@@ -56,11 +57,22 @@ const getTextContentDiff = (older: PlainText, newer: PlainText): HTMLText =>
 
 // ---------------------------------------------------------------------------
 
+export const prefixFileUrls = (regulationText: HTMLText): HTMLText =>
+  regulationText.replace(
+    /(<img src="|<a href=")\//g,
+    '$1' + FILE_SERVER + '/',
+  ) as HTMLText;
+
+// ---------------------------------------------------------------------------
+
 async function getRegulationByName(name: RegName) {
   const regulation =
     (await DB_Regulation.findOne({
       where: { name },
     })) ?? undefined;
+  if (regulation) {
+    regulation.text = prefixFileUrls(regulation.text);
+  }
   return regulation;
 }
 
@@ -159,6 +171,9 @@ async function getLatestRegulationChange(
         ['id', 'ASC'],
       ],
     })) ?? undefined;
+  if (regulationChange) {
+    regulationChange.text = prefixFileUrls(regulationChange.text);
+  }
   return regulationChange;
 }
 
@@ -281,7 +296,7 @@ function isNonCurrent(
   );
 }
 
-// ***
+// ===========================================================================
 
 // eslint-disable-next-line complexity
 export async function getRegulation(
