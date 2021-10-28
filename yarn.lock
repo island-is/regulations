@@ -1849,7 +1849,7 @@ encoding-negotiator@^2.0.1:
   resolved "https://registry.yarnpkg.com/encoding-negotiator/-/encoding-negotiator-2.0.1.tgz#79871bb5473b81f6a0670e8de5303fb5ee0868a3"
   integrity sha512-GSK7qphNR4iPcejfAlZxKDoz3xMhnspwImK+Af5WhePS9jUpK/Oh7rUdyENWu+9rgDflOCTmAojBsgsvM8neAQ==
 
-end-of-stream@^1.0.0, end-of-stream@^1.1.0, end-of-stream@^1.4.1:
+end-of-stream@^1.0.0, end-of-stream@^1.1.0, end-of-stream@^1.4.1, end-of-stream@^1.4.4:
   version "1.4.4"
   resolved "https://registry.yarnpkg.com/end-of-stream/-/end-of-stream-1.4.4.tgz#5ae64a5f45057baf3626ec14da0ca5e4b2431eb0"
   integrity sha512-+uw1inIHVPQoaVuHzRyXd21icM+cnt4CzD5rW+NC1wjOUSTOs+Te7FOv7AhN7vS9x/oIyhLP5PR1H+phQAHu5Q==
@@ -2413,6 +2413,14 @@ fastify-error@^0.3.0:
   resolved "https://registry.yarnpkg.com/fastify-error/-/fastify-error-0.3.1.tgz#8eb993e15e3cf57f0357fc452af9290f1c1278d2"
   integrity sha512-oCfpcsDndgnDVgiI7bwFKAun2dO+4h84vBlkWsWnz/OUK9Reff5UFoFl241xTiLeHWX/vU9zkDVXqYUxjOwHcQ==
 
+fastify-http-proxy@^6.2.1:
+  version "6.2.1"
+  resolved "https://registry.yarnpkg.com/fastify-http-proxy/-/fastify-http-proxy-6.2.1.tgz#1ae5ea9cff974e7eda49cadb272f72d88fa05e4c"
+  integrity sha512-1ApZwz5v7QOWrJkHbKXf66RNJdSbxiQAEY+E9e2W/93cZRDVr+MZxG3u/P/HR06O5maVnxiERcRXRU3RquVQEg==
+  dependencies:
+    fastify-reply-from "^6.0.0"
+    ws "^8.0.0"
+
 fastify-plugin@^2.0.0:
   version "2.3.4"
   resolved "https://registry.yarnpkg.com/fastify-plugin/-/fastify-plugin-2.3.4.tgz#b17abdc36a97877d88101fb86ad8a07f2c07de87"
@@ -2433,6 +2441,19 @@ fastify-rate-limit@^5.0.1:
     fastify-plugin "^3.0.0"
     ms "^2.1.1"
     tiny-lru "^7.0.0"
+
+fastify-reply-from@^6.0.0:
+  version "6.4.1"
+  resolved "https://registry.yarnpkg.com/fastify-reply-from/-/fastify-reply-from-6.4.1.tgz#793c8b68184295a585d94471c086fb843f7cf8fe"
+  integrity sha512-YEMaYOFUBruoHjdKH3BsK0mF1lvS/9zZZ9lGstoqZf38EPMdQ7+xJM7pK5PnMkKcgpbaMVDNdd2h9WnD2tGolA==
+  dependencies:
+    end-of-stream "^1.4.4"
+    fastify-plugin "^3.0.0"
+    http-errors "^1.8.0"
+    pump "^3.0.0"
+    semver "^7.3.5"
+    tiny-lru "^7.0.6"
+    undici "^4.0.0"
 
 fastify-warning@^0.2.0:
   version "0.2.0"
@@ -3087,7 +3108,7 @@ http-errors@1.7.2:
     statuses ">= 1.5.0 < 2"
     toidentifier "1.0.0"
 
-http-errors@^1.7.3:
+http-errors@^1.7.3, http-errors@^1.8.0:
   version "1.8.0"
   resolved "https://registry.yarnpkg.com/http-errors/-/http-errors-1.8.0.tgz#75d1bbe497e1044f51e4ee9e704a62f28d336507"
   integrity sha512-4I8r0C5JDhT5VkvI47QktDW75rNlGVsUf/8hzjCC/wkWI/jdTRmBb9aI7erSG82r1bjKY3F6k28WnsVxB1C73A==
@@ -6015,7 +6036,7 @@ time-stamp@^1.0.0:
   resolved "https://registry.yarnpkg.com/time-stamp/-/time-stamp-1.1.0.tgz#764a5a11af50561921b133f3b44e618687e0f5c3"
   integrity sha1-dkpaEa9QVhkhsTPztE5hhofg9cM=
 
-tiny-lru@^7.0.0:
+tiny-lru@^7.0.0, tiny-lru@^7.0.6:
   version "7.0.6"
   resolved "https://registry.yarnpkg.com/tiny-lru/-/tiny-lru-7.0.6.tgz#b0c3cdede1e5882aa2d1ae21cb2ceccf2a331f24"
   integrity sha512-zNYO0Kvgn5rXzWpL0y3RS09sMK67eGaQj9805jlK9G6pSadfriTczzLHFXa/xcW4mIRfmlB9HyQ/+SgL0V1uow==
@@ -6251,6 +6272,11 @@ undertaker@^1.2.1:
     object.defaults "^1.0.0"
     object.reduce "^1.0.0"
     undertaker-registry "^1.0.0"
+
+undici@^4.0.0:
+  version "4.8.2"
+  resolved "https://registry.yarnpkg.com/undici/-/undici-4.8.2.tgz#a0687ac933084edaec76ee7a07a14ecd0da9daa1"
+  integrity sha512-wSQI+QbuPZ8ZRCGZ9fs+h2+J4tLaaM5j/28Xq/Q/zAOSy8/QGkHpszpVGSwpgb4ZyQ34rAIEd5fMKf8PGQaiUg==
 
 unicode-canonical-property-names-ecmascript@^1.0.4:
   version "1.0.4"
@@ -6636,6 +6662,11 @@ ws@^7.4.6:
   version "7.5.5"
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.5.5.tgz#8b4bc4af518cfabd0473ae4f99144287b33eb881"
   integrity sha512-BAkMFcAzl8as1G/hArkxOxq3G7pjUqQ3gzYbLL0/5zNkph70e+lCoxBGnm6AW1+/aiNeV4fnKqZ8m4GZewmH2w==
+
+ws@^8.0.0:
+  version "8.2.3"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-8.2.3.tgz#63a56456db1b04367d0b721a0b80cae6d8becbba"
+  integrity sha512-wBuoj1BDpC6ZQ1B7DWQBYVLphPWkm8i9Y0/3YdHjHKHiohOJ1ws+3OccDWtH+PoC9DZD5WOTrJvNbWvjS6JWaA==
 
 xdg-basedir@^4.0.0:
   version "4.0.0"
