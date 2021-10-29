@@ -1,5 +1,5 @@
 import { FastifyPluginCallback } from 'fastify';
-import { cache } from '../utils/misc';
+import { cacheControl } from '../utils/misc';
 import { getRegulationsRedirects } from '../db/RegulationsRedirects';
 
 const REDIRECTS_TTL = 1;
@@ -11,7 +11,7 @@ export const redirectsRoutes: FastifyPluginCallback = (fastify, opts, done) => {
    */
   fastify.get('/redirects', opts, async (req, res) => {
     const data = await getRegulationsRedirects();
-    cache(res, REDIRECTS_TTL);
+    cacheControl(res, REDIRECTS_TTL);
     res.send(data);
   });
 

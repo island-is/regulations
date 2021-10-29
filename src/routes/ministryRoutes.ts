@@ -1,5 +1,5 @@
 import { FastifyPluginCallback } from 'fastify';
-import { cache, QStr } from '../utils/misc';
+import { cacheControl, QStr } from '../utils/misc';
 import { getAllMinistries } from '../db/Ministry';
 import { MinistryListItem, MinistrySlug } from './types';
 
@@ -24,7 +24,7 @@ export const ministryRoutes: FastifyPluginCallback = (fastify, opts, done) => {
       } = m.get();
       return ministry;
     });
-    cache(res, MINISTRY_TTL);
+    cacheControl(res, MINISTRY_TTL);
     res.send(ministries);
   });
 

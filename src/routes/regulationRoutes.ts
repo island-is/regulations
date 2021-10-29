@@ -4,7 +4,7 @@ import {
   assertNameSlug,
   slugToName,
   Pms,
-  cache,
+  cacheControl,
   toISODate,
 } from '../utils/misc';
 
@@ -123,7 +123,7 @@ const handleDataRequest = (res: FastifyReply, opts: RegHandlerOpts) =>
     if (!regulation) {
       return false;
     }
-    cache(res, REGULATION_TTL);
+    cacheControl(res, REGULATION_TTL);
     res.send(regulation);
     return true;
   });
@@ -166,7 +166,7 @@ const handlePdfRequest = (
     const pdfContents = fs.readFileSync(fileName);
     body && fs.unlinkSync(fileName); // This is a temporary file
 
-    cache(res, PDF_FILE_TTL);
+    cacheControl(res, PDF_FILE_TTL);
     res.status(200).type('application/pdf').send(pdfContents);
     return true;
   });

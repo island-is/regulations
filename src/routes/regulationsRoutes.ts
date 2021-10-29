@@ -7,7 +7,7 @@ import {
 } from '../db/Regulations';
 import {
   assertPosInt,
-  cache,
+  cacheControl,
   IntPositive,
   loadData,
   QStr,
@@ -35,7 +35,7 @@ export const regulationsRoutes: FastifyPluginCallback = (
     const totalItems: number = await getRegulationsCount();
     const totalPages = Math.ceil(totalItems / PER_PAGE);
 
-    cache(res, NEWEST_TTL);
+    cacheControl(res, NEWEST_TTL);
     res.send({
       page,
       perPage: PER_PAGE,

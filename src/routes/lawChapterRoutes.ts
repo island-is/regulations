@@ -1,5 +1,5 @@
 import { FastifyPluginCallback } from 'fastify';
-import { cache, QStr } from '../utils/misc';
+import { cacheControl, QStr } from '../utils/misc';
 import { getLawChapterTree, getLawChapterList } from '../db/LawChapter';
 import { LawChapterSlug } from './types';
 
@@ -20,7 +20,7 @@ export const lawChapterRoutes: FastifyPluginCallback = (
       ? (req.query.slugs.split(',') as Array<LawChapterSlug>)
       : undefined;
     const lawChapters = await getLawChapterList(slugs);
-    cache(res, LAWCHAPTER_TTL);
+    cacheControl(res, LAWCHAPTER_TTL);
     res.send(lawChapters);
   });
 
@@ -30,7 +30,7 @@ export const lawChapterRoutes: FastifyPluginCallback = (
    */
   fastify.get('/lawchapters/tree', opts, async (req, res) => {
     const lawChapterTree = await getLawChapterTree();
-    cache(res, LAWCHAPTER_TTL);
+    cacheControl(res, LAWCHAPTER_TTL);
     res.send(lawChapterTree);
   });
 
