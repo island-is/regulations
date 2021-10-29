@@ -372,13 +372,12 @@
 
   /* ======================================================================= */
 
-  .appendix,
-  .comments {
+  .appendix {
     page-break-before: always;
+    page-break-after: always;
   }
 
-  .appendix__title,
-  .comments__title {
+  .appendix__title {
     margin-top: 0;
     font-size: 1.5em;
     margin-bottom: 1rem;
@@ -434,6 +433,19 @@
     font-size: 1.667em;
     line-height: 1.1;
     margin-top: 0;
+  }
+
+  /* ======================================================================= */
+
+  .comments {
+    margin-top: 3em;
+    border: 0.25pt solid black;
+    padding: 0.75em 1em;
+  }
+  .comments__title {
+    margin-top: 0;
+    font-size: 1.33em;
+    margin-bottom: var(--paragraph-space);
   }
 
   /* ======================================================================= */
