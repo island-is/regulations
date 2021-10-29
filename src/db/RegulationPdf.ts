@@ -215,6 +215,15 @@ const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
     </section>
     `
     }
+
+    <section class="disclaimer">
+      <h2 class="disclaimer__title">Fyrirvari</h2>
+      <div class="disclaimer__text">
+        <p>Reglugerðir eru birtar í B-deild Stjórnartíðinda skv. 3. gr. laga um Stjórnartíðindi og Lögbirtingablað, nr. 15/2005, sbr. reglugerð um útgáfu Stjórnartíðinda nr. 958/2005.</p>
+        <p>Sé misræmi milli þess texta sem birtist hér í safninu og þess sem birtur er í útgáfu B-deildar Stjórnartíðinda skal sá síðarnefndi ráða.</p>
+      </div>
+    </section>
+
   </body>
 </html>`;
 };
