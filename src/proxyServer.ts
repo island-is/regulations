@@ -1,7 +1,16 @@
 import { fastify as fast } from 'fastify';
 import fastifyRateLimiter from 'fastify-rate-limit';
-import proxy from 'fastify-http-proxy';
+import proxy, { FastifyHttpProxyOptions } from 'fastify-http-proxy';
+import { DAY, HOUR } from '@hugsmidjan/qj/time';
+import { Writable } from 'stream';
+import { cacheControl } from './utils/misc';
 const { AWS_BUCKET_NAME, AWS_REGION_NAME } = process.env;
+
+if (!AWS_BUCKET_NAME || !AWS_REGION_NAME) {
+  throw new Error('AWS_BUCKET_NAME and AWS_REGION_NAME not configured');
+}
+
+const IMAGE_TTL = (0.03 * DAY) / HOUR; // Seconds
 
 const fastify = fast({
   /**
@@ -19,19 +28,56 @@ fastify.register(fastifyRateLimiter, {
   timeWindow: '1 minute',
 });
 
-if (!AWS_BUCKET_NAME || !AWS_REGION_NAME) {
-  throw new Error('AWS_BUCKET_NAME and AWS_REGION_NAME not configured');
-}
+const parseBody = (res: Writable, callback: (body: string) => void) => {
+  let body = '';
+  res
+    .on('data', (chunk) => {
+      body += chunk;
+    })
+    .on('end', () => {
+      callback(body);
+    });
+};
+
+// ---------------------------------------------------------------------------
+
+type ProxyQuickOpts = {
+  ttl?: number;
+};
+const proxyProps = (
+  opts: ProxyQuickOpts = {},
+): Partial<FastifyHttpProxyOptions> => ({
+  httpMethods: ['GET'],
+  replyOptions: {
+    // onError: (reply, error) => {
+    //   reply.send(error);
+    // },
+    onResponse: (request, reply, res) => {
+      if (reply.statusCode < 400) {
+        opts.ttl && cacheControl(reply, opts.ttl);
+        reply.send(res);
+      } else {
+        reply.removeHeader('content-length');
+        parseBody(res, (body) => {
+          const [_, message] = body.match(/<Message>(.+?)<\/Message>/) || [];
+          reply
+            .type('text/plain; charset=utf-8')
+            .send(message || 'something went wrong');
+        });
+      }
+    },
+  },
+});
 
 fastify.register(proxy, {
   upstream: 'https://reglugerdir-api.herokuapp.com/api/v1/regulation/',
   prefix: '/pdf',
-  httpMethods: ['GET'],
+  ...proxyProps(),
 });
 
 fastify.register(proxy, {
   upstream: `https://${AWS_BUCKET_NAME}.s3.${AWS_REGION_NAME}.amazonaws.com`,
-  httpMethods: ['GET'],
+  ...proxyProps({ ttl: IMAGE_TTL }),
 });
 
 const start = async () => {
