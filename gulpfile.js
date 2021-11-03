@@ -15,7 +15,7 @@ const cleanup = () => del([dist, testsFolder]);
 const [scriptsBundle, scriptsWatch] = rollupTaskFactory({
   name: 'build_server',
   src,
-  glob: ['server.ts', 'proxyServer.ts'],
+  glob: ['server.ts', 'proxyServer.ts', 'scripts/upload-documents-to-s3.ts'],
   dist,
   format: 'cjs',
   minify: false,

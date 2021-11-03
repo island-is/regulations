@@ -15,6 +15,7 @@
     "start-proxy": "NODE_ENV=production node -r dotenv/config dist/proxyServer.js",
     "lint:eslint": "eslint \"*.{js,ts,tsx}\" \"src/**/*.{js,ts,tsx}\"",
     "lint": "concurrently yarn:lint:*",
+    "script": "node -r dotenv/config",
     "format:eslint": "eslint --fix  \"*.{js,ts,tsx}\" \"src/**/*.{js,ts,tsx}\"",
     "format:prettier": "prettier --write \"*.{json,md}\" \"src/**/*.{json,md,html}\"",
     "format": "concurrently yarn:format:*"
@@ -63,9 +64,11 @@
   },
   "devDependencies": {
     "@hugsmidjan/hxmstyle": "^5.1.1",
+    "@types/cloneable-readable": "^2.0.0",
     "@types/node": "^14.0.13",
     "@typescript-eslint/eslint-plugin": "^4.31.1",
     "@typescript-eslint/parser": "^4.31.1",
+    "cloneable-readable": "^2.1.0",
     "concurrently": "^6.0.1",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
@@ -75,6 +78,7 @@
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-react": "^7.25.2",
     "eslint-plugin-react-hooks": "^4.2.0",
+    "file-type": "^16.5.3",
     "nodemon": "^2.0.7",
     "prettier": "^2.4.1"
   },
