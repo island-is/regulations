@@ -9,8 +9,13 @@ const testsFolder = 'testing/__tests/';
 
 // ===========================================================================
 
-const baseOpts = {
+const cleanup = () => del([dist, testsFolder]);
+
+const [scriptsBundle, scriptsWatch] = rollupTaskFactory({
+  name: 'build_server',
   src,
+  glob: ['server.ts', 'proxyServer.ts'],
+  dist,
   format: 'cjs',
   minify: false,
   codeSplit: false,
@@ -19,18 +24,6 @@ const baseOpts = {
     // Returns true for local module ids (treats node_modules/*  as external)
     external: (id) => /^(?:\0|\.|\/|tslib)/.test(id) === false,
   },
-};
-
-// ===========================================================================
-
-const cleanup = () => del([dist, testsFolder]);
-
-const [scriptsBundle, scriptsWatch] = rollupTaskFactory({
-  ...baseOpts,
-  name: 'build_server',
-  dest: './dist',
-  glob: ['server.ts', 'proxyServer.ts'],
-  dist,
 });
 
 const [copyStatic, copyStaticWatch] = copyTaskFactory({
