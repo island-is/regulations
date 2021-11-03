@@ -13,9 +13,10 @@ if (!AWS_BUCKET_NAME || !AWS_REGION_NAME) {
 const IMAGE_TTL = (0.03 * DAY) / HOUR; // Seconds
 
 const fastify = fast({
+  ignoreTrailingSlash: true,
   /**
-  This rewrite function serves to add suffix to pdf urls.
-  Something that could not be done with fastify-http-proxy.
+    This rewrite function serves to add suffix to pdf urls.
+    Something that could not be done with fastify-http-proxy.
   */
   rewriteUrl: (req) => {
     const url = req.url || '/';

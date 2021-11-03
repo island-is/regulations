@@ -15,7 +15,9 @@ import { redirectsRoutes } from './routes/redirectsRoutes';
 
 import { connectSequelize } from './utils/sequelize';
 
-const fastify = fast();
+const fastify = fast({
+  ignoreTrailingSlash: true,
+});
 fastify.register(fastifyRateLimiter, {
   max: 100,
   timeWindow: '1 minute',
