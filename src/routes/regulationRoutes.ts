@@ -187,7 +187,7 @@ const handlePdfRequest = (
     body && fs.unlinkSync(fileName); // This is a temporary file
 
     cacheControl(res, PDF_FILE_TTL);
-    res.status(200).type('application/pdf').send(pdfContents);
+    res.code(200).type('application/pdf').send(pdfContents);
     return true;
   });
 
