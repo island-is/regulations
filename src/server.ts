@@ -12,11 +12,14 @@ import { ministryRoutes } from './routes/ministryRoutes';
 import { lawChapterRoutes } from './routes/lawChapterRoutes';
 import { yearsRoutes } from './routes/yearsRoutes';
 import { redirectsRoutes } from './routes/redirectsRoutes';
+import { fileUploadRoutes } from './routes/fileUploadRoutes';
+import fastifyMultipart from 'fastify-multipart';
 
 import { connectSequelize } from './utils/sequelize';
 
 const fastify = fast({
   ignoreTrailingSlash: true,
+  // logger: true,
 });
 fastify.register(fastifyRateLimiter, {
   max: 100,
@@ -68,6 +71,9 @@ if (ELASTIC_CLOUD_ID && ELASTIC_CLOUD_APIKEY_ID && ELASTIC_CLOUD_APIKEY_KEY) {
   fastify.register(elasticSearchRoutes, { prefix: '/api/v1' });
   fastify.register(elasticRebuildRoutes, { prefix: '/api/v1' });
 }
+
+fastify.register(fastifyMultipart, { prefix: '/api/v1' }); // Required for fastify-multer to work
+fastify.register(fileUploadRoutes, { prefix: '/api/v1' });
 
 fastify.register(regulationRoutes, { prefix: '/api/v1' });
 fastify.register(regulationsRoutes, { prefix: '/api/v1' });
