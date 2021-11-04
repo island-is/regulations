@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { parallel, series } = require('gulp');
 const rollupTaskFactory = require('@hugsmidjan/gulp-rollup');
 const copyTaskFactory = require('@hugsmidjan/gulp-copy');
@@ -20,6 +21,11 @@ const [scriptsBundle, scriptsWatch] = rollupTaskFactory({
   minify: false,
   codeSplit: false,
   sourcemaps: false,
+  replaceOpts: {
+    'process.env.DEV_FILE_SERVER': JSON.stringify(
+      process.env.DEV_FILE_SERVER || '',
+    ),
+  },
   inputOpts: {
     // Returns true for local module ids (treats node_modules/*  as external)
     external: (id) => /^(?:\0|\.|\/|tslib)/.test(id) === false,
