@@ -11,6 +11,17 @@ All routes can then be accessed under `localhost:3000/api/v1/[route]`
 
 Set `process.env.PORT` to use a different port.
 
+## Running
+
+To be able to run both `api` and `files proxy` project from the same codebase on Heroku, we need to
+set the `start` command "dynamically". On Heroku this is set in the `START_COMMAND` env variable.
+
+Locally this needs to be passed to the `npm start` command:
+
+```bash
+START_COMMAND="npm run start-api" npm start
+```
+
 # Routes
 
 ## LawChapter
