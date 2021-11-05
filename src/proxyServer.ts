@@ -4,7 +4,8 @@ import proxy, { FastifyHttpProxyOptions } from 'fastify-http-proxy';
 import { DAY, HOUR } from '@hugsmidjan/qj/time';
 import { Writable } from 'stream';
 import { cacheControl } from './utils/misc';
-const { AWS_BUCKET_NAME, AWS_REGION_NAME } = process.env;
+
+const { AWS_BUCKET_NAME, AWS_REGION_NAME, PORT, PROXY_PORT } = process.env;
 
 if (!AWS_BUCKET_NAME || !AWS_REGION_NAME) {
   throw new Error('AWS_BUCKET_NAME and AWS_REGION_NAME not configured');
@@ -83,7 +84,7 @@ fastify.register(proxy, {
 
 const start = async () => {
   try {
-    const serverPort = process.env.PROXY_PORT || 3001;
+    const serverPort = PROXY_PORT || PORT || 3001;
 
     await fastify.listen(serverPort, '0.0.0.0');
 

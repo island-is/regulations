@@ -26,7 +26,7 @@ fastify.register(fastifyRateLimiter, {
   timeWindow: '1 minute',
 });
 
-const { ROUTES_USERNAME, ROUTES_PASSWORD } = process.env;
+const { ROUTES_USERNAME, ROUTES_PASSWORD, PORT } = process.env;
 
 const validate: FastifyBasicAuthOptions['validate'] = (
   username,
@@ -85,7 +85,7 @@ fastify.register(redirectsRoutes, { prefix: '/api/v1' });
 const start = async () => {
   try {
     connectSequelize();
-    const serverPort = process.env.PORT || 3000;
+    const serverPort = PORT || 3000;
 
     await fastify.listen(serverPort, '0.0.0.0');
 
