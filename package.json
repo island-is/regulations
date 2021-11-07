@@ -30,6 +30,7 @@
   "dependencies": {
     "@hugsmidjan/gulp-copy": "^1.0.1",
     "@hugsmidjan/gulp-rollup": "^0.8.1",
+    "@elastic/elasticsearch": "^7.15.0",
     "@hugsmidjan/qj": "^4.6.1",
     "@hugsmidjan/regulations-editor": "0.4.7",
     "@types/express": "^4.17.13",
@@ -51,6 +52,7 @@
     "fastify-multipart": "^5.1.0",
     "fastify-rate-limit": "^5.0.1",
     "gulp": "^4.0.2",
+    "file-type": "^16.5.3",
     "htmldiff-js": "^1.0.5",
     "jsdom": "^16.5.2",
     "multer-s3-transform": "^2.10.3",
@@ -78,7 +80,6 @@
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-react": "^7.25.2",
     "eslint-plugin-react-hooks": "^4.2.0",
-    "file-type": "^16.5.3",
     "nodemon": "^2.0.7",
     "prettier": "^2.4.1"
   },
