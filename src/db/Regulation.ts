@@ -24,6 +24,7 @@ import { extractAppendixesAndComments } from '../utils/extractData';
 import { nameToSlug, toISODate } from '../utils/misc';
 import promiseAll from '@hugsmidjan/qj/promiseAllObject';
 import { FILE_SERVER } from '../constants';
+import { readFileSync } from 'fs';
 
 // ---------------------------------------------------------------------------
 
@@ -286,8 +287,14 @@ function isNonCurrent(
 
 // ---------------------------------------------------------------------------
 
-const getPdfVersion = (routePath: string) =>
-  FILE_SERVER + '/pdf' + routePath.replace(/\?.+$/, '').replace(/\/pdf/, '');
+const cleanRoutePath = (routePath: string) =>
+  routePath
+    // remove any potential query strings
+    .split('?')[0]
+    // and chop off pdf suffixes, if present
+    .replace(/\/pdf/, '');
+
+const getPdfVersion = (routePath: string) => FILE_SERVER + '/pdf' + routePath;
 
 // ===========================================================================
 
@@ -301,6 +308,7 @@ export async function getRegulation(
   },
   routePath: string,
 ) {
+  routePath = cleanRoutePath(routePath);
   const { date, diff, earlierDate } = opts;
   const regulation = await getRegulationByName(regulationName);
   if (!regulation) {
@@ -347,6 +355,23 @@ export async function getRegulation(
     return augmentedRegulation;
   }
 
+  // htmldiff-js has a horrible performance hockey-stick curve
+  // and Byggingareglugerð (0112-2012) is crazy large and has
+  // huge amount of detailed changes so certain permutaions
+  // need to be cached, lest the server timeout.
+  // Those cached/static results are stored in the folder "static-diffs/*"
+  // This is a horrible, horrible hack, and needs proper resolving
+  // upstream with a database table containing pre-rendered html diffs.
+  // -- Már @2021-11-08
+  if (/\/original$/.test(routePath)) {
+    const jsonFileName =
+      './static-diffs/' + routePath.slice(1).replace(/\//g, '-') + '.json';
+    try {
+      return JSON.parse(
+        readFileSync(jsonFileName).toString(),
+      ) as RegulationDiff;
+    } catch (e) {}
+  }
   // Resolve/apply diff
 
   const diffedRegulation = augmentedRegulation as unknown as RegulationDiff;
