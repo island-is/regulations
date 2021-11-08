@@ -239,7 +239,7 @@ const augmentRegulation = async (
     lawChapters,
     history,
     effects,
-    originalDoc: _externalsource,
+    originalDoc: _externalsource?.replace(/^http:\/\//, 'https://'),
     pdfVersion,
     // timelineDate: undefined,
     // showingDiff: undefined,
