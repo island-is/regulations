@@ -430,35 +430,40 @@ export const makeDraftPdf = async (body: unknown) => {
 export const makePublishedPdf = async (routePath: string, opts: RegOpts) => {
   const { name, date, diff, earlierDate } = opts;
   const regName = slugToName(name);
-
   const fileKey = getPdfFileKey(routePath);
-  const [pdf, regModified] = await Promise.all([
-    fetchPdf(fileKey),
-    date && fetchModifiedDate(regName),
-  ]);
-  if (regModified) {
-    let pdfContents = pdf.contents;
 
-    // NOTE: regModified is really an ISODate with a faux timestamp appended.
-    // this may cause some weird behavior sometimes.
+  try {
+    const [pdf, regModified] = await Promise.all([
+      fetchPdf(fileKey),
+      date && fetchModifiedDate(regName),
+    ]);
+    if (regModified) {
+      let pdfContents = pdf.contents;
 
-    const doGeneratePdf =
-      !pdfContents ||
-      regModified > pdf.modifiedDate ||
-      PDF_TEMPLATE_UPDATED > pdf.modifiedDate;
+      // NOTE: regModified is really an ISODate with a faux timestamp appended.
+      // this may cause some weird behavior sometimes.
 
-    if (doGeneratePdf) {
-      const regulation =
-        (await getRegulation(
-          regName,
-          { date, diff, earlierDate },
-          routePath,
-        )) || undefined;
-      pdfContents = await makeRegulationPdf(regulation);
-      pdfContents && uploadPdf(fileKey, pdfContents);
+      const doGeneratePdf =
+        !pdfContents ||
+        regModified > pdf.modifiedDate ||
+        PDF_TEMPLATE_UPDATED > pdf.modifiedDate;
+
+      if (doGeneratePdf) {
+        const regulation =
+          (await getRegulation(
+            regName,
+            { date, diff, earlierDate },
+            routePath,
+          )) || undefined;
+        pdfContents = await makeRegulationPdf(regulation);
+        pdfContents && uploadPdf(fileKey, pdfContents);
+      }
+      const fileName = getPrettyPdfFilename(opts, regName, regModified);
+      return { fileName, pdfContents };
     }
-    const fileName = getPrettyPdfFilename(opts, regName, regModified);
-    return { fileName, pdfContents };
+  } catch (error) {
+    console.log(error);
   }
+
   return {};
 };
