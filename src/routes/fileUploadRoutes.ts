@@ -223,7 +223,7 @@ export const fileUploadRoutes: FastifyPluginCallback = (
         try {
           assertUploadType(request);
           done();
-        } catch (error: unknown) {
+        } catch (error) {
           reply.code(403);
           done(error as Error);
         }

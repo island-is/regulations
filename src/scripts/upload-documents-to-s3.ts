@@ -64,10 +64,7 @@ const makeFileKey = (fullUrl: string) => {
 
   const doLog = !!MEDIA_BUCKET_FOLDER || process.env.NODE_ENV !== 'production';
 
-  const s3 = new S3({
-    region: AWS_REGION_NAME,
-    params: { Bucket: AWS_BUCKET_NAME },
-  });
+  const s3 = new S3({ region: AWS_REGION_NAME });
 
   const rawUrls = (await readFile('./found-urls.txt'))
     .toString()

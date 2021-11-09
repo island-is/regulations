@@ -20,6 +20,10 @@ import { connectSequelize } from './utils/sequelize';
 const fastify = fast({
   // logger: true,
   ignoreTrailingSlash: true,
+  // rewriteUrl: (req) => {
+  //   console.log('FOOBAR', { url: req.url });
+  //   return req.url || '/';
+  // },
 });
 fastify.register(fastifyRateLimiter, {
   max: 100,
