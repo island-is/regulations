@@ -425,9 +425,9 @@ export const makeDraftPdf = async (body: unknown) => {
   return {};
 };
 
-// ---------------------------------------------------------------------------
+// ===========================================================================
 
-export const makePublishedPdf = async (routePath: string, opts: RegOpts) => {
+export const _makePublishedPdf = async (routePath: string, opts: RegOpts) => {
   const { name, date, diff, earlierDate } = opts;
   const regName = slugToName(name);
   const fileKey = getPdfFileKey(routePath);
@@ -466,4 +466,23 @@ export const makePublishedPdf = async (routePath: string, opts: RegOpts) => {
   }
 
   return {};
+};
+
+// ---------------------------------------------------------------------------
+
+const pdfJobs: Record<
+  string,
+  ReturnType<typeof _makePublishedPdf> | undefined
+> = {};
+
+export const makePublishedPdf = (routePath: string, opts: RegOpts) => {
+  let job = pdfJobs[routePath];
+  if (!job) {
+    job = _makePublishedPdf(routePath, opts);
+    pdfJobs[routePath] = job;
+    job.then(() => {
+      delete pdfJobs[routePath];
+    });
+  }
+  return job;
 };
