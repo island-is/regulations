@@ -1,6 +1,6 @@
 import { format as _formatDate } from 'date-fns';
 import { is as locale } from 'date-fns/locale';
-import { ISODate, RegName, RegQueryName } from '../routes/types';
+import { ISODate, ISODateTime, RegName, RegQueryName } from '../routes/types';
 import { FastifyReply } from 'fastify';
 import fs from 'fs';
 import { parse } from 'path';
@@ -83,6 +83,26 @@ export function toISODate(
     }
   }
   return date ? (date.toISOString().substr(0, 10) as ISODate) : null;
+}
+
+// ---------------------------------------------------------------------------
+
+export function toISODateTime(date: Date): ISODateTime;
+export function toISODateTime(date: null | undefined): null;
+export function toISODateTime(
+  date: Date | string | null | undefined,
+): ISODateTime | null;
+
+export function toISODateTime(
+  date: Date | string | null | undefined,
+): ISODateTime | null {
+  if (typeof date === 'string') {
+    date = new Date(date);
+    if (isNaN(date.getTime())) {
+      date = undefined;
+    }
+  }
+  return date ? (date.toISOString().substr(0, 19) as ISODateTime) : null;
 }
 
 // ---------------------------------------------------------------------------

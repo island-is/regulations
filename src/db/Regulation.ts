@@ -13,6 +13,7 @@ import {
   HTMLText,
   PlainText,
   ISODate,
+  ISODateTime,
   RegName,
   RegulationEffect,
   RegulationHistoryItem,
@@ -303,7 +304,9 @@ export const fetchModifiedDate = async (name: RegName) => {
     return;
   }
   const change = await getLatestRegulationChange(reg.id, undefined, ['date']);
-  return change ? change.date : reg.publishedDate;
+  // FIXME: The database should be updated to contain lastModified/created timestamps
+  return ((change ? change.date : reg.publishedDate) +
+    'T08:00:00') as ISODateTime;
 };
 
 // ===========================================================================

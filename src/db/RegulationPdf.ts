@@ -7,8 +7,8 @@ import {
   RegulationRedirect,
   RegulationDiff,
   RegName,
-  ISODate,
   RegQueryName,
+  ISODateTime,
 } from 'routes/types';
 import {
   assertISODate,
@@ -19,6 +19,7 @@ import {
   prettyName,
   slugToName,
   toISODate,
+  toISODateTime,
 } from '../utils/misc';
 import { cleanupAllEditorOutputs } from '@hugsmidjan/regulations-editor/cleanupEditorOutput';
 import { cleanTitle } from '@hugsmidjan/regulations-editor/cleanTitle';
@@ -351,7 +352,7 @@ const fetchPdf = (fileKey: string) =>
       return res.buffer().then((contents) => ({
         contents: contents,
         modifiedDate:
-          toISODate(res.headers.get('Last-Modified')) || ('' as const),
+          toISODateTime(res.headers.get('Last-Modified')) || ('' as const),
       }));
     })
     .catch(() => ({ contents: false, modifiedDate: '' } as const));
@@ -387,7 +388,7 @@ type RegOpts = {
 const getPrettyPdfFilename = (
   opts: RegOpts,
   name: RegName,
-  lastÞModified: ISODate,
+  lastÞModified: ISODateTime,
 ) => {
   const { date, diff, earlierDate } = opts;
 
@@ -428,16 +429,19 @@ export const makePublishedPdf = async (routePath: string, opts: RegOpts) => {
   const regName = slugToName(name);
 
   const fileKey = getPdfFileKey(routePath);
-  const [pdf, regModifiedDate] = await Promise.all([
+  const [pdf, regModified] = await Promise.all([
     fetchPdf(fileKey),
     fetchModifiedDate(regName),
   ]);
-  if (regModifiedDate) {
+  if (regModified) {
     let pdfContents = pdf.contents;
+
+    // NOTE: regModified is really an ISODate with a faux timestamp appended.
+    // this may cause some weird behavior sometimes.
 
     const doGeneratePdf =
       !pdfContents ||
-      regModifiedDate > pdf.modifiedDate ||
+      regModified > pdf.modifiedDate ||
       PDF_TEMPLATE_UPDATED > pdf.modifiedDate;
 
     if (doGeneratePdf) {
@@ -450,7 +454,7 @@ export const makePublishedPdf = async (routePath: string, opts: RegOpts) => {
       pdfContents = await makeRegulationPdf(regulation);
       pdfContents && uploadPdf(fileKey, pdfContents);
     }
-    const fileName = getPrettyPdfFilename(opts, regName, regModifiedDate);
+    const fileName = getPrettyPdfFilename(opts, regName, regModified);
     return { fileName, pdfContents };
   }
   return {};
