@@ -102,7 +102,7 @@ const getStatusText = (regulation: RegulationMaybeDiff): string => {
         ? ` þann ${fmt(dateTo)}`
         : ` á tímabilinu ${fmt(dateFrom)} – ${fmt(dateTo)}`) +
       `\n<small class="affecting">af rg.nr. ${affectingNames}</small>` +
-      ' ' +
+      ' ' +
       printoutDateStr +
       (isFuture ? ' ' + printoutDateStr : '')
     );
