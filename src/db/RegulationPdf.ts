@@ -35,6 +35,7 @@ import {
 import { fetchModifiedDate, getRegulation } from './Regulation';
 import S3 from 'aws-sdk/clients/s3';
 import fetch from 'node-fetch';
+import { SECOND } from '@hugsmidjan/qj/time';
 
 export type InputRegulation = Pick<
   Regulation,
@@ -260,6 +261,7 @@ const makeRegulationPdf = (
             // since each line is so short (contains so little actual context)
             `pagedjs-cli ${htmlFile}` +
               `  --browserArgs --no-sandbox,--font-render-hinting=none` +
+              `  --timeout ${90 * SECOND}` +
               `  --output ${tmpFileName}`,
             (err) => {
               unlink(htmlFile);
