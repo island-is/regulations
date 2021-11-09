@@ -15,3 +15,5 @@ export const FILE_SERVER =
 export const API_SERVER =
   (process.env.DEV_API_SERVER || 'https://reglugerdir-api.herokuapp.com') +
   '/api/v1/regulation';
+
+export const PDF_TEMPLATE_UPDATED = '2021-11-08';

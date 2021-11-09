@@ -1,6 +1,6 @@
 import htmldiff from 'htmldiff-js';
 import { db } from '../utils/sequelize';
-import { Op, QueryTypes } from 'sequelize';
+import { FindAttributeOptions, Op, QueryTypes } from 'sequelize';
 import {
   DB_Regulation,
   DB_RegulationChange,
@@ -58,9 +58,13 @@ const getTextContentDiff = (older: PlainText, newer: PlainText): HTMLText =>
 
 // ---------------------------------------------------------------------------
 
-async function getRegulationByName(name: RegName) {
+async function getRegulationByName(
+  name: RegName,
+  attributes?: FindAttributeOptions,
+) {
   const regulation =
     (await DB_Regulation.findOne({
+      attributes,
       where: { name },
     })) ?? undefined;
   return regulation;
@@ -147,9 +151,11 @@ async function getRegulationEffects(regulationId: number) {
 async function getLatestRegulationChange(
   regulationId: number,
   beforeDate: Date = new Date(),
+  attributes?: FindAttributeOptions,
 ) {
   const regulationChange =
     (await DB_RegulationChange.findOne({
+      attributes,
       where: {
         regulationId: regulationId,
         date: {
@@ -287,14 +293,18 @@ function isNonCurrent(
 
 // ---------------------------------------------------------------------------
 
-const cleanRoutePath = (routePath: string) =>
-  routePath
-    // remove any potential query strings
-    .split('?')[0]
-    // and chop off pdf suffixes, if present
-    .replace(/\/pdf/, '');
+const getPdfVersion = (routePath: string) => FILE_SERVER + '/pdf/' + routePath;
 
-const getPdfVersion = (routePath: string) => FILE_SERVER + '/pdf' + routePath;
+// ===========================================================================
+
+export const fetchModifiedDate = async (name: RegName) => {
+  const reg = await getRegulationByName(name, ['id', 'publishedDate']);
+  if (!reg) {
+    return;
+  }
+  const change = await getLatestRegulationChange(reg.id, undefined, ['date']);
+  return change ? change.date : reg.publishedDate;
+};
 
 // ===========================================================================
 
@@ -308,7 +318,6 @@ export async function getRegulation(
   },
   routePath: string,
 ) {
-  routePath = cleanRoutePath(routePath);
   const { date, diff, earlierDate } = opts;
   const regulation = await getRegulationByName(regulationName);
   if (!regulation) {
@@ -365,7 +374,7 @@ export async function getRegulation(
   // -- Már @2021-11-08
   if (/\/original$/.test(routePath)) {
     const jsonFileName =
-      './static-diffs/' + routePath.slice(1).replace(/\//g, '-') + '.json';
+      './static-diffs/' + routePath.replace(/\//g, '-') + '.json';
     try {
       return JSON.parse(
         readFileSync(jsonFileName).toString(),

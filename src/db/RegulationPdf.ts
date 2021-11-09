@@ -6,22 +6,35 @@ import {
   RegulationMaybeDiff,
   RegulationRedirect,
   RegulationDiff,
+  RegName,
+  ISODate,
+  RegQueryName,
 } from 'routes/types';
 import {
   assertISODate,
   assertRegName,
   formatDate as fmt,
   isNonNull,
+  nameToSlug,
   prettyName,
+  slugToName,
   toISODate,
 } from '../utils/misc';
 import { cleanupAllEditorOutputs } from '@hugsmidjan/regulations-editor/cleanupEditorOutput';
 import { cleanTitle } from '@hugsmidjan/regulations-editor/cleanTitle';
 import fs from 'fs';
 import { exec } from 'child_process';
-import { writeFile, unlink } from 'fs/promises';
-import { HOUR } from '@hugsmidjan/qj/time';
+import { writeFile, unlink, readFile } from 'fs/promises';
 import arrayToObject from '@hugsmidjan/qj/arrayToObject';
+import {
+  AWS_BUCKET_NAME,
+  AWS_REGION_NAME,
+  MEDIA_BUCKET_FOLDER,
+  PDF_TEMPLATE_UPDATED,
+} from '../constants';
+import { fetchModifiedDate, getRegulation } from './Regulation';
+import S3 from 'aws-sdk/clients/s3';
+import fetch from 'node-fetch';
 
 export type InputRegulation = Pick<
   Regulation,
@@ -41,20 +54,6 @@ export type InputRegulation = Pick<
 };
 
 // ---------------------------------------------------------------------------
-
-export const PDF_FILE_TTL = 1 * HOUR;
-
-export const shouldMakePdf = (fileName: string) => {
-  return true;
-  // FIXME: Write to S3 instead of Heroku's fickle fs.
-  if (!fs.existsSync(fileName)) {
-    return true;
-  }
-  const age = Date.now() - fs.statSync(fileName).mtimeMs;
-  return age > PDF_FILE_TTL;
-};
-
-// ===========================================================================
 
 const sanitizeTextContent = (text: PlainText): HTMLText =>
   text.replace(/&/, '&amp;').replace(/</g, '&lt;') as HTMLText;
@@ -234,60 +233,60 @@ const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
 
 // ===========================================================================
 
-export function makeRegulationPdf(
-  fileName: string,
+let guid = 1;
+const guid_prefix = 'temp_' + Date.now() + '_';
+
+const makeRegulationPdf = (
   regulation?:
     | InputRegulation
     | Regulation
     | RegulationDiff
     | RegulationRedirect,
-): Promise<boolean> {
+): Promise<Buffer | false> => {
   if (!regulation || 'redirectUrl' in regulation) {
     return Promise.resolve(false);
   }
 
-  const htmlFile = fileName + '.html';
+  const tmpFileName = guid_prefix + guid++;
+
+  const htmlFile = tmpFileName + '.html';
 
   return writeFile(htmlFile, pdfTmplate(regulation))
     .then(
       () =>
-        new Promise<boolean>((resolve, reject) => {
+        new Promise<Buffer>((resolve, reject) => {
           exec(
             // Increasing context to 5 lines (effectively: words) seems reasonable
             // since each line is so short (contains so little actual context)
-            `pagedjs-cli ${htmlFile}  --browserArgs --no-sandbox,--font-render-hinting=none  --output ${fileName}`,
+            `pagedjs-cli ${htmlFile}` +
+              `  --browserArgs --no-sandbox,--font-render-hinting=none` +
+              `  --output ${tmpFileName}`,
             (err) => {
               unlink(htmlFile);
-              if (!err) {
-                resolve(true);
-              } else {
+              if (err) {
                 reject(err);
               }
+              resolve(
+                readFile(tmpFileName).then((file) => {
+                  unlink(tmpFileName);
+                  return file;
+                }),
+              );
             },
           );
         }),
     )
-    .catch((err) => {
+    .catch((err: unknown) => {
       console.error(err);
       return false;
     });
-}
+};
 
-// ===========================================================================
+// ---------------------------------------------------------------------------
 
-export function getPdfFileName(name: string) {
-  const dirName = './regulation-pdf';
-  if (!fs.existsSync(dirName)) {
-    fs.mkdirSync(dirName, { recursive: true });
-  }
-  return `${dirName}/${name}.pdf`;
-}
-
-// ===========================================================================
-
-export function cleanUpRegulationBodyInput(
+const cleanUpRegulationBodyInput = (
   reqBody: unknown,
-): InputRegulation | undefined {
+): InputRegulation | undefined => {
   if (typeof reqBody !== 'object' || reqBody == null) {
     return;
   }
@@ -335,4 +334,122 @@ export function cleanUpRegulationBodyInput(
       effectiveDate,
     };
   }
-}
+};
+
+// ---------------------------------------------------------------------------
+
+const fetchPdf = (fileKey: string) =>
+  fetch(
+    `https://${AWS_BUCKET_NAME}.s3.${AWS_REGION_NAME}.amazonaws.com/${fileKey}`,
+  )
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(`Error fetching '${res.url}' (${res.status})`);
+      }
+      return res.buffer().then((contents) => ({
+        contents: contents,
+        modifiedDate:
+          toISODate(res.headers.get('Last-Modified')) || ('' as const),
+      }));
+    })
+    .catch(() => ({ contents: false, modifiedDate: '' } as const));
+
+const s3 = new S3({ region: AWS_REGION_NAME });
+const doLog = !!MEDIA_BUCKET_FOLDER;
+
+const uploadPdf = (fileKey: string, pdfContents: Buffer) =>
+  s3
+    .upload({
+      Bucket: AWS_BUCKET_NAME,
+      Key: fileKey,
+      ACL: 'public-read',
+      ContentType: 'application/pdf',
+      Body: pdfContents,
+    })
+    .promise()
+    .then((data) => {
+      doLog && console.info('🆗 Uploaded', data.Key);
+    })
+    .catch((error: unknown) => {
+      const message = error instanceof Error ? error.message : error;
+      console.info('⚠️ ', message);
+    });
+
+type RegOpts = {
+  name: RegQueryName;
+  date?: Date;
+  diff?: boolean;
+  earlierDate?: Date | 'original';
+};
+
+const getPrettyPdfFilename = (
+  opts: RegOpts,
+  name: RegName,
+  lastÞModified: ISODate,
+) => {
+  const { date, diff, earlierDate } = opts;
+
+  const nameTxt = nameToSlug(name);
+  const dateTxt = date ? toISODate(date) : lastÞModified;
+  const diffTxt = diff ? ' breytingar' : '';
+  const earlierDateTxt = !earlierDate
+    ? ''
+    : earlierDate === 'original'
+    ? ' frá upphafi'
+    : ` síðan ${toISODate(earlierDate)}`;
+
+  return `Reglugerð ${nameTxt} (${dateTxt + diffTxt + earlierDateTxt})`;
+};
+
+const _keyPrefix = MEDIA_BUCKET_FOLDER ? MEDIA_BUCKET_FOLDER + '/' : '';
+
+const getPdfFileKey = (routePath: string) =>
+  `${_keyPrefix}pdf/${routePath.replace(/\//g, '--')}.pdf`;
+
+// ===========================================================================
+
+export const makeDraftPdf = async (body: unknown) => {
+  const unpublishedReg = cleanUpRegulationBodyInput(body);
+  if (unpublishedReg) {
+    const fileName =
+      'Reglugerð ' + toISODate(new Date()) + ' – ' + unpublishedReg.name;
+    const pdfContents = await makeRegulationPdf(unpublishedReg);
+    return { fileName, pdfContents };
+  }
+  return {};
+};
+
+// ---------------------------------------------------------------------------
+
+export const makePublishedPdf = async (routePath: string, opts: RegOpts) => {
+  const { name, date, diff, earlierDate } = opts;
+  const regName = slugToName(name);
+
+  const fileKey = getPdfFileKey(routePath);
+  const [pdf, regModifiedDate] = await Promise.all([
+    fetchPdf(fileKey),
+    fetchModifiedDate(regName),
+  ]);
+  if (regModifiedDate) {
+    let pdfContents = pdf.contents;
+
+    const doGeneratePdf =
+      !pdfContents ||
+      regModifiedDate > pdf.modifiedDate ||
+      PDF_TEMPLATE_UPDATED > pdf.modifiedDate;
+
+    if (doGeneratePdf) {
+      const regulation =
+        (await getRegulation(
+          regName,
+          { date, diff, earlierDate },
+          routePath,
+        )) || undefined;
+      pdfContents = await makeRegulationPdf(regulation);
+      pdfContents && uploadPdf(fileKey, pdfContents);
+    }
+    const fileName = getPrettyPdfFilename(opts, regName, regModifiedDate);
+    return { fileName, pdfContents };
+  }
+  return {};
+};

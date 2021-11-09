@@ -17,16 +17,10 @@ import {
   RegulationDiff,
 } from './types';
 import { FastifyPluginCallback, FastifyReply, FastifyRequest } from 'fastify';
-import {
-  getPdfFileName,
-  makeRegulationPdf,
-  shouldMakePdf,
-  cleanUpRegulationBodyInput,
-  PDF_FILE_TTL,
-} from '../db/RegulationPdf';
-import fs from 'fs';
+import { makePublishedPdf, makeDraftPdf } from '../db/RegulationPdf';
 
 const REGULATION_TTL = 0.1;
+const PDF_FILE_TTL = 1;
 
 // ---------------------------------------------------------------------------
 
@@ -95,7 +89,10 @@ const handleRequest = async <N extends string = RegQueryName>(
 
     // NOTE: Is there a better/cleaner/more robust way to
     // provide this info?
-    const routePath = req.url.replace(/^\/api\/v[0-9]+\/regulation/, '');
+    const routePath = req.url
+      .replace(/^\/api\/v[0-9]+\/regulation\//, '')
+      .split('?')[0] // remove any potential query strings
+      .replace(/\/pdf$/, ''); // and chop off pdf suffixes, if present
 
     const success = await handler(res, handlerOpts, routePath);
 
@@ -152,42 +149,36 @@ const handlePdfRequest = (
   body?: unknown,
 ) =>
   handleRequest(req, res, opts, async (res, opts, routePath) => {
-    const { date, diff, earlierDate } = opts;
-
-    const name = opts.name !== 'new' ? opts.name : undefined;
-
-    const fileName = getPdfFileName(name || 'new_' + toISODate(new Date()));
-
-    if (body || shouldMakePdf(fileName)) {
-      const regulation = body
-        ? cleanUpRegulationBodyInput(body)
-        : name
-        ? await getRegulation(
-            slugToName(name),
-            {
-              date,
-              diff,
-              earlierDate,
-            },
+    const job =
+      opts.name !== 'new'
+        ? makePublishedPdf(
             routePath,
+            // @ts-expect-error  (TS doesn't realize opts.name can't be 'new' at this point)
+            opts,
           )
+        : body
+        ? makeDraftPdf(body)
         : undefined;
 
-      if (!regulation) {
-        return false;
-      }
+    // TODO: return 304 when possible for conditional (If-Modified-Since:) request.
 
-      const success = await makeRegulationPdf(fileName, regulation);
+    const { fileName, pdfContents } = (await job) || {};
 
-      if (!success) {
-        return false;
-      }
+    if (!fileName || !pdfContents) {
+      return false;
     }
-    const pdfContents = fs.readFileSync(fileName);
-    body && fs.unlinkSync(fileName); // This is a temporary file
 
     cacheControl(res, PDF_FILE_TTL);
-    res.code(200).type('application/pdf').send(pdfContents);
+    res
+      .code(200)
+      // .header('Content-Disposition', `attachment; filename="${fileName}.pdf"`);
+      .header(
+        'Content-Disposition',
+        `inline; filename="${encodeURI(fileName)}.pdf"`,
+      )
+      .type('application/pdf')
+      .send(pdfContents);
+
     return true;
   });
 
