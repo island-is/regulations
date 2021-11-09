@@ -66,7 +66,8 @@ const getStatusText = (regulation: RegulationMaybeDiff): string => {
   const {
     timelineDate,
     lastAmendDate,
-    publishedDate,
+    effectiveDate,
+    // publishedDate,
     history,
     showingDiff,
     repealed,
@@ -111,7 +112,7 @@ const getStatusText = (regulation: RegulationMaybeDiff): string => {
   }
 
   if (!timelineDate || timelineDate === lastAmendDate) {
-    const fmtLastModified = fmt(lastAmendDate || publishedDate);
+    const fmtLastModified = fmt(lastAmendDate || effectiveDate);
 
     if (repealed) {
       return (
@@ -123,8 +124,10 @@ const getStatusText = (regulation: RegulationMaybeDiff): string => {
   }
 
   const nextTimelineDate = (() => {
-    const idx = history.findIndex((item) => item.date === timelineDate);
-    const nextItem = idx > -1 && history[idx + 1];
+    const idx = [{ date: effectiveDate }]
+      .concat(history)
+      .findIndex((item) => item.date === timelineDate);
+    const nextItem = idx > -1 && history[idx];
     return nextItem ? nextItem.date : undefined;
   })();
   const fmtDateFrom = fmt(timelineDate);
