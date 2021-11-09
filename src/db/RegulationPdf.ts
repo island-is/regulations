@@ -393,7 +393,7 @@ const getPrettyPdfFilename = (
   const { date, diff, earlierDate } = opts;
 
   const nameTxt = nameToSlug(name);
-  const dateTxt = date ? toISODate(date) : lastÞModified;
+  const dateTxt = toISODate(date ? date : lastÞModified);
   const diffTxt = diff ? ' breytingar' : '';
   const earlierDateTxt = !earlierDate
     ? ''
