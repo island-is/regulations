@@ -4,16 +4,14 @@ import proxy, { FastifyHttpProxyOptions } from 'fastify-http-proxy';
 import { DAY, HOUR } from '@hugsmidjan/qj/time';
 import { Writable } from 'stream';
 import { cacheControl } from './utils/misc';
+import { AWS_BUCKET_NAME, AWS_REGION_NAME } from './constants';
 
-const { AWS_BUCKET_NAME, AWS_REGION_NAME, PORT, PROXY_PORT } = process.env;
-
-if (!AWS_BUCKET_NAME || !AWS_REGION_NAME) {
-  throw new Error('AWS_BUCKET_NAME and AWS_REGION_NAME not configured');
-}
+const { PORT, PROXY_PORT } = process.env;
 
 const IMAGE_TTL = (0.03 * DAY) / HOUR; // Seconds
 
 const fastify = fast({
+  // logger: true,
   ignoreTrailingSlash: true,
   /**
     This rewrite function serves to add suffix to pdf urls.

@@ -4,7 +4,12 @@ import multerS3 from 'multer-s3-transform';
 import { createHash } from 'crypto';
 import { Readable } from 'stream';
 import sharp from 'sharp';
-import { FILE_SERVER } from '../constants';
+import {
+  FILE_SERVER,
+  AWS_BUCKET_NAME,
+  AWS_REGION_NAME,
+  MEDIA_BUCKET_FOLDER,
+} from '../constants';
 import { FastifyPluginCallback, FastifyRequest } from 'fastify';
 import { QStr } from 'utils/misc';
 import type { Request as ExpressRequest } from 'express';
@@ -12,16 +17,9 @@ import type { Request as ExpressRequest } from 'express';
 const EMPTY_KEY = '_';
 
 const {
-  AWS_BUCKET_NAME,
-  AWS_REGION_NAME,
-  MEDIA_BUCKET_FOLDER,
   FILE_UPLOAD_KEY_DRAFT = EMPTY_KEY,
   FILE_UPLOAD_KEY_PUBLISH = EMPTY_KEY,
 } = process.env;
-
-if (!AWS_BUCKET_NAME || !AWS_REGION_NAME) {
-  throw new Error('AWS_BUCKET_NAME and AWS_REGION_NAME not configured');
-}
 
 const apiKeyUsers: Record<string, 'draft' | 'publish' | undefined> = {
   [FILE_UPLOAD_KEY_DRAFT]: 'draft',

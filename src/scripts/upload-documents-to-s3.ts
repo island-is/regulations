@@ -3,15 +3,14 @@ import file_type from 'file-type';
 import { readFile, writeFile } from 'fs/promises';
 import fetch from 'node-fetch';
 import { PassThrough, Readable } from 'stream';
-import { FILE_SERVER } from '../constants';
+import {
+  FILE_SERVER,
+  AWS_BUCKET_NAME,
+  AWS_REGION_NAME,
+  MEDIA_BUCKET_FOLDER,
+} from '../constants';
 
 const QUERY_REPLACEMENT = '__q__';
-
-const { AWS_BUCKET_NAME, AWS_REGION_NAME, MEDIA_BUCKET_FOLDER } = process.env;
-
-if (!AWS_BUCKET_NAME || !AWS_REGION_NAME) {
-  throw new Error('AWS_BUCKET_NAME and AWS_REGION_NAME not configured');
-}
 
 // Stupid cloning for stupid streams
 const stupidClone = (stream: Readable) =>
