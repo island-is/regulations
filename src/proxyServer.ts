@@ -4,7 +4,7 @@ import proxy, { FastifyHttpProxyOptions } from 'fastify-http-proxy';
 import { DAY, HOUR } from '@hugsmidjan/qj/time';
 import { Writable } from 'stream';
 import { cacheControl } from './utils/misc';
-import { AWS_BUCKET_NAME, AWS_REGION_NAME } from './constants';
+import { AWS_BUCKET_NAME, AWS_REGION_NAME, API_SERVER } from './constants';
 
 const { PORT, PROXY_PORT } = process.env;
 
@@ -70,7 +70,7 @@ const proxyProps = (
 });
 
 fastify.register(proxy, {
-  upstream: 'https://reglugerdir-api.herokuapp.com/api/v1/regulation/',
+  upstream: API_SERVER,
   prefix: '/pdf',
   ...proxyProps(),
 });

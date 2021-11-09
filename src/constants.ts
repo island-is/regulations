@@ -11,3 +11,7 @@ export { AWS_BUCKET_NAME, AWS_REGION_NAME, MEDIA_BUCKET_FOLDER };
 
 export const FILE_SERVER =
   process.env.DEV_FILE_SERVER || 'https://files.reglugerd.is';
+
+export const API_SERVER =
+  (process.env.DEV_API_SERVER || 'https://reglugerdir-api.herokuapp.com') +
+  '/api/v1/regulation';
