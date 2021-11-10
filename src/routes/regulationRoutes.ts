@@ -10,13 +10,7 @@ import {
 import Queue from 'bull';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import {
-  ISODate,
-  RegQueryName,
-  RegulationRedirect,
-  Regulation,
-  RegulationDiff,
-} from './types';
+import { ISODate, RegQueryName } from './types';
 import { FastifyPluginCallback, FastifyReply, FastifyRequest } from 'fastify';
 
 const REGULATION_TTL = 0.1;
@@ -28,7 +22,13 @@ export type PdfQueueItem = {
   body?: unknown;
 };
 
-const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+const REDIS_URL = process.env.REDIS_URL;
+
+if (!REDIS_URL) {
+  console.info('Missing REDIS URL for regulation routes');
+  process.exit(1);
+}
+
 const pdfQueue = new Queue<PdfQueueItem>('pdfQueue', REDIS_URL);
 
 // ---------------------------------------------------------------------------
@@ -159,19 +159,16 @@ const handlePdfRequest = (
 ) =>
   handleRequest(req, res, opts, async (res, opts, routePath) => {
     const workerJob = await pdfQueue.getJob(routePath);
-    const count = await pdfQueue.count();
-    console.log('count', count);
-
     if (workerJob === null) {
-      await pdfQueue.add({ routePath, opts, body }, { jobId: routePath });
-      console.log('added to queue');
+      await pdfQueue.add(
+        { routePath, opts, body },
+        { jobId: routePath, removeOnComplete: true, removeOnFail: true },
+      );
     } else {
-      const complete = await workerJob.isCompleted();
-      console.log('complete::', complete);
+      const complete = await workerJob.getState();
 
       if (complete) {
         const pdf = workerJob.returnvalue;
-        console.log('workerJob.returnvalue', pdf);
         const { fileName, pdfContents } = pdf || {};
 
         if (!fileName || !pdfContents) {
@@ -187,7 +184,7 @@ const handlePdfRequest = (
             `inline; filename="${encodeURI(fileName)}.pdf"`,
           )
           .type('application/pdf')
-          .send(pdfContents);
+          .send(Buffer.from(pdfContents.data));
 
         return true;
       }

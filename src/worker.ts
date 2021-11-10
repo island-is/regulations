@@ -2,45 +2,49 @@ import throng from 'throng';
 import Queue from 'bull';
 import { makeDraftPdf, makePublishedPdf } from 'db/RegulationPdf';
 import { PdfQueueItem } from 'routes/regulationRoutes';
+import { connectSequelize } from 'utils/sequelize';
 
 // Connect to a local redis instance locally, and the Heroku-provided URL in production
-const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+const REDIS_URL = process.env.REDIS_URL;
 
 // Spin up multiple processes to handle jobs to take advantage of more CPU cores
 // See: https://devcenter.heroku.com/articles/node-concurrency for more info
-const workers = process.env.WEB_CONCURRENCY || 2;
+const workers = process.env.WEB_CONCURRENCY || 4;
 
-// The maximum number of jobs each worker should process at once. This will need
-// to be tuned for your application. If each job is mostly waiting on network
-// responses it can be much higher. If each job is CPU-intensive, it might need
-// to be much lower.
-const maxJobsPerWorker = 50;
+const maxJobsPerWorker = 5;
 
 function start() {
+  if (!REDIS_URL) {
+    console.info('Missing REDIS URL for worker queue');
+    process.exit(1);
+  }
   // Connect to the named work queue
   const pdfQueue = new Queue<PdfQueueItem>('pdfQueue', REDIS_URL);
 
   pdfQueue.process(maxJobsPerWorker, async (job) => {
-    console.log('starting job id:', job.id);
     const { routePath, opts, body } = job.data;
+    try {
+      const pdf =
+        opts.name !== 'new'
+          ? makePublishedPdf(
+              routePath,
+              // @ts-expect-error  (TS doesn't realize opts.name can't be 'new' at this point)
+              opts,
+            )
+          : body
+          ? makeDraftPdf(body)
+          : undefined;
 
-    const pdf =
-      opts.name !== 'new'
-        ? makePublishedPdf(
-            routePath,
-            // @ts-expect-error  (TS doesn't realize opts.name can't be 'new' at this point)
-            opts,
-          )
-        : body
-        ? makeDraftPdf(body)
-        : undefined;
-
-    const result = (await pdf) || {};
-    console.log('pdf result:', result);
-
-    return result;
+      const pdfResult = await pdf;
+      return pdfResult || {};
+    } catch (e) {
+      console.error('Failure in worker', e);
+    }
+    return {};
   });
 }
+//need to run this cause the worker doesn't have access to the server.ts initialization
+connectSequelize();
 
 // Initialize the clustered worker process
 // See: https://devcenter.heroku.com/articles/node-concurrency for more info
