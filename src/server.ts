@@ -41,6 +41,9 @@ if (REDIS_TLS_URL || REDIS_URL) {
   const redisOptions: FastifyRedisPluginOptions = {
     url,
     closeClient: true,
+    tls: {
+      rejectUnauthorized: false,
+    },
   };
   fastify.register(fastifyRedis, redisOptions);
 }
