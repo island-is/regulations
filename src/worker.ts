@@ -14,6 +14,7 @@ const workers = process.env.WEB_CONCURRENCY || 4;
 const maxJobsPerWorker = 5;
 
 function start() {
+  console.info('Worker started');
   if (!REDIS_URL) {
     console.info('Missing REDIS URL for worker queue');
     process.exit(1);
@@ -23,7 +24,6 @@ function start() {
 
   pdfQueue.process(maxJobsPerWorker, async (job) => {
     console.log('job started', job.id);
-
     const { routePath, opts, body } = job.data;
     try {
       const pdf =
@@ -51,3 +51,4 @@ connectSequelize();
 // Initialize the clustered worker process
 // See: https://devcenter.heroku.com/articles/node-concurrency for more info
 throng({ workers, start });
+console.info('Worker up and running');
