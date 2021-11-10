@@ -160,12 +160,15 @@ const handlePdfRequest = (
   handleRequest(req, res, opts, async (res, opts, routePath) => {
     const workerJob = await pdfQueue.getJob(routePath);
     if (workerJob === null) {
+      console.log('Adding to queue');
+
       await pdfQueue.add(
         { routePath, opts, body },
         { jobId: routePath, removeOnComplete: true, removeOnFail: true },
       );
     } else {
       const complete = await workerJob.getState();
+      console.log('checking queue, status:', complete);
 
       if (complete) {
         const pdf = workerJob.returnvalue;
@@ -191,6 +194,8 @@ const handlePdfRequest = (
     }
 
     // always return the refresh page
+    console.log('refresh html');
+
     res
       .code(202)
       .type('text/html')

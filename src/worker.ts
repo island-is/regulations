@@ -22,6 +22,8 @@ function start() {
   const pdfQueue = new Queue<PdfQueueItem>('pdfQueue', REDIS_URL);
 
   pdfQueue.process(maxJobsPerWorker, async (job) => {
+    console.log('job started', job.id);
+
     const { routePath, opts, body } = job.data;
     try {
       const pdf =
