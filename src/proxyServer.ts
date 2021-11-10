@@ -6,7 +6,7 @@ import { Writable } from 'stream';
 import { cacheControl } from './utils/misc';
 import { AWS_BUCKET_NAME, AWS_REGION_NAME, API_SERVER } from './constants';
 
-const { PORT, PROXY_PORT } = process.env;
+const { PORT, PROXY_PORT, FORCE_HTTPS } = process.env;
 
 const IMAGE_TTL = (0.03 * DAY) / HOUR; // Seconds
 
@@ -21,6 +21,18 @@ const fastify = fast({
     const url = req.url || '/';
     return url.startsWith('/pdf') ? url.replace(/\/$/, '') + '/pdf' : url;
   },
+});
+
+fastify.addHook('onRequest', async (request, reply) => {
+  if (
+    request.headers['x-forwarded-proto'] !== 'https' &&
+    FORCE_HTTPS === 'true'
+  ) {
+    reply
+      .code(301)
+      .header('Location', `https://${request.headers.host}${request.url}`)
+      .send();
+  }
 });
 
 fastify.register(fastifyRateLimiter, {
