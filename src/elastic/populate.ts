@@ -120,6 +120,7 @@ export async function recreateElastic(client: Client) {
 
 export async function repopulateElastic(client: Client) {
   const t0 = performance.now();
+  let success = false;
   try {
     console.info('fetching regulations...');
     let regulations = loadData<Array<RegulationListItemFull>>(
@@ -137,13 +138,12 @@ export async function repopulateElastic(client: Client) {
     }
 
     if (!regulations.length) {
-      console.warn('Error fetching regulations');
-      return { success: false };
+      throw new Error('Error fetching regulations');
     } else {
       console.info(regulations.length + ' regulations found');
     }
 
-    console.info('deleting all items from "' + INDEX_NAME + '" index...');
+    console.info(`deleting all items from ${INDEX_NAME} index...`);
     await client.deleteByQuery({
       index: INDEX_NAME,
       body: {
@@ -153,7 +153,12 @@ export async function repopulateElastic(client: Client) {
       },
     });
 
-    console.info('populating "' + INDEX_NAME + '" index...');
+    let count = 0;
+    console.info(
+      `populating ${INDEX_NAME} index...
+      (with ${regulations.length} regulations)
+      `,
+    );
     for await (const reg of regulations) {
       const aReg = await regulationToIndexItem(reg);
 
@@ -161,28 +166,25 @@ export async function repopulateElastic(client: Client) {
         index: INDEX_NAME,
         body: aReg,
       });
+      count++;
+      if (count % 100 === 0) {
+        console.log(`… indexed ${count} regulations`);
+      }
     }
 
-    console.info('refreshing indices for "' + INDEX_NAME + '" index...');
+    console.info(`Refreshing ${INDEX_NAME} indices...`);
     await client.indices.refresh({ index: INDEX_NAME });
 
-    const t1 = performance.now();
-    console.info(
-      'indexing "' +
-        INDEX_NAME +
-        '" successful in ' +
-        Math.round(t1 - t0) +
-        'ms.',
-    );
+    success = true;
   } catch (err) {
-    const t1 = performance.now();
     console.info(err);
-    console.info(
-      'indexing "' + INDEX_NAME + '" failed in ' + Math.round(t1 - t0) + 'ms.',
-    );
-    return { success: false };
   }
-  return { success: true };
+
+  const resultType = success ? 'successful in' : 'failed after';
+  const msElapsed = Math.round(performance.now() - t0);
+  console.info(`Indexing ${INDEX_NAME} ${resultType} ${msElapsed} ms.`);
+
+  return { success };
 }
 
 // ---------------------------------------------------------------------------
@@ -195,7 +197,7 @@ const _updateItem = async (client: Client, regname: RegName) => {
   });
 
   if (newReg[0]) {
-    console.info('adding ' + regname + ' to index...');
+    console.info(`adding ${regname} to index...`);
     const aReg = await regulationToIndexItem(newReg[0]);
     await client.index({
       index: INDEX_NAME,
@@ -215,7 +217,7 @@ export async function updateElasticItem(
     return { success: false };
   }
   try {
-    console.info('deleting ' + name + ' from index...');
+    console.info(`deleting ${name} from index...`);
     await client.deleteByQuery({
       index: INDEX_NAME,
       body: {
