@@ -25,7 +25,12 @@ export async function getRegulationsYears(): Promise<RegulationYears> {
     'SELECT DISTINCT YEAR(publishedDate) AS `year` FROM Regulation ORDER BY `year` DESC',
     { type: QueryTypes.SELECT },
   );
-  return years.map((y) => y.year);
+  return (
+    years
+      .map((y) => y.year)
+      // filter out bad years cruft (0008 et. al.)
+      .filter((y) => y > 1800)
+  );
 }
 
 // ---------------------------------------------------------------------------
