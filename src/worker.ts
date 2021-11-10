@@ -21,11 +21,7 @@ function start() {
     try {
       const pdf =
         opts.name !== 'new'
-          ? makePublishedPdf(
-              routePath,
-              // @ts-expect-error  (TS doesn't realize opts.name can't be 'new' at this point)
-              opts,
-            )
+          ? makePublishedPdf(routePath, opts)
           : body
           ? makeDraftPdf(body)
           : undefined;
