@@ -3,7 +3,7 @@ import { RegulationListItemFull, getAllRegulations } from '../db/Regulations';
 import { Client } from '@elastic/elasticsearch';
 import { performance } from 'perf_hooks';
 import { getSettingsTemplate, mappingTemplate } from './template';
-import { assertRegName, loadData } from '../utils/misc';
+import { assertRegName, loadData, storeData } from '../utils/misc';
 
 const INDEX_NAME = 'regulations';
 
@@ -125,14 +125,15 @@ export async function repopulateElastic(client: Client) {
     let regulations = loadData<Array<RegulationListItemFull>>(
       'backup-json/all-extra.json',
     );
-    if (regulations) {
-      console.info('returning data from file');
-    } else {
+    if (!regulations) {
       console.info('fetching data from db (this takes a while)...');
       regulations = await getAllRegulations({
         extra: true,
         includeRepealed: true,
       });
+      storeData(regulations, 'backup-json/all-extra.json');
+    } else {
+      console.info('returning data from file');
     }
 
     if (!regulations.length) {
