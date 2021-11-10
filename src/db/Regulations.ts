@@ -1,5 +1,6 @@
 import { DB_Regulation, DB_Task } from '../models';
 import {
+  RegName,
   ISODate,
   RegulationListItem,
   LawChapter,
@@ -9,7 +10,7 @@ import {
 import { getMinistry } from './Ministry';
 import { getRegulationLawChapters } from './LawChapter';
 import { db } from '../utils/sequelize';
-import { QueryTypes } from 'sequelize';
+import { BindOrReplacements, QueryTypes } from 'sequelize';
 import promiseAll from '@hugsmidjan/qj/promiseAllObject';
 import { eliminateComments } from '../utils/extractData';
 
@@ -171,11 +172,12 @@ export async function getAllRegulations(opts?: {
   full?: boolean;
   extra?: boolean;
   includeRepealed?: boolean;
-  nameFilter?: string; // format: "'RegName','RegName','RegName'" ... used for indexing specific regulations
+  nameFilter?: Array<RegName>;
 }) {
   const { full, extra, includeRepealed, nameFilter } = opts || {};
 
   const whereConds: Array<string> = [];
+  const replacements: BindOrReplacements = {};
 
   if (!includeRepealed) {
     whereConds.push(`r.repealedBeacuseReasons == FALSE`);
@@ -184,8 +186,8 @@ export async function getAllRegulations(opts?: {
     );
   }
   if (nameFilter) {
-    console.warn('FIXME!!!'); // This string concatenation allow SQL injection! Do not do this.
-    // whereConds.push(`r.name IN ("${nameFilter}")`);
+    whereConds.push(`r.name IN (:nameFilter)`);
+    replacements.nameFilter = nameFilter;
   }
 
   const sql = `
@@ -217,6 +219,7 @@ export async function getAllRegulations(opts?: {
   ;`;
 
   let regulations = await db.query<SQLRegulationsItem>(sql, {
+    replacements,
     type: QueryTypes.SELECT,
   });
 

@@ -191,7 +191,7 @@ const _updateItem = async (client: Client, regname: RegName) => {
   const newReg = await getAllRegulations({
     extra: true,
     includeRepealed: true,
-    nameFilter: `'${regname}'`,
+    nameFilter: [regname],
   });
 
   if (newReg[0]) {
@@ -210,7 +210,7 @@ export async function updateElasticItem(
   client: Client,
   query: { name?: string },
 ) {
-  const name = query.name && assertRegName(query.name);
+  const name = assertRegName(query.name);
   if (!name) {
     return { success: false };
   }
