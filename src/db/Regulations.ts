@@ -96,7 +96,13 @@ const augmentRegulationList = async (
       });
 
       const textWithoutComments =
-        !!migrated && opts.text && text ? eliminateComments(text) : undefined;
+        !opts.text || !text
+          ? undefined
+          : migrated
+          ? eliminateComments(text)
+          : // Pass through bare+dirty text from unmigrated regulations.
+            // people need the text to be searchable even if it isn't perfect
+            text;
 
       const itm: RegulationListItemFull = {
         type,
