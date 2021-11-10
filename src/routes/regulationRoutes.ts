@@ -7,6 +7,7 @@ import {
   cacheControl,
   toISODate,
 } from '../utils/misc';
+import Queue from 'bull';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
@@ -17,10 +18,18 @@ import {
   RegulationDiff,
 } from './types';
 import { FastifyPluginCallback, FastifyReply, FastifyRequest } from 'fastify';
-import { makePublishedPdf, makeDraftPdf } from '../db/RegulationPdf';
 
 const REGULATION_TTL = 0.1;
 const PDF_FILE_TTL = 1;
+
+export type PdfQueueItem = {
+  routePath: string;
+  opts: RefinedRegHandlerOpts<'new'>;
+  body?: unknown;
+};
+
+const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+const pdfQueue = new Queue<PdfQueueItem>('pdfQueue', REDIS_URL);
 
 // ---------------------------------------------------------------------------
 
@@ -149,37 +158,50 @@ const handlePdfRequest = (
   body?: unknown,
 ) =>
   handleRequest(req, res, opts, async (res, opts, routePath) => {
-    const job =
-      opts.name !== 'new'
-        ? makePublishedPdf(
-            routePath,
-            // @ts-expect-error  (TS doesn't realize opts.name can't be 'new' at this point)
-            opts,
+    const workerJob = await pdfQueue.getJob(routePath);
+    const count = await pdfQueue.count();
+    console.log('count', count);
+
+    if (workerJob === null) {
+      await pdfQueue.add({ routePath, opts, body }, { jobId: routePath });
+      console.log('added to queue');
+    } else {
+      const complete = await workerJob.isCompleted();
+      console.log('complete::', complete);
+
+      if (complete) {
+        const pdf = workerJob.returnvalue;
+        console.log('workerJob.returnvalue', pdf);
+        const { fileName, pdfContents } = pdf || {};
+
+        if (!fileName || !pdfContents) {
+          return false;
+        }
+
+        cacheControl(res, PDF_FILE_TTL);
+        res
+          .code(200)
+          // .header('Content-Disposition', `attachment; filename="${fileName}.pdf"`);
+          .header(
+            'Content-Disposition',
+            `inline; filename="${encodeURI(fileName)}.pdf"`,
           )
-        : body
-        ? makeDraftPdf(body)
-        : undefined;
+          .type('application/pdf')
+          .send(pdfContents);
 
-    // TODO: return 304 when possible for conditional (If-Modified-Since:) request.
-
-    const { fileName, pdfContents } = (await job) || {};
-
-    if (!fileName || !pdfContents) {
-      return false;
+        return true;
+      }
     }
 
-    cacheControl(res, PDF_FILE_TTL);
+    // always return the refresh page
     res
-      .code(200)
-      // .header('Content-Disposition', `attachment; filename="${fileName}.pdf"`);
-      .header(
-        'Content-Disposition',
-        `inline; filename="${encodeURI(fileName)}.pdf"`,
-      )
-      .type('application/pdf')
-      .send(pdfContents);
-
+      .code(202)
+      .type('text/html')
+      .send(
+        '<html><head><meta charset="utf-8"><meta http-equiv="refresh" content="5"></head><body>Augnablik, PDF er í vinnslu. Þessi síða mun uppfærast.</body></html>',
+      );
     return true;
+    // TODO: return 304 when possible for conditional (If-Modified-Since:) request.
   });
 
 // ===========================================================================
@@ -193,6 +215,7 @@ export const regulationRoutes: FastifyPluginCallback = (
   opts,
   done,
 ) => {
+  // pdfQueue = new Queue('pdf', REDIS_URL);
   /**
    * Returns original version of a regulation
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)

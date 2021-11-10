@@ -381,7 +381,7 @@ const uploadPdf = (fileKey: string, pdfContents: Buffer) =>
       console.info('⚠️ ', message);
     });
 
-type RegOpts = {
+export type RegOpts = {
   name: RegQueryName;
   date?: Date;
   diff?: boolean;
@@ -436,6 +436,7 @@ export const makePublishedPdf = async (routePath: string, opts: RegOpts) => {
     fetchPdf(fileKey),
     date && fetchModifiedDate(regName),
   ]);
+  console.log('makePublishedPdf', regModified);
   if (regModified) {
     let pdfContents = pdf.contents;
 
@@ -454,11 +455,19 @@ export const makePublishedPdf = async (routePath: string, opts: RegOpts) => {
           { date, diff, earlierDate },
           routePath,
         )) || undefined;
+      console.log(regulation);
+
+      // TODO: add worker for 👇
       pdfContents = await makeRegulationPdf(regulation);
       pdfContents && uploadPdf(fileKey, pdfContents);
     }
     const fileName = getPrettyPdfFilename(opts, regName, regModified);
+    console.log('fileName', fileName);
+    console.log('pdfContents', pdfContents);
+
     return { fileName, pdfContents };
   }
+  console.log('bam');
+
   return {};
 };

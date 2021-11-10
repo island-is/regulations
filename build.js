@@ -11,6 +11,7 @@ require('esbuild')
   .build({
     entryPoints: [
       'server.ts',
+      'worker.ts',
       'proxyServer.ts',
       'scripts/upload-documents-to-s3.ts',
       'RegulationPdf.css',
