@@ -161,19 +161,16 @@ const handlePdfRequest = (
     const workerJob = await pdfQueue.getJob(routePath);
 
     if (workerJob === null) {
-      console.log('Adding to queue');
       await pdfQueue.add(
         { routePath, opts, body },
         { jobId: routePath, removeOnFail: true },
       );
     } else {
       const complete = await workerJob.getState();
-      console.log('checking queue, status:', complete);
 
       if (complete) {
         const pdf = workerJob.returnvalue;
         const { fileName, pdfContents } = pdf || {};
-
         if (!fileName || !pdfContents) {
           return false;
         }
@@ -194,13 +191,11 @@ const handlePdfRequest = (
     }
 
     // always return the refresh page
-    console.log('refresh html');
-
     res
       .code(202)
       .type('text/html')
       .send(
-        '<html><head><meta charset="utf-8"><meta http-equiv="refresh" content="5"></head><body>Augnablik, PDF er í vinnslu. Þessi síða mun uppfærast.</body></html>',
+        '<html><head><meta charset="utf-8"><meta http-equiv="refresh" content="1"></head><body>Augnablik, PDF er í vinnslu. Þessi síða mun uppfærast.</body></html>',
       );
     return true;
     // TODO: return 304 when possible for conditional (If-Modified-Since:) request.

@@ -9,7 +9,7 @@ const REDIS_URL = process.env.REDIS_URL;
 
 // Spin up multiple processes to handle jobs to take advantage of more CPU cores
 // See: https://devcenter.heroku.com/articles/node-concurrency for more info
-const workers = process.env.WEB_CONCURRENCY || 1;
+const workers = process.env.WEB_CONCURRENCY || 2;
 
 const maxJobsPerWorker = 5;
 
@@ -23,7 +23,6 @@ function start() {
   const pdfQueue = new Queue<PdfQueueItem>('pdfQueue', REDIS_URL);
 
   pdfQueue.process(maxJobsPerWorker, async (job) => {
-    console.log('job started', job.id);
     const { routePath, opts, body } = job.data;
     try {
       const pdf =
