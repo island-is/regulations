@@ -435,8 +435,9 @@ export const _makePublishedPdf = async (routePath: string, opts: RegOpts) => {
   try {
     const [pdf, regModified] = await Promise.all([
       fetchPdf(fileKey),
-      date && fetchModifiedDate(regName),
+      fetchModifiedDate(regName, date),
     ]);
+
     if (regModified) {
       let pdfContents = pdf.contents;
 
