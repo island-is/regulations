@@ -12,7 +12,13 @@ import {
 import Queue from 'bull';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { ISODate, RegQueryName } from './types';
+import {
+  ISODate,
+  RegQueryName,
+  Regulation,
+  RegulationDiff,
+  RegulationRedirect,
+} from './types';
 import { FastifyPluginCallback, FastifyReply, FastifyRequest } from 'fastify';
 
 const REGULATION_TTL = 0.1;
