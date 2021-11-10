@@ -425,43 +425,45 @@ export const makeDraftPdf = async (body: unknown) => {
   return {};
 };
 
-// ---------------------------------------------------------------------------
+// ===========================================================================
 
 export const makePublishedPdf = async (routePath: string, opts: RegOpts) => {
   const { name, date, diff, earlierDate } = opts;
   const regName = slugToName(name);
-
   const fileKey = getPdfFileKey(routePath);
-  const [pdf, regModified] = await Promise.all([
-    fetchPdf(fileKey),
-    date && fetchModifiedDate(regName),
-  ]);
 
-  if (regModified) {
-    let pdfContents = pdf.contents;
+  try {
+    const [pdf, regModified] = await Promise.all([
+      fetchPdf(fileKey),
+      fetchModifiedDate(regName, date),
+    ]);
 
-    // NOTE: regModified is really an ISODate with a faux timestamp appended.
-    // this may cause some weird behavior sometimes.
+    if (regModified) {
+      let pdfContents = pdf.contents;
 
-    const doGeneratePdf =
-      !pdfContents ||
-      regModified > pdf.modifiedDate ||
-      PDF_TEMPLATE_UPDATED > pdf.modifiedDate;
+      // NOTE: regModified is really an ISODate with a faux timestamp appended.
+      // this may cause some weird behavior sometimes.
 
-    if (doGeneratePdf) {
-      const regulation =
-        (await getRegulation(
-          regName,
-          { date, diff, earlierDate },
-          routePath,
-        )) || undefined;
+      const doGeneratePdf =
+        !pdfContents ||
+        regModified > pdf.modifiedDate ||
+        PDF_TEMPLATE_UPDATED > pdf.modifiedDate;
 
-      pdfContents = await makeRegulationPdf(regulation);
-      pdfContents && uploadPdf(fileKey, pdfContents);
+      if (doGeneratePdf) {
+        const regulation =
+          (await getRegulation(
+            regName,
+            { date, diff, earlierDate },
+            routePath,
+          )) || undefined;
+        pdfContents = await makeRegulationPdf(regulation);
+        pdfContents && uploadPdf(fileKey, pdfContents);
+      }
+      const fileName = getPrettyPdfFilename(opts, regName, regModified);
+      return { fileName, pdfContents };
     }
-    const fileName = getPrettyPdfFilename(opts, regName, regModified);
-
-    return { fileName, pdfContents };
+  } catch (error) {
+    console.log(error);
   }
 
   return {};

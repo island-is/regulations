@@ -298,12 +298,13 @@ const getPdfVersion = (routePath: string) => FILE_SERVER + '/pdf/' + routePath;
 
 // ===========================================================================
 
-export const fetchModifiedDate = async (name: RegName) => {
+export const fetchModifiedDate = async (name: RegName, date?: Date) => {
   const reg = await getRegulationByName(name, ['id', 'publishedDate']);
   if (!reg) {
     return;
   }
-  const change = await getLatestRegulationChange(reg.id, undefined, ['date']);
+  const change =
+    date && (await getLatestRegulationChange(reg.id, date, ['date']));
   // FIXME: The database should be updated to contain lastModified/created timestamps
   return ((change ? change.date : reg.publishedDate) +
     'T08:00:00') as ISODateTime;
