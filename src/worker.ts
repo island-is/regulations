@@ -9,7 +9,7 @@ const REDIS_URL = process.env.REDIS_URL;
 
 // Spin up multiple processes to handle jobs to take advantage of more CPU cores
 // See: https://devcenter.heroku.com/articles/node-concurrency for more info
-const workers = process.env.WEB_CONCURRENCY || 4;
+const workers = process.env.WEB_CONCURRENCY || 1;
 
 const maxJobsPerWorker = 5;
 
@@ -50,5 +50,5 @@ connectSequelize();
 
 // Initialize the clustered worker process
 // See: https://devcenter.heroku.com/articles/node-concurrency for more info
-throng({ workers, start });
+throng({ workers, start, lifetime: Infinity });
 console.info('Worker up and running');
