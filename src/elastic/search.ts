@@ -40,6 +40,35 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
 
   const nameSearch: Array<esb.Query> = [];
 
+  // add filters
+  const filters: Array<esb.Query> = [];
+
+  const iAQuery = query.iA === 'true';
+  const iRQuery = query.iR === 'true';
+  const yearFrom = assertReasonableYear(query.year);
+
+  if (!iAQuery) {
+    filters.push(esb.termQuery('type', 'base'));
+  }
+  if (!iRQuery) {
+    filters.push(esb.termQuery('repealed', false));
+  }
+  if (yearFrom) {
+    const yearTo = Math.max(yearFrom, assertReasonableYear(query.yearTo) || 0);
+    const years = range(yearFrom, yearTo);
+    filters.push(esb.termsQuery('year', years));
+  }
+  if (query.rn) {
+    filters.push(esb.termQuery('ministrySlug', xss(query.rn)));
+  }
+  if (query.ch) {
+    filters.push(esb.termQuery('lawChaptersSlugs', xss(query.ch)));
+  }
+
+  const activeFilters = Boolean(
+    iAQuery || iRQuery || yearFrom || query.rn || query.ch,
+  );
+
   // build text search
   const textSearch: Array<esb.Query> = [];
 
@@ -70,7 +99,6 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
     textSearch.push(
       esb
         .queryStringQuery(searchQuery)
-        // .analyzeWildcard(true)
         // .escape(true)
         .fields([
           'title^23',
@@ -81,33 +109,10 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
           'text.compound^1',
         ]),
     );
-  } else {
+  } else if (activeFilters) {
     textSearch.push(
       esb.queryStringQuery('*').analyzeWildcard(true).fields(['title']),
     );
-  }
-
-  // add filters
-  const filters: Array<esb.Query> = [];
-
-  if (!query.iA || query.iA !== 'true') {
-    filters.push(esb.termQuery('type', 'base'));
-  }
-  if (!query.iR || query.iR !== 'true') {
-    filters.push(esb.termQuery('repealed', false));
-  }
-
-  const yearFrom = assertReasonableYear(query.year);
-  if (yearFrom) {
-    const yearTo = Math.max(yearFrom, assertReasonableYear(query.yearTo) || 0);
-    const years = range(yearFrom, yearTo);
-    filters.push(esb.termsQuery('year', years));
-  }
-  if (query.rn) {
-    filters.push(esb.termQuery('ministrySlug', xss(query.rn)));
-  }
-  if (query.ch) {
-    filters.push(esb.termQuery('lawChaptersSlugs', xss(query.ch)));
   }
 
   const searchSections: Array<esb.Query> = [
@@ -134,7 +139,7 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
   const pagingPage = Math.max(parseInt('' + query.page) || 1, 1);
   let searchHits: Array<RegulationListItem> = [];
 
-  if (filters.length || textSearch.length) {
+  if (activeFilters || textSearch.length) {
     let elasticResponse: Record<string, any> = {};
 
     try {
