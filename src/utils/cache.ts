@@ -54,34 +54,3 @@ export async function set<T>(
 
   return true;
 }
-
-export function generateRegulationCacheKey({
-  name,
-  date,
-  diff,
-  earlierDate,
-}: {
-  name: RegQueryName;
-  date: Date | undefined;
-  diff: boolean | undefined;
-  earlierDate: Date | 'original' | undefined;
-}) {
-  try {
-    const dateKey = date ? `date-${date.getTime()}` : 'nodate';
-    const diffKey = diff ? `diff-${diff}` : 'nodiff';
-    let earlierDateKey = 'noearlierdate';
-
-    if (earlierDate) {
-      if (earlierDate === 'original') {
-        earlierDateKey = 'earlierdate-original';
-      } else {
-        earlierDateKey = `earlierdate-${earlierDate.getTime()}`;
-      }
-    }
-
-    return `regulation-${name}-${dateKey}-${diffKey}-${earlierDateKey}`;
-  } catch (e) {
-    console.error('unable to generate cacheKey for regulation', e);
-    return null;
-  }
-}

@@ -36,7 +36,7 @@ export const ministryRoutes: FastifyPluginCallback = (fastify, opts, done) => {
         console.error('unable to get all ministries', e);
         return res.status(500).send();
       }
-      await set(redis, cacheKey, data, MINISTRY_REDIS_TTL);
+      set(redis, cacheKey, data, MINISTRY_REDIS_TTL);
     }
     const ministries = data.map((m): MinistryListItem => {
       const {

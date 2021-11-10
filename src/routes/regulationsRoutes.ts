@@ -53,7 +53,7 @@ export const regulationsRoutes: FastifyPluginCallback = (
         console.error('unable to get newest regulations', e);
         return res.status(500).send();
       }
-      await set(redis, cacheKey, data, NEWEST_REDIS_TTL);
+      set(redis, cacheKey, data, NEWEST_REDIS_TTL);
     }
 
     let totalItems: number;
@@ -69,7 +69,7 @@ export const regulationsRoutes: FastifyPluginCallback = (
     } else {
       try {
         totalItems = await getRegulationsCount();
-        await set(redis, cacheKeyTotalItems, totalItems, NEWEST_REDIS_TTL);
+        set(redis, cacheKeyTotalItems, totalItems, NEWEST_REDIS_TTL);
       } catch (e) {
         console.error('unable to get regulationsCount', e);
         // recoverable, set the totalItems to something large...

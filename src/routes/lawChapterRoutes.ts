@@ -39,7 +39,7 @@ export const lawChapterRoutes: FastifyPluginCallback = (
         console.error('unable to get law chapters', slugs, e);
         return res.status(500).send();
       }
-      await set(redis, cacheKey, lawChapters, LAWCHAPTER_REDIS_TTL);
+      set(redis, cacheKey, lawChapters, LAWCHAPTER_REDIS_TTL);
     }
 
     cacheControl(res, LAWCHAPTER_TTL);
@@ -68,7 +68,7 @@ export const lawChapterRoutes: FastifyPluginCallback = (
         console.error('unable to get law chapter tree', e);
         return res.status(500).send();
       }
-      await set(redis, cacheKey, lawChapterTree, LAWCHAPTER_REDIS_TTL);
+      set(redis, cacheKey, lawChapterTree, LAWCHAPTER_REDIS_TTL);
     }
 
     cacheControl(res, LAWCHAPTER_TTL);

@@ -1,5 +1,5 @@
 import { FastifyRedis } from 'fastify-redis';
-import { generateRegulationCacheKey, get, set } from 'utils/cache';
+import { get, set } from 'utils/cache';
 import { getRegulation } from '../db/Regulation';
 import {
   assertISODate,
@@ -128,12 +128,8 @@ const handleDataRequest = (
   handleRequest(req, res, opts, async (res, opts, routePath) => {
     const { name, date, diff, earlierDate } = opts;
 
-    const cacheKey = generateRegulationCacheKey({
-      name,
-      date,
-      diff,
-      earlierDate,
-    });
+    const cacheKey = routePath;
+
     const cached = await get<
       RegulationRedirect | Regulation | RegulationDiff | null
     >(redis, cacheKey);
@@ -157,7 +153,7 @@ const handleDataRequest = (
         console.error('unable to get regulation', cacheKey, e);
         return res.status(500).send();
       }
-      await set(redis, cacheKey, regulation, REGULATION_REDIS_TTL);
+      set(redis, cacheKey, regulation, REGULATION_REDIS_TTL);
     }
 
     if (!regulation) {
