@@ -184,7 +184,8 @@ export async function getAllRegulations(opts?: {
     );
   }
   if (nameFilter) {
-    whereConds.push(`r.name IN ("${nameFilter}")`);
+    console.warn('FIXME!!!'); // This string concatenation allow SQL injection! Do not do this.
+    // whereConds.push(`r.name IN ("${nameFilter}")`);
   }
 
   const sql = `
