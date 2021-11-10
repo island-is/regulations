@@ -38,12 +38,17 @@ if (REDIS_TLS_URL || REDIS_URL) {
   console.info('redis active');
   const url = REDIS_TLS_URL ?? REDIS_URL;
 
+  const tls =
+    (url?.indexOf('rediss') ?? -1) >= 0
+      ? {
+          rejectUnauthorized: false,
+        }
+      : undefined;
+
   const redisOptions: FastifyRedisPluginOptions = {
     url,
     closeClient: true,
-    tls: {
-      rejectUnauthorized: false,
-    },
+    tls,
   };
   fastify.register(fastifyRedis, redisOptions);
 }
