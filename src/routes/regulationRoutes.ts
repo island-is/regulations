@@ -9,7 +9,6 @@ import {
   cacheControl,
   toISODate,
 } from '../utils/misc';
-import Queue from 'bull';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
@@ -20,6 +19,7 @@ import {
   RegulationRedirect,
 } from './types';
 import { FastifyPluginCallback, FastifyReply, FastifyRequest } from 'fastify';
+import { getQueue } from 'utils/bullQueue';
 
 const REGULATION_TTL = 0.1;
 const PDF_FILE_TTL = 1;
@@ -31,14 +31,7 @@ export type PdfQueueItem = {
   body?: unknown;
 };
 
-const REDIS_URL = process.env.REDIS_URL;
-
-if (!REDIS_URL) {
-  console.info('Missing REDIS URL for regulation routes');
-  process.exit(1);
-}
-
-const pdfQueue = new Queue<PdfQueueItem>('pdfQueue', REDIS_URL);
+const pdfQueue = getQueue();
 
 // ---------------------------------------------------------------------------
 
@@ -198,9 +191,10 @@ const handlePdfRequest = (
     } else {
       const complete = await workerJob.getState();
 
-      if (complete) {
+      if (complete === 'completed') {
         const pdf = workerJob.returnvalue;
         const { fileName, pdfContents } = pdf || {};
+
         if (!fileName || !pdfContents) {
           return false;
         }
@@ -242,7 +236,6 @@ export const regulationRoutes: FastifyPluginCallback = (
   opts,
   done,
 ) => {
-  // pdfQueue = new Queue('pdf', REDIS_URL);
   /**
    * Returns original version of a regulation
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)

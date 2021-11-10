@@ -1,8 +1,7 @@
 import throng from 'throng';
-import Queue from 'bull';
 import { makeDraftPdf, makePublishedPdf } from 'db/RegulationPdf';
-import { PdfQueueItem } from 'routes/regulationRoutes';
 import { connectSequelize } from 'utils/sequelize';
+import { getQueue } from 'utils/bullQueue';
 
 // Connect to a local redis instance locally, and the Heroku-provided URL in production
 const REDIS_URL = process.env.REDIS_URL;
@@ -11,17 +10,12 @@ const REDIS_URL = process.env.REDIS_URL;
 // See: https://devcenter.heroku.com/articles/node-concurrency for more info
 const workers = process.env.WEB_CONCURRENCY || 2;
 
-const maxJobsPerWorker = 5;
+const maxJobsPerWorker = 1;
+
+// pdfQueue.empty();
 
 function start() {
-  console.info('Worker started');
-  if (!REDIS_URL) {
-    console.info('Missing REDIS URL for worker queue');
-    process.exit(1);
-  }
-  // Connect to the named work queue
-  const pdfQueue = new Queue<PdfQueueItem>('pdfQueue', REDIS_URL);
-
+  const pdfQueue = getQueue();
   pdfQueue.process(maxJobsPerWorker, async (job) => {
     const { routePath, opts, body } = job.data;
     try {
@@ -44,10 +38,12 @@ function start() {
     return {};
   });
 }
-//need to run this cause the worker doesn't have access to the server.ts initialization
-connectSequelize();
 
-// Initialize the clustered worker process
-// See: https://devcenter.heroku.com/articles/node-concurrency for more info
-throng({ workers, start, lifetime: Infinity });
-console.info('Worker up and running');
+if (REDIS_URL) {
+  //need to run this cause the worker doesn't have access to the server.ts initialization
+  connectSequelize();
+
+  // Initialize the clustered worker process
+  // See: https://devcenter.heroku.com/articles/node-concurrency for more info
+  throng({ workers, start });
+}
