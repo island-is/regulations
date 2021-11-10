@@ -84,15 +84,19 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
           const numberPadded = zeroPad(parseInt(number), 4);
           names.push(numberPadded + '/' + year);
           return `"${number}-${year}"`;
-        } else {
-          return word.replace(/\//g, '\\/');
+        } else if (/^\d{1,4}[*]?$/.test(word)) {
+          const numberPadded = zeroPad(parseInt(word), 4);
+          names.push(numberPadded + '*');
         }
+        return word.replace(/\//g, '\\/');
       })
       .join(' ');
 
     names.forEach((name) => {
       nameSearch.push(
-        esb.queryStringQuery('"' + name + '"').fields(['name^100']),
+        name.includes('*')
+          ? esb.queryStringQuery(name).fields(['name^50'])
+          : esb.queryStringQuery(`"${name}"`).fields(['name^100']),
       );
     });
 
@@ -152,6 +156,7 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
     } catch (err) {
       const value = err instanceof errors.ResponseError ? err.meta : err;
       console.error(value);
+      // console.error((err as any).body.error.failed_shards);
     }
     const hits = elasticResponse.body?.hits || {};
 
