@@ -48,6 +48,7 @@
     "fastify-multer": "^2.0.2",
     "fastify-multipart": "^5.1.0",
     "fastify-rate-limit": "^5.0.1",
+    "fastify-redis": "^4.3.3",
     "file-type": "^16.5.3",
     "htmldiff-js": "^1.0.5",
     "jsdom": "^16.5.2",

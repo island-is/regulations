@@ -1,6 +1,7 @@
 import { fastify as fast } from 'fastify';
 import fastifyRateLimiter from 'fastify-rate-limit';
 import fastifyBasicAuth, { FastifyBasicAuthOptions } from 'fastify-basic-auth';
+import fastifyRedis, { FastifyRedisPluginOptions } from 'fastify-redis';
 
 import fastifyCompress from 'fastify-compress';
 import fastifyElasticsearch from 'fastify-elasticsearch';
@@ -30,7 +31,19 @@ fastify.register(fastifyRateLimiter, {
   timeWindow: '1 minute',
 });
 
-const { ROUTES_USERNAME, ROUTES_PASSWORD, PORT } = process.env;
+const { ROUTES_USERNAME, ROUTES_PASSWORD, PORT, REDIS_URL, REDIS_TLS_URL } =
+  process.env;
+
+if (REDIS_TLS_URL || REDIS_URL) {
+  console.info('redis active');
+  const url = REDIS_TLS_URL ?? REDIS_URL;
+
+  const redisOptions: FastifyRedisPluginOptions = {
+    url,
+    closeClient: true,
+  };
+  fastify.register(fastifyRedis, redisOptions);
+}
 
 const validate: FastifyBasicAuthOptions['validate'] = (
   username,
