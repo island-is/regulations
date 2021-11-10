@@ -159,12 +159,12 @@ const handlePdfRequest = (
 ) =>
   handleRequest(req, res, opts, async (res, opts, routePath) => {
     const workerJob = await pdfQueue.getJob(routePath);
+
     if (workerJob === null) {
       console.log('Adding to queue');
-
       await pdfQueue.add(
         { routePath, opts, body },
-        { jobId: routePath, removeOnComplete: true, removeOnFail: true },
+        { jobId: routePath, removeOnFail: true },
       );
     } else {
       const complete = await workerJob.getState();
