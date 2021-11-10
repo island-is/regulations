@@ -1,3 +1,5 @@
+import { FastifyRedis } from 'fastify-redis';
+import { generateRegulationCacheKey, get, set } from 'utils/cache';
 import { getRegulation } from '../db/Regulation';
 import {
   assertISODate,
@@ -21,6 +23,7 @@ import { makePublishedPdf, makeDraftPdf } from '../db/RegulationPdf';
 
 const REGULATION_TTL = 0.1;
 const PDF_FILE_TTL = 1;
+const REGULATION_REDIS_TTL = REGULATION_TTL * 60 * 60;
 
 // ---------------------------------------------------------------------------
 
@@ -119,19 +122,44 @@ const handleRequest = async <N extends string = RegQueryName>(
 const handleDataRequest = (
   req: FastifyRequest,
   res: FastifyReply,
+  redis: FastifyRedis,
   opts: RegHandlerOpts,
 ) =>
   handleRequest(req, res, opts, async (res, opts, routePath) => {
     const { name, date, diff, earlierDate } = opts;
-    const regulation = await getRegulation(
-      slugToName(name),
-      {
-        date,
-        diff,
-        earlierDate,
-      },
-      routePath,
-    );
+
+    const cacheKey = generateRegulationCacheKey({
+      name,
+      date,
+      diff,
+      earlierDate,
+    });
+    const cached = await get<
+      RegulationRedirect | Regulation | RegulationDiff | null
+    >(redis, cacheKey);
+
+    let regulation;
+
+    if (cached) {
+      regulation = cached;
+    } else {
+      try {
+        regulation = await getRegulation(
+          slugToName(name),
+          {
+            date,
+            diff,
+            earlierDate,
+          },
+          routePath,
+        );
+      } catch (e) {
+        console.error('unable to get regulation', cacheKey, e);
+        return res.status(500).send();
+      }
+      await set(redis, cacheKey, regulation, REGULATION_REDIS_TTL);
+    }
+
     if (!regulation) {
       return false;
     }
@@ -199,7 +227,7 @@ export const regulationRoutes: FastifyPluginCallback = (
    * @returns {Regulation | RegulationRedirect}
    */
   fastify.get<Pms<'name'>>('/regulation/:name/original', opts, (req, res) => {
-    handleDataRequest(req, res, {
+    handleDataRequest(req, res, fastify.redis, {
       name: assertNameSlug(req.params.name),
     });
   });
@@ -224,7 +252,7 @@ export const regulationRoutes: FastifyPluginCallback = (
    * @returns {Regulation | RegulationRedirect}
    */
   fastify.get<Pms<'name'>>('/regulation/:name/current', opts, (req, res) => {
-    handleDataRequest(req, res, {
+    handleDataRequest(req, res, fastify.redis, {
       name: assertNameSlug(req.params.name),
       date: toISODate(new Date()),
     });
@@ -252,7 +280,7 @@ export const regulationRoutes: FastifyPluginCallback = (
    * @returns {RegulationDiff | RegulationRedirect}
    */
   fastify.get<Pms<'name'>>('/regulation/:name/diff', opts, (req, res) => {
-    handleDataRequest(req, res, {
+    handleDataRequest(req, res, fastify.redis, {
       name: assertNameSlug(req.params.name),
       date: toISODate(new Date()),
       diff: true,
@@ -284,7 +312,7 @@ export const regulationRoutes: FastifyPluginCallback = (
     '/regulation/:name/d/:date',
     opts,
     (req, res) => {
-      handleDataRequest(req, res, {
+      handleDataRequest(req, res, fastify.redis, {
         name: assertNameSlug(req.params.name),
         date: assertISODate(req.params.date),
       });
@@ -318,7 +346,7 @@ export const regulationRoutes: FastifyPluginCallback = (
     '/regulation/:name/d/:date/diff',
     opts,
     (req, res) => {
-      handleDataRequest(req, res, {
+      handleDataRequest(req, res, fastify.redis, {
         name: assertNameSlug(req.params.name),
         date: assertISODate(req.params.date),
         diff: true,
@@ -356,7 +384,7 @@ export const regulationRoutes: FastifyPluginCallback = (
     '/regulation/:name/d/:date/diff/:earlierDate',
     opts,
     (req, res) => {
-      handleDataRequest(req, res, {
+      handleDataRequest(req, res, fastify.redis, {
         name: assertNameSlug(req.params.name),
         date: assertISODate(req.params.date),
         diff: true,

@@ -1,9 +1,11 @@
 import { FastifyPluginCallback } from 'fastify';
+import { get, set } from 'utils/cache';
 import { cacheControl, QStr } from '../utils/misc';
 import { getLawChapterTree, getLawChapterList } from '../db/LawChapter';
-import { LawChapterSlug } from './types';
+import { LawChapter, LawChapterSlug, LawChapterTree } from './types';
 
 const LAWCHAPTER_TTL = 24;
+const LAWCHAPTER_REDIS_TTL = LAWCHAPTER_TTL * 60 * 60;
 
 export const lawChapterRoutes: FastifyPluginCallback = (
   fastify,
@@ -16,10 +18,30 @@ export const lawChapterRoutes: FastifyPluginCallback = (
    * @returns {Array<LawChapter>}
    */
   fastify.get<QStr<'slugs'>>('/lawchapters', opts, async (req, res) => {
+    const { redis } = fastify;
+
     const slugs = req.query.slugs
       ? (req.query.slugs.split(',') as Array<LawChapterSlug>)
       : undefined;
-    const lawChapters = await getLawChapterList(slugs);
+
+    const cacheKey = `lawchapters-${req.query.slugs ?? 'noslugs'}`;
+
+    const cached = await get<Array<LawChapter> | null>(redis, cacheKey);
+
+    let lawChapters;
+
+    if (cached) {
+      lawChapters = cached;
+    } else {
+      try {
+        lawChapters = await getLawChapterList(slugs);
+      } catch (e) {
+        console.error('unable to get law chapters', slugs, e);
+        return res.status(500).send();
+      }
+      await set(redis, cacheKey, lawChapters, LAWCHAPTER_REDIS_TTL);
+    }
+
     cacheControl(res, LAWCHAPTER_TTL);
     res.send(lawChapters);
   });
@@ -29,7 +51,26 @@ export const lawChapterRoutes: FastifyPluginCallback = (
    * @returns {LawChapterTree}
    */
   fastify.get('/lawchapters/tree', opts, async (req, res) => {
-    const lawChapterTree = await getLawChapterTree();
+    const { redis } = fastify;
+
+    const cacheKey = `lawchapterstree`;
+
+    const cached = await get<LawChapterTree | null>(redis, cacheKey);
+
+    let lawChapterTree;
+
+    if (cached) {
+      lawChapterTree = cached;
+    } else {
+      try {
+        lawChapterTree = await getLawChapterTree();
+      } catch (e) {
+        console.error('unable to get law chapter tree', e);
+        return res.status(500).send();
+      }
+      await set(redis, cacheKey, lawChapterTree, LAWCHAPTER_REDIS_TTL);
+    }
+
     cacheControl(res, LAWCHAPTER_TTL);
     res.send(lawChapterTree);
   });
