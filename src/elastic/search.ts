@@ -85,7 +85,7 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
           names.push(numberPadded + '/' + year);
           return `"${number}-${year}"`;
         } else {
-          return word;
+          return word.replace(/\//g, '\\/');
         }
       })
       .join(' ');
