@@ -22,7 +22,7 @@ require('esbuild')
       ),
     },
     platform: 'node',
-    target: ['node14'],
+    target: ['node16'],
     format: 'cjs',
     outdir: 'dist',
 
