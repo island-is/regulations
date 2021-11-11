@@ -32,18 +32,18 @@ export const ministryRoutes: FastifyPluginCallback = (fastify, opts, done) => {
     } else {
       try {
         data = await getAllMinistries(slugs);
+        set(redis, cacheKey, data, MINISTRY_REDIS_TTL);
       } catch (e) {
         console.error('unable to get all ministries', e);
         return res.status(500).send();
       }
-      set(redis, cacheKey, data, MINISTRY_REDIS_TTL);
     }
     const ministries = data.map((m): MinistryListItem => {
       const {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         id,
         ...ministry
-      } = m.get();
+      } = m;
       return ministry;
     });
     cacheControl(res, MINISTRY_TTL);
