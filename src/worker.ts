@@ -2,6 +2,7 @@ import throng from 'throng';
 import { makeDraftPdf, makePublishedPdf } from 'db/RegulationPdf';
 import { connectSequelize } from 'utils/sequelize';
 import { getQueue } from 'utils/bullQueue';
+import { PdfQueueItem } from 'routes/regulationRoutes';
 
 // Connect to a local redis instance locally, and the Heroku-provided URL in production
 const REDIS_URL = process.env.REDIS_URL;
@@ -12,16 +13,15 @@ const workers = process.env.WEB_CONCURRENCY || 2;
 
 const maxJobsPerWorker = 1;
 
-// pdfQueue.empty();
-
 function start() {
-  const pdfQueue = getQueue();
+  const pdfQueue = getQueue<PdfQueueItem>();
   pdfQueue.process(maxJobsPerWorker, async (job) => {
     const { routePath, opts, body } = job.data;
     try {
       const pdf =
         opts.name !== 'new'
-          ? makePublishedPdf(routePath, opts)
+          ? //@ts-expect-error silly typescript..
+            makePublishedPdf(routePath, opts)
           : body
           ? makeDraftPdf(body)
           : undefined;

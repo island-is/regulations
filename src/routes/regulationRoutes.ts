@@ -1,6 +1,6 @@
 import { FastifyRedis } from 'fastify-redis';
 import { get, set } from 'utils/cache';
-import { getRegulation } from '../db/Regulation';
+import { fetchModifiedDate, getRegulation } from '../db/Regulation';
 import {
   assertISODate,
   assertNameSlug,
@@ -19,7 +19,12 @@ import {
   RegulationRedirect,
 } from './types';
 import { FastifyPluginCallback, FastifyReply, FastifyRequest } from 'fastify';
-import { getQueue } from 'utils/bullQueue';
+import { getQueue, handleWorker } from 'utils/bullQueue';
+import {
+  doGeneratePdf,
+  getPrettyPdfFilename,
+  getPublishedPdf,
+} from 'db/RegulationPdf';
 
 const REGULATION_TTL = 0.1;
 const PDF_FILE_TTL = 1;
@@ -31,7 +36,7 @@ export type PdfQueueItem = {
   body?: unknown;
 };
 
-const pdfQueue = getQueue();
+const pdfQueue = getQueue<PdfQueueItem>();
 
 // ---------------------------------------------------------------------------
 
@@ -174,6 +179,18 @@ const handleDataRequest = (
 
 // ===========================================================================
 
+const returnRefresh = (res: FastifyReply) => {
+  // always return the refresh page
+  res
+    .code(202)
+    .type('text/html')
+    .send(
+      '<html><head><meta charset="utf-8"><meta http-equiv="refresh" content="1"></head><body>Augnablik, PDF er í vinnslu. Þessi síða mun uppfærast.</body></html>',
+    );
+};
+
+// ===========================================================================
+
 const handlePdfRequest = (
   req: FastifyRequest,
   res: FastifyReply,
@@ -181,20 +198,40 @@ const handlePdfRequest = (
   body?: unknown,
 ) =>
   handleRequest(req, res, opts, async (res, opts, routePath) => {
-    const workerJob = await pdfQueue.getJob(routePath);
+    let pdfContents: Buffer | undefined | false;
+    let fileName: string | undefined;
+    if (opts.name !== 'new') {
+      const regName = slugToName(opts.name);
+      const [pdf, regModified] = await Promise.all([
+        getPublishedPdf(routePath),
+        fetchModifiedDate(regName, opts.date),
+      ]);
 
-    if (workerJob === null) {
-      await pdfQueue.add(
-        { routePath, opts, body },
-        { jobId: routePath, removeOnFail: true },
-      );
-    } else {
-      const complete = await workerJob.getState();
+      if (regModified) {
+        if (pdf) {
+          if (doGeneratePdf(pdf, regModified)) {
+            const workerPDf = await handleWorker(routePath, pdfQueue, {
+              routePath,
+              opts,
+              body,
+            });
 
-      if (complete === 'completed') {
-        const pdf = workerJob.returnvalue;
-        const { fileName, pdfContents } = pdf || {};
+            if (workerPDf.working) {
+              returnRefresh(res);
+              return true;
+            } else {
+              fileName = workerPDf.fileName;
+              pdfContents = workerPDf.pdfContents;
+            }
+          } else {
+            // pdf exists and is up to date
+            // @ts-expect-error silly typescript does not realize `opts.name` can not be `new`
+            fileName = getPrettyPdfFilename(opts, regModified);
+            pdfContents = pdf.contents;
+          }
+        }
 
+        // skip if still working
         if (!fileName || !pdfContents) {
           return false;
         }
@@ -208,21 +245,46 @@ const handlePdfRequest = (
             `inline; filename="${encodeURI(fileName)}.pdf"`,
           )
           .type('application/pdf')
-          .send(Buffer.from(pdfContents.data));
+          .send(pdfContents);
 
         return true;
+      } else {
+        // Regulation not found.
+        return false;
       }
-    }
+    } else {
+      // Generate
+      const workerPDf = await handleWorker(routePath, pdfQueue, {
+        routePath,
+        opts,
+        body,
+      });
 
-    // always return the refresh page
-    res
-      .code(202)
-      .type('text/html')
-      .send(
-        '<html><head><meta charset="utf-8"><meta http-equiv="refresh" content="1"></head><body>Augnablik, PDF er í vinnslu. Þessi síða mun uppfærast.</body></html>',
-      );
-    return true;
-    // TODO: return 304 when possible for conditional (If-Modified-Since:) request.
+      if (workerPDf.working) {
+        returnRefresh(res);
+        return true;
+      } else {
+        fileName = workerPDf.fileName;
+        pdfContents = workerPDf.pdfContents;
+      }
+
+      if (!fileName || !pdfContents) {
+        return false;
+      }
+
+      cacheControl(res, PDF_FILE_TTL);
+      res
+        .code(200)
+        // .header('Content-Disposition', `attachment; filename="${fileName}.pdf"`);
+        .header(
+          'Content-Disposition',
+          `inline; filename="${encodeURI(fileName)}.pdf"`,
+        )
+        .type('application/pdf')
+        .send(pdfContents);
+
+      return true;
+    }
   });
 
 // ===========================================================================

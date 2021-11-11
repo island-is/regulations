@@ -343,8 +343,17 @@ const cleanUpRegulationBodyInput = (
 };
 
 // ---------------------------------------------------------------------------
+type PdfDocument =
+  | {
+      contents: Buffer;
+      modifiedDate: '' | ISODateTime;
+    }
+  | {
+      readonly contents: false;
+      readonly modifiedDate: '';
+    };
 
-const fetchPdf = (fileKey: string) =>
+const fetchPdf = (fileKey: string): Promise<PdfDocument> =>
   fetch(
     `https://${AWS_BUCKET_NAME}.s3.${AWS_REGION_NAME}.amazonaws.com/${fileKey}`,
   )
@@ -388,14 +397,13 @@ export type RegOpts = {
   earlierDate?: Date | 'original';
 };
 
-const getPrettyPdfFilename = (
+export const getPrettyPdfFilename = (
   opts: RegOpts,
-  name: RegName,
   lastÞModified: ISODateTime,
 ) => {
-  const { date, diff, earlierDate } = opts;
-
-  const nameTxt = nameToSlug(name);
+  const { date, diff, earlierDate, name } = opts;
+  const regName = slugToName(name);
+  const nameTxt = nameToSlug(regName);
   const dateTxt = toISODate(date ? date : lastÞModified);
   const diffTxt = diff ? ' breytingar' : '';
   const earlierDateTxt = !earlierDate
@@ -424,6 +432,26 @@ export const makeDraftPdf = async (body: unknown) => {
   }
   return {};
 };
+
+// ===========================================================================
+
+export const getPublishedPdf = async (routePath: string) => {
+  const fileKey = getPdfFileKey(routePath);
+  try {
+    const pdf = await fetchPdf(fileKey);
+    return pdf;
+  } catch (e) {
+    console.error('Failure getting published PDF', e);
+  }
+  return null;
+};
+
+// ===========================================================================
+
+export const doGeneratePdf = (pdf: PdfDocument, regModified: ISODateTime) =>
+  !pdf.contents ||
+  regModified > pdf.modifiedDate ||
+  PDF_TEMPLATE_UPDATED > pdf.modifiedDate;
 
 // ===========================================================================
 
@@ -459,7 +487,7 @@ export const makePublishedPdf = async (routePath: string, opts: RegOpts) => {
         pdfContents = await makeRegulationPdf(regulation);
         pdfContents && uploadPdf(fileKey, pdfContents);
       }
-      const fileName = getPrettyPdfFilename(opts, regName, regModified);
+      const fileName = getPrettyPdfFilename(opts, regModified);
       return { fileName, pdfContents };
     }
   } catch (error) {
