@@ -203,8 +203,9 @@ export async function getAllRegulations(opts?: {
       r.type,
       COALESCE((select ministryId from RegulationChange where regulationId = r.id and date <= now() order by date desc limit 1), r.ministryId) as ministryId,
       r.publishedDate,
+      r.effectiveDate,
       c.date as repealedDate,
-      r.effectiveDate
+      r.repealedBeacuseReasons
     from Regulation as r
     left join RegulationCancel as c on c.regulationId = r.id
     left join Task as t on t.regulationId = r.id
