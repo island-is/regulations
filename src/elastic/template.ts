@@ -19,6 +19,8 @@ const getDictionaryFile = async (
     });
 };
 
+const domainSpecificStopWords = ['reglugerð'];
+
 export const getSettingsTemplate = async (sha: string, locale: 'is') => {
   const {
     stemmer,
@@ -31,7 +33,9 @@ export const getSettingsTemplate = async (sha: string, locale: 'is') => {
     stemmer: getDictionaryFile(sha, locale, 'stemmer'),
     keywords: getDictionaryFile(sha, locale, 'keywords'), // Empty at the moment – 2021-09
     synonyms: getDictionaryFile(sha, locale, 'synonyms'),
-    stopwords: getDictionaryFile(sha, locale, 'stopwords'),
+    stopwords: getDictionaryFile(sha, locale, 'stopwords').then((words) =>
+      words.concat(domainSpecificStopWords),
+    ),
     hyphenwhitelist: getDictionaryFile(sha, locale, 'hyphenwhitelist'),
     // autocompletestop: getDictionaryFile(sha, locale, 'autocompletestop'),
   });
