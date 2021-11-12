@@ -107,10 +107,10 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
         .fields([
           'title^23',
           'title.stemmed^20',
-          'title.compound^10',
+          // 'title.compound^10',
           'text^7',
           'text.stemmed^5',
-          'text.compound^1',
+          // 'text.compound^1',
         ]),
     );
   } else if (activeFilters) {
