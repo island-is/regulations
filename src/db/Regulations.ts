@@ -180,7 +180,7 @@ export async function getAllRegulations(opts?: {
   const replacements: BindOrReplacements = {};
 
   if (!includeRepealed) {
-    whereConds.push(`r.repealedBeacuseReasons == FALSE`);
+    whereConds.push(`r.repealedBeacuseReasons = FALSE`);
     whereConds.push(
       `(select date from RegulationCancel where regulationId = r.id AND date <= now() limit 1) IS NULL`,
     );
