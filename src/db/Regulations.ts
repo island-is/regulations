@@ -181,9 +181,7 @@ export async function getAllRegulations(opts?: {
 
   if (!includeRepealed) {
     whereConds.push(`r.repealedBeacuseReasons = FALSE`);
-    whereConds.push(
-      `(select date from RegulationCancel where regulationId = r.id AND date <= now() limit 1) IS NULL`,
-    );
+    whereConds.push(`(c.id is null or now() < c.date)`);
   }
   if (nameFilter) {
     whereConds.push(`r.name IN (:nameFilter)`);
@@ -205,14 +203,10 @@ export async function getAllRegulations(opts?: {
       r.type,
       COALESCE((select ministryId from RegulationChange where regulationId = r.id and date <= now() order by date desc limit 1), r.ministryId) as ministryId,
       r.publishedDate,
-      ${includeRepealed ? 'c.date as repealedDate,' : ''}
+      c.date as repealedDate,
       r.effectiveDate
     from Regulation as r
-    ${
-      includeRepealed
-        ? 'left join RegulationCancel as c on c.regulationId = r.id'
-        : ''
-    }
+    left join RegulationCancel as c on c.regulationId = r.id
     left join Task as t on t.regulationId = r.id
     ${whereConds.length ? 'where ' + whereConds.join(' and ') : ''}
     order by r.publishedDate DESC, r.id DESC
