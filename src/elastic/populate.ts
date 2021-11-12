@@ -3,7 +3,13 @@ import { RegulationListItemFull, getAllRegulations } from '../db/Regulations';
 import { Client } from '@elastic/elasticsearch';
 import { performance } from 'perf_hooks';
 import { getSettingsTemplate, mappingTemplate } from './template';
-import { assertRegName, loadData, storeData } from '../utils/misc';
+import {
+  assertNameSlug,
+  assertRegName,
+  loadData,
+  slugToName,
+  storeData,
+} from '../utils/misc';
 
 const INDEX_NAME = 'regulations';
 
@@ -212,7 +218,9 @@ export async function updateElasticItem(
   client: Client,
   query: { name?: string },
 ) {
-  const name = assertRegName(query.name);
+  const _nameSlug = assertNameSlug(query.name);
+  const name = _nameSlug ? slugToName(_nameSlug) : assertRegName(query.name);
+
   if (!name) {
     return { success: false };
   }
