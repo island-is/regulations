@@ -31,9 +31,5 @@ export const extractAppendixesAndComments = (
 
 // ---------------------------------------------------------------------------
 
-export const eliminateComments = (text: HTMLText): HTMLText => {
-  const root = asDiv(text);
-  qq('.comments', root).forEach((elm) => elm.remove());
-
-  return root.innerHTML.trim() as HTMLText;
-};
+export const eliminateComments = (text: HTMLText): HTMLText =>
+  text.replace(/<section class="comments">[^]+?<\/section>/g, '') as HTMLText;
