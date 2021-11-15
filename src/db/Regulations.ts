@@ -115,7 +115,7 @@ const augmentRegulationList = async (
         repealedDate: repealedDate ?? undefined,
         repealed: repealedDate
           ? new Date(repealedDate) <= today
-          : repealedBeacuseReasons,
+          : !!repealedBeacuseReasons,
         ministry,
         lawChapters,
       };
