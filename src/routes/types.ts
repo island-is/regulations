@@ -236,4 +236,6 @@ export type RegulationRedirect = {
   title: string;
   /** The regulation data has not been fully migrated and should be viewed at this URL */
   redirectUrl: string;
+  /** URL linking to the originally published document as published in Stjórnartíðindi */
+  originalDoc?: string | null;
 };

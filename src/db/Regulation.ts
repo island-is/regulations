@@ -257,12 +257,13 @@ const augmentRegulation = async (
 const getRegulationRedirect = (
   regulation: DB_Regulation,
 ): RegulationRedirect => {
-  const { name, title } = regulation;
+  const { name, title, _externalsource } = regulation;
   return {
     name,
     title,
     redirectUrl:
       'https://www.reglugerd.is/reglugerdir/allar/nr/' + nameToSlug(name),
+    originalDoc: _externalsource,
   };
 };
 
