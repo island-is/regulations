@@ -34,9 +34,11 @@ type RegHandlerOpts<N extends string = RegQueryName> = {
   date?: ISODate;
   diff?: boolean;
   earlierDate?: EarlierDate;
+  current?: true;
 };
 type RefinedRegHandlerOpts<N extends string = RegQueryName> = {
   name: RegQueryName | N;
+  current: boolean;
   date?: Date;
 } & (
   | {
@@ -67,7 +69,7 @@ const handleRequest = async <N extends string = RegQueryName>(
     routePath: string,
   ) => Promise<boolean>,
 ) => {
-  const { name, date, diff, earlierDate } = opts;
+  const { name, date, diff, earlierDate, current = false } = opts;
   const dateMissing = 'date' in opts && !date;
   const validEarlierDate =
     !date ||
@@ -88,6 +90,7 @@ const handleRequest = async <N extends string = RegQueryName>(
       ...(earlierDateDate
         ? { earlierDate: earlierDateDate, diff: true }
         : { diff }),
+      current,
     };
 
     // NOTE: Is there a better/cleaner/more robust way to
@@ -193,6 +196,11 @@ const handlePdfRequest = (
     }
 
     cacheControl(res, PDF_FILE_TTL);
+
+    if (!opts.current) {
+      res.header('X-Robots-Tag', 'noindex');
+    }
+
     res
       .code(200)
       // .header('Content-Disposition', `attachment; filename="${fileName}.pdf"`);
@@ -251,6 +259,7 @@ export const regulationRoutes: FastifyPluginCallback = (
     handleDataRequest(req, res, fastify.redis, {
       name: assertNameSlug(req.params.name),
       date: toISODate(new Date()),
+      current: true,
     });
   });
   /**
@@ -265,6 +274,7 @@ export const regulationRoutes: FastifyPluginCallback = (
       handlePdfRequest(req, res, {
         name: assertNameSlug(req.params.name),
         date: toISODate(new Date()),
+        current: true,
       });
     },
   );
