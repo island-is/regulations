@@ -5,6 +5,7 @@ import { DAY, HOUR, SECOND } from '@hugsmidjan/qj/time';
 import { Writable } from 'stream';
 import { cacheControl } from './utils/misc';
 import { AWS_BUCKET_NAME, AWS_REGION_NAME, API_SERVER } from './constants';
+import { serveRobotsTxt } from 'utils/server-utils';
 
 const { PORT, PROXY_PORT, FORCE_HTTPS } = process.env;
 
@@ -90,6 +91,8 @@ fastify.register(proxy, {
   // http2: { requestTimeout: 40 * SECOND },
   ...proxyProps(),
 });
+
+serveRobotsTxt(fastify, 'static/robots-proxy.txt');
 
 fastify.register(proxy, {
   upstream: `https://${AWS_BUCKET_NAME}.s3.${AWS_REGION_NAME}.amazonaws.com`,

@@ -17,6 +17,7 @@ import { fileUploadRoutes } from './routes/fileUploadRoutes';
 import fastifyMultipart from 'fastify-multipart';
 
 import { connectSequelize } from './utils/sequelize';
+import { serveRobotsTxt } from 'utils/server-utils';
 
 // ===========================================================================
 
@@ -108,6 +109,8 @@ fastify.register(ministryRoutes, { prefix: '/api/v1' });
 fastify.register(lawChapterRoutes, { prefix: '/api/v1' });
 fastify.register(yearsRoutes, { prefix: '/api/v1' });
 fastify.register(redirectsRoutes, { prefix: '/api/v1' });
+
+serveRobotsTxt(fastify, '/static/robots-api.txt');
 
 const start = async () => {
   try {
