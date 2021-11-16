@@ -10,36 +10,6 @@ const { PORT, PROXY_PORT, FORCE_HTTPS } = process.env;
 
 const IMAGE_TTL = (0.03 * DAY) / HOUR; // Seconds
 
-const fastify = fast({
-  // logger: true,
-  ignoreTrailingSlash: true,
-  /**
-    This rewrite function serves to add suffix to pdf urls.
-    Something that could not be done with fastify-http-proxy.
-  */
-  rewriteUrl: (req) => {
-    const url = req.url || '/';
-    return url.startsWith('/pdf') ? url.replace(/\/$/, '') + '/pdf' : url;
-  },
-});
-
-fastify.addHook('onRequest', async (request, reply) => {
-  if (
-    request.headers['x-forwarded-proto'] !== 'https' &&
-    FORCE_HTTPS === 'true'
-  ) {
-    reply
-      .code(301)
-      .header('Location', `https://${request.headers.host}${request.url}`)
-      .send();
-  }
-});
-
-fastify.register(fastifyRateLimiter, {
-  max: 100,
-  timeWindow: '1 minute',
-});
-
 const parseBody = (res: Writable, callback: (body: string) => void) => {
   let body = '';
   res
@@ -81,6 +51,38 @@ const proxyProps = (
   },
 });
 
+// ---------------------------------------------------------------------------
+
+const fastify = fast({
+  // logger: true,
+  ignoreTrailingSlash: true,
+  /**
+    This rewrite function serves to add suffix to pdf urls.
+    Something that could not be done with fastify-http-proxy.
+  */
+  rewriteUrl: (req) => {
+    const url = req.url || '/';
+    return url.startsWith('/pdf') ? url.replace(/\/$/, '') + '/pdf' : url;
+  },
+});
+
+fastify.addHook('onRequest', async (request, reply) => {
+  if (
+    request.headers['x-forwarded-proto'] !== 'https' &&
+    FORCE_HTTPS === 'true'
+  ) {
+    reply
+      .code(301)
+      .header('Location', `https://${request.headers.host}${request.url}`)
+      .send();
+  }
+});
+
+fastify.register(fastifyRateLimiter, {
+  max: 100,
+  timeWindow: '1 minute',
+});
+
 fastify.register(proxy, {
   upstream: API_SERVER,
   prefix: '/pdf',
@@ -91,6 +93,7 @@ fastify.register(proxy, {
 
 fastify.register(proxy, {
   upstream: `https://${AWS_BUCKET_NAME}.s3.${AWS_REGION_NAME}.amazonaws.com`,
+  prefix: '/',
   ...proxyProps({ ttl: IMAGE_TTL }),
 });
 

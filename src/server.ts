@@ -18,6 +18,8 @@ import fastifyMultipart from 'fastify-multipart';
 
 import { connectSequelize } from './utils/sequelize';
 
+// ===========================================================================
+
 const fastify = fast({
   // logger: true,
   ignoreTrailingSlash: true,
