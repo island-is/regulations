@@ -1,7 +1,7 @@
 import { MinistrySlug } from 'routes/types';
 import { Model, Table, Column, DataType } from 'sequelize-typescript';
 
-type MinistryAttributes = {
+export type MinistryAttributes = {
   id: number;
   slug: MinistrySlug;
   name: string;

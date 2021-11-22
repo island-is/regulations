@@ -16,7 +16,7 @@ export async function getAllMinistries(slugs?: Array<MinistrySlug>) {
     ],
   });
 
-  return ministries;
+  return ministries.map((m) => m.get());
 }
 
 export const getMinistry = (id: DB_Regulation['ministryId']) =>

@@ -1,5 +1,5 @@
 import { FastifyPluginCallback } from 'fastify';
-import { DB_Ministry } from 'models';
+import { MinistryAttributes } from 'models';
 import { get, set } from 'utils/cache';
 import { cacheControl, QStr } from '../utils/misc';
 import { getAllMinistries } from '../db/Ministry';
@@ -23,9 +23,9 @@ export const ministryRoutes: FastifyPluginCallback = (fastify, opts, done) => {
 
     const cacheKey = `ministries-${req.query.slugs ?? 'noslugs'}`;
 
-    const cached = await get<Array<DB_Ministry> | null>(redis, cacheKey);
+    const cached = await get<Array<MinistryAttributes> | null>(redis, cacheKey);
 
-    let data;
+    let data: Array<MinistryAttributes>;
 
     if (cached) {
       data = cached;
@@ -39,11 +39,7 @@ export const ministryRoutes: FastifyPluginCallback = (fastify, opts, done) => {
       }
     }
     const ministries = data.map((m): MinistryListItem => {
-      const {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        id,
-        ...ministry
-      } = m;
+      const { id, ...ministry } = m;
       return ministry;
     });
     cacheControl(res, MINISTRY_TTL);
