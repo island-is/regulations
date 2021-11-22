@@ -4,9 +4,10 @@ import { get, set } from 'utils/cache';
 import { cacheControl, QStr } from '../utils/misc';
 import { getAllMinistries } from '../db/Ministry';
 import { MinistryListItem, MinistrySlug } from './types';
+import { DAY, SECOND } from '@hugsmidjan/qj/time';
 
 const MINISTRY_TTL = 1;
-const MINISTRY_REDIS_TTL = MINISTRY_TTL * 60 * 60;
+const MINISTRY_REDIS_TTL = 1 * (DAY / SECOND);
 
 export const ministryRoutes: FastifyPluginCallback = (fastify, opts, done) => {
   /**

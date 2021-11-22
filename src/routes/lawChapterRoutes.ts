@@ -3,9 +3,10 @@ import { get, set } from 'utils/cache';
 import { cacheControl, QStr } from '../utils/misc';
 import { getLawChapterTree, getLawChapterList } from '../db/LawChapter';
 import { LawChapter, LawChapterSlug, LawChapterTree } from './types';
+import { DAY, SECOND } from '@hugsmidjan/qj/time';
 
 const LAWCHAPTER_TTL = 24;
-const LAWCHAPTER_REDIS_TTL = LAWCHAPTER_TTL * 60 * 60;
+const LAWCHAPTER_REDIS_TTL = 1 * (DAY / SECOND);
 
 export const lawChapterRoutes: FastifyPluginCallback = (
   fastify,
