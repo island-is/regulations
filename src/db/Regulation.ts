@@ -108,6 +108,8 @@ async function getRegulationHistory(regulation: DB_Regulation) {
     historyData
       // strip off the 'root' item
       .slice(1)
+      // Simply ignore unfinished (still empty) impact records
+      .filter((ch) => ch.impactMissing)
       .map(
         ({ name, title, reason, effectiveDate }): RegulationHistoryItem => ({
           date: toISODate(effectiveDate) as ISODate,
@@ -159,6 +161,7 @@ async function getLatestRegulationChange(
       attributes,
       where: {
         regulationId,
+        text: { [Op.ne]: '' }, // Simply ignore unfinished (still empty) impact records
         date: { [Op.lte]: beforeDate },
       },
       order: [
@@ -269,7 +272,13 @@ async function isMigrated(regulation: DB_Regulation) {
   let migrated = false;
   if (regulation.type === 'base') {
     const task = await getRegulationTask(regulation.id);
-    migrated = !!task && task.done;
+    // All existing bsae regulations now have a task associated with them.
+    // When the new Admin System (Ritstjórnakerfi) kicks in, then any new
+    // base regulations will be saved directly to the Regulation table,
+    // with no associated task. (as there's no "migration" needed)
+    // thus any base regulatios that don't have a task object, must be
+    // treated as implicitly "migrated"  –- Már@2012-11-26
+    migrated = !task || task.migrated;
   } else {
     migrated = ['text_locked', 'migrated'].includes(regulation.status);
   }

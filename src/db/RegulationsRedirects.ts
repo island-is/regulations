@@ -14,7 +14,7 @@ export async function getRegulationsRedirects() {
   const sql = `
   (select name from Regulation where type = 'amending' and status in ('text_locked', 'migrated'))
   union all
-  (select name from Regulation as r join Task as t on r.id = t.regulationId where t.done = true)
+  (select name from Regulation as r join Task as t on r.id = t.regulationId where t.migrated = true)
   ;`;
 
   const redirectsData = await db.query<SQLRedirect>(sql, {

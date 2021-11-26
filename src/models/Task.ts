@@ -4,6 +4,7 @@ type TaskAttributes = {
   id: number;
   regulationId: number;
   done: boolean;
+  migrated: boolean;
   lastEdited: Date;
 };
 
@@ -20,6 +21,9 @@ export class DB_Task
 
   @Column({ type: DataType.BOOLEAN })
   done!: boolean;
+
+  @Column({ type: DataType.BOOLEAN })
+  migrated!: boolean;
 
   @Column({ type: DataType.DATE })
   lastEdited!: Date;
