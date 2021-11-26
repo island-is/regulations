@@ -158,10 +158,8 @@ async function getLatestRegulationChange(
     (await DB_RegulationChange.findOne({
       attributes,
       where: {
-        regulationId: regulationId,
-        date: {
-          [Op.lte]: beforeDate,
-        },
+        regulationId,
+        date: { [Op.lte]: beforeDate },
       },
       order: [
         ['date', 'DESC'],
