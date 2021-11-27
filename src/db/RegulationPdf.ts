@@ -438,16 +438,19 @@ export const _makePublishedPdf = async (routePath: string, opts: RegOpts) => {
       fetchModifiedDate(regName, date),
     ]);
 
-    if (regModified) {
+    const regulationExists = !!regModified;
+
+    if (regulationExists) {
       let pdfContents = pdf.contents;
 
-      // NOTE: regModified is really an ISODate with a faux timestamp appended.
-      // this may cause some weird behavior sometimes.
+      // NOTE: regModified is really an ISODate with a faux timestamp appended,
+      // because regulations/regulationchanges don't have a modified timestamp.
+      // This may cause some weird behavior sometimes.
 
       const doGeneratePdf =
         !pdfContents ||
-        regModified > pdf.modifiedDate ||
-        PDF_TEMPLATE_UPDATED > pdf.modifiedDate;
+        pdf.modifiedDate < regModified ||
+        pdf.modifiedDate < PDF_TEMPLATE_UPDATED;
 
       if (doGeneratePdf) {
         const regulation =
@@ -463,7 +466,7 @@ export const _makePublishedPdf = async (routePath: string, opts: RegOpts) => {
       return { fileName, pdfContents };
     }
   } catch (error) {
-    console.log(error);
+    console.info(error);
   }
 
   return {};
