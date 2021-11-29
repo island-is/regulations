@@ -67,7 +67,7 @@ const handleRequest = async <N extends string = RegQueryName>(
     res: FastifyReply,
     opts: RefinedRegHandlerOpts<N>,
     routePath: string,
-  ) => Promise<boolean>,
+  ) => Promise<{ success: boolean; error?: string }>,
 ) => {
   const { name, date, diff, earlierDate, current = false } = opts;
   const dateMissing = 'date' in opts && !date;
@@ -100,10 +100,10 @@ const handleRequest = async <N extends string = RegQueryName>(
       .split('?')[0] // remove any potential query strings
       .replace(/\/pdf$/, ''); // and chop off pdf suffixes, if present
 
-    const success = await handler(res, handlerOpts, routePath);
+    const { success, error } = await handler(res, handlerOpts, routePath);
 
     if (!success) {
-      res.code(400).send('Regulation not found!');
+      res.code(400).send(error || 'Regulation not found!');
     }
   } else {
     res
@@ -160,11 +160,11 @@ const handleDataRequest = (
     }
 
     if (!regulation) {
-      return false;
+      return { success: false };
     }
     cacheControl(res, REGULATION_TTL);
     res.send(regulation);
-    return true;
+    return { success: true };
   });
 
 // ===========================================================================
@@ -189,10 +189,10 @@ const handlePdfRequest = (
 
     // TODO: return 304 when possible for conditional (If-Modified-Since:) request.
 
-    const { fileName, pdfContents } = (await job) || {};
+    const { fileName, pdfContents, error } = (await job) || {};
 
     if (!fileName || !pdfContents) {
-      return false;
+      return { success: false, error };
     }
 
     cacheControl(res, PDF_FILE_TTL);
@@ -211,7 +211,7 @@ const handlePdfRequest = (
       .type('application/pdf')
       .send(pdfContents);
 
-    return true;
+    return { success: true };
   });
 
 // ===========================================================================

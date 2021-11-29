@@ -414,7 +414,13 @@ const getPdfFileKey = (routePath: string) =>
 
 // ===========================================================================
 
-export const makeDraftPdf = async (body: unknown) => {
+type PDFGenResults = Promise<{
+  fileName?: string;
+  pdfContents?: Buffer | false;
+  error?: string;
+}>;
+
+export const makeDraftPdf = async (body: unknown): PDFGenResults => {
   const unpublishedReg = cleanUpRegulationBodyInput(body);
   if (unpublishedReg) {
     const fileName =
@@ -427,7 +433,10 @@ export const makeDraftPdf = async (body: unknown) => {
 
 // ===========================================================================
 
-export const _makePublishedPdf = async (routePath: string, opts: RegOpts) => {
+const _makePublishedPdf = async (
+  routePath: string,
+  opts: RegOpts,
+): PDFGenResults => {
   const { name, diff, earlierDate } = opts;
   const date = opts.date === 'current' ? new Date() : opts.date;
 
