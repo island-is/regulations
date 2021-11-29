@@ -285,21 +285,6 @@ async function isMigrated(regulation: DB_Regulation) {
   return migrated;
 }
 
-function isNonCurrent(
-  regulation: Regulation,
-  regulationVersion?: DB_RegulationChange,
-) {
-  // Check if we are seeing NON-CURRENT version of a regulation
-  // -- `regulationVersion` is undefined but the augmentedRegulation has lastAmendDate
-  // -- or there is `regulationVersion` but it does not match lastAmendDate
-  // ---- then we assume it's either past or future (non current) regulation and show timelineDate
-
-  return (
-    (!regulationVersion && regulation.lastAmendDate) ||
-    (regulationVersion && regulationVersion.date !== regulation.lastAmendDate)
-  );
-}
-
 // ---------------------------------------------------------------------------
 
 const getPdfVersion = (routePath: string) => FILE_SERVER + '/pdf/' + routePath;
@@ -362,16 +347,12 @@ export async function getRegulation(
     //  * false === /:name/current
     //  * false === /:name/diff
     //  * true === /:name/original
-    //  * false === /:name/d/:lastAmendDate   (same as /:name/current)
+    //  * true === /:name/d/:lastAmendDate   (same as /:name/current, but only temporarily)
     //  * true === /:name/d/:lastAmendDate/diff
-    //  * false === /:name/d/:lastAmendDate/diff/original   (same as /:name/diff)
+    //  * true === /:name/d/:lastAmendDate/diff/original   (same as /:name/diff, but only temporarily)
     //  * true === /:name/d/:lastAmendDate/diff/:earlierDate
     //  * true === /:name/d/:lastAmendDate/diff/:originalPublishedDate
-    const needsTimelineDate =
-      isNonCurrent(augmentedRegulation, regulationChange) ||
-      (diff && (!earlierDate || earlierDate !== 'original'));
-
-    if (needsTimelineDate) {
+    if (opts.date !== 'current') {
       augmentedRegulation.timelineDate = regulationChange
         ? regulationChange.date
         : augmentedRegulation.effectiveDate;
