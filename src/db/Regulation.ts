@@ -109,7 +109,7 @@ async function getRegulationHistory(regulation: DB_Regulation) {
       // strip off the 'root' item
       .slice(1)
       // Simply ignore unfinished (still empty) impact records
-      .filter((ch) => ch.impactMissing)
+      .filter((ch) => !ch.impactMissing)
       .map(
         ({ name, title, reason, effectiveDate }): RegulationHistoryItem => ({
           date: toISODate(effectiveDate) as ISODate,
