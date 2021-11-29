@@ -320,6 +320,8 @@ export const fetchModifiedDate = async (name: RegName, date?: Date) => {
 
 // ===========================================================================
 
+// ===========================================================================
+
 // eslint-disable-next-line complexity
 export async function getRegulation(
   regulationName: RegName,
@@ -330,144 +332,148 @@ export async function getRegulation(
   },
   routePath: string,
 ) {
-  const { date, diff, earlierDate } = opts;
-  const regulation = await getRegulationByName(regulationName);
-  if (!regulation) {
-    return null;
-  }
-
-  const migrated = await isMigrated(regulation);
-  if (!migrated) {
-    return getRegulationRedirect(regulation);
-  }
-
-  const regulationChange =
-    date && (await getLatestRegulationChange(regulation.id, date));
-  const augmentedRegulation = await augmentRegulation(
-    regulation,
-    regulationChange,
-    getPdfVersion(routePath),
-  );
-
-  // Add timelineDate if regulation is NON-CURRENT
-  // or has an earlierDate that's not "original"
-  //
-  // Augmented regulation needs timelineDate:
-  //
-  //  * false === /:name/current
-  //  * false === /:name/diff
-  //  * true === /:name/original
-  //  * false === /:name/d/:lastAmendDate   (same as /:name/current)
-  //  * true === /:name/d/:lastAmendDate/diff
-  //  * false === /:name/d/:lastAmendDate/diff/original   (same as /:name/diff)
-  //  * true === /:name/d/:lastAmendDate/diff/:earlierDate
-  //  * true === /:name/d/:lastAmendDate/diff/:originalPublishedDate
-  const needsTimelineDate =
-    isNonCurrent(augmentedRegulation, regulationChange) ||
-    (diff && (!earlierDate || earlierDate !== 'original'));
-
-  if (needsTimelineDate) {
-    augmentedRegulation.timelineDate = regulationChange
-      ? regulationChange.date
-      : augmentedRegulation.effectiveDate;
-  }
-
-  if (!diff) {
-    return augmentedRegulation;
-  }
-
-  // htmldiff-js has a horrible performance hockey-stick curve
-  // and Byggingareglugerð (0112-2012) is crazy large and has
-  // huge amount of detailed changes so certain permutaions
-  // need to be cached, lest the server timeout.
-  // Those cached/static results are stored in the folder "static-diffs/*"
-  // This is a horrible, horrible hack, and needs proper resolving
-  // upstream with a database table containing pre-rendered html diffs.
-  // -- Már @2021-11-08
-  if (/\/original$/.test(routePath)) {
-    const jsonFileName =
-      './static-diffs/' + routePath.replace(/\//g, '-') + '.json';
-    try {
-      return JSON.parse(
-        readFileSync(jsonFileName).toString(),
-      ) as RegulationDiff;
-    } catch (e) {}
-  }
-  // Resolve/apply diff
-
-  const diffedRegulation = augmentedRegulation as unknown as RegulationDiff;
-
-  let earlierTitle: Regulation['title'];
-  let earlierState: Pick<Regulation, 'text' | 'appendixes' | 'comments'> & {
-    date?: ISODate;
-  };
-
-  if (!regulationChange) {
-    // Here the "active" regulation is the original and any diffing should be against the empty string
-    earlierState = extractAppendixesAndComments('' as HTMLText);
-    earlierTitle = '';
-  } else if (earlierDate === 'original') {
-    earlierState = extractAppendixesAndComments(regulation.text);
-    earlierTitle = regulation.title;
-  } else {
-    let eDate = earlierDate;
-    if (!eDate) {
-      eDate = new Date(regulationChange.date);
-      eDate.setDate(eDate.getDate() - 1);
+  try {
+    const { date, diff, earlierDate } = opts;
+    const regulation = await getRegulationByName(regulationName);
+    if (!regulation) {
+      return null;
     }
-    const change = await getLatestRegulationChange(regulation.id, eDate);
 
-    if (change) {
-      earlierState = {
-        ...extractAppendixesAndComments(change.text),
-        date: change.date,
-      };
-      earlierTitle = change.title;
-    } else {
+    const migrated = await isMigrated(regulation);
+    if (!migrated) {
+      return getRegulationRedirect(regulation);
+    }
+
+    const regulationChange =
+      date && (await getLatestRegulationChange(regulation.id, date));
+    const augmentedRegulation = await augmentRegulation(
+      regulation,
+      regulationChange,
+      getPdfVersion(routePath),
+    );
+
+    // Add timelineDate if regulation is NON-CURRENT
+    // or has an earlierDate that's not "original"
+    //
+    // Augmented regulation needs timelineDate:
+    //
+    //  * false === /:name/current
+    //  * false === /:name/diff
+    //  * true === /:name/original
+    //  * false === /:name/d/:lastAmendDate   (same as /:name/current)
+    //  * true === /:name/d/:lastAmendDate/diff
+    //  * false === /:name/d/:lastAmendDate/diff/original   (same as /:name/diff)
+    //  * true === /:name/d/:lastAmendDate/diff/:earlierDate
+    //  * true === /:name/d/:lastAmendDate/diff/:originalPublishedDate
+    const needsTimelineDate =
+      isNonCurrent(augmentedRegulation, regulationChange) ||
+      (diff && (!earlierDate || earlierDate !== 'original'));
+
+    if (needsTimelineDate) {
+      augmentedRegulation.timelineDate = regulationChange
+        ? regulationChange.date
+        : augmentedRegulation.effectiveDate;
+    }
+
+    if (!diff) {
+      return augmentedRegulation;
+    }
+
+    // htmldiff-js has a horrible performance hockey-stick curve
+    // and Byggingareglugerð (0112-2012) is crazy large and has
+    // huge amount of detailed changes so certain permutaions
+    // need to be cached, lest the server timeout.
+    // Those cached/static results are stored in the folder "static-diffs/*"
+    // This is a horrible, horrible hack, and needs proper resolving
+    // upstream with a database table containing pre-rendered html diffs.
+    // -- Már @2021-11-08
+    if (/\/original$/.test(routePath)) {
+      const jsonFileName =
+        './static-diffs/' + routePath.replace(/\//g, '-') + '.json';
+      try {
+        return JSON.parse(
+          readFileSync(jsonFileName).toString(),
+        ) as RegulationDiff;
+      } catch (e) {}
+    }
+    // Resolve/apply diff
+
+    const diffedRegulation = augmentedRegulation as unknown as RegulationDiff;
+
+    let earlierTitle: Regulation['title'];
+    let earlierState: Pick<Regulation, 'text' | 'appendixes' | 'comments'> & {
+      date?: ISODate;
+    };
+
+    if (!regulationChange) {
+      // Here the "active" regulation is the original and any diffing should be against the empty string
+      earlierState = extractAppendixesAndComments('' as HTMLText);
+      earlierTitle = '';
+    } else if (earlierDate === 'original') {
       earlierState = extractAppendixesAndComments(regulation.text);
       earlierTitle = regulation.title;
+    } else {
+      let eDate = earlierDate;
+      if (!eDate) {
+        eDate = new Date(regulationChange.date);
+        eDate.setDate(eDate.getDate() - 1);
+      }
+      const change = await getLatestRegulationChange(regulation.id, eDate);
+
+      if (change) {
+        earlierState = {
+          ...extractAppendixesAndComments(change.text),
+          date: change.date,
+        };
+        earlierTitle = change.title;
+      } else {
+        earlierState = extractAppendixesAndComments(regulation.text);
+        earlierTitle = regulation.title;
+      }
     }
+
+    diffedRegulation.title = getTextContentDiff(
+      earlierTitle,
+      augmentedRegulation.title,
+    );
+    diffedRegulation.text = getDiff(
+      earlierState.text,
+      augmentedRegulation.text,
+    ).diff;
+    diffedRegulation.comments = getDiff(
+      earlierState.comments,
+      augmentedRegulation.comments,
+    ).diff;
+    diffedRegulation.appendixes = augmentedRegulation.appendixes.map(
+      (baseAppendix, i) => {
+        const { title, text } = earlierState.appendixes[i] || {
+          title: '',
+          text: '',
+        };
+        return {
+          title: getTextContentDiff(title, baseAppendix.title),
+          text: getDiff(text, baseAppendix.text).diff,
+        };
+      },
+    );
+
+    const fromChangeIdx = earlierState.date
+      ? diffedRegulation.history.findIndex(
+          (item) => item.date === earlierState.date,
+        )
+      : -1;
+    const fromChange = diffedRegulation.history[fromChangeIdx + 1] as
+      | RegulationHistoryItem
+      | undefined;
+
+    diffedRegulation.showingDiff = {
+      // from: earlierState.date || regulation.publishedDate,
+      from: fromChange ? fromChange.date : regulation.effectiveDate,
+      to: regulationChange ? regulationChange.date : regulation.effectiveDate,
+    };
+
+    return diffedRegulation;
+  } catch (error) {
+    console.error(error);
   }
-
-  diffedRegulation.title = getTextContentDiff(
-    earlierTitle,
-    augmentedRegulation.title,
-  );
-  diffedRegulation.text = getDiff(
-    earlierState.text,
-    augmentedRegulation.text,
-  ).diff;
-  diffedRegulation.comments = getDiff(
-    earlierState.comments,
-    augmentedRegulation.comments,
-  ).diff;
-  diffedRegulation.appendixes = augmentedRegulation.appendixes.map(
-    (baseAppendix, i) => {
-      const { title, text } = earlierState.appendixes[i] || {
-        title: '',
-        text: '',
-      };
-      return {
-        title: getTextContentDiff(title, baseAppendix.title),
-        text: getDiff(text, baseAppendix.text).diff,
-      };
-    },
-  );
-
-  const fromChangeIdx = earlierState.date
-    ? diffedRegulation.history.findIndex(
-        (item) => item.date === earlierState.date,
-      )
-    : -1;
-  const fromChange = diffedRegulation.history[fromChangeIdx + 1] as
-    | RegulationHistoryItem
-    | undefined;
-
-  diffedRegulation.showingDiff = {
-    // from: earlierState.date || regulation.publishedDate,
-    from: fromChange ? fromChange.date : regulation.effectiveDate,
-    to: regulationChange ? regulationChange.date : regulation.effectiveDate,
-  };
-
-  return diffedRegulation;
 }
