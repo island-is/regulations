@@ -188,7 +188,7 @@ export type Regulation = {
    */
   effects: Array<RegulationEffect>;
 
-  /** Present if a NON-CURRENT version of the regulation is being served
+  /** Present if a specifically dated version of the regulation is being served
    *
    * Is undefined by default (when the "current" version is served).
    */
