@@ -383,7 +383,7 @@ const uploadPdf = (fileKey: string, pdfContents: Buffer) =>
 
 type RegOpts = {
   name: RegQueryName;
-  date?: Date;
+  date?: Date | 'current';
   diff?: boolean;
   earlierDate?: Date | 'original';
 };
@@ -428,7 +428,9 @@ export const makeDraftPdf = async (body: unknown) => {
 // ===========================================================================
 
 export const _makePublishedPdf = async (routePath: string, opts: RegOpts) => {
-  const { name, date, diff, earlierDate } = opts;
+  const { name, diff, earlierDate } = opts;
+  const date = opts.date === 'current' ? new Date() : opts.date;
+
   const regName = slugToName(name);
   const fileKey = getPdfFileKey(routePath);
 

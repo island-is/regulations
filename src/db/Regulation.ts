@@ -327,13 +327,15 @@ export async function getRegulation(
   regulationName: RegName,
   opts: {
     diff?: boolean;
-    date?: Date;
+    date?: Date | 'current';
     earlierDate?: Date | 'original';
   },
   routePath: string,
 ) {
   try {
-    const { date, diff, earlierDate } = opts;
+    const { diff, earlierDate } = opts;
+    const date = opts.date === 'current' ? new Date() : opts.date;
+
     const regulation = await getRegulationByName(regulationName);
     if (!regulation) {
       return null;

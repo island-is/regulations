@@ -31,7 +31,7 @@ type EarlierDate = ISODate | 'original';
 
 type RegHandlerOpts<N extends string = RegQueryName> = {
   name?: RegQueryName | N;
-  date?: ISODate;
+  date?: ISODate | 'current';
   diff?: boolean;
   earlierDate?: EarlierDate;
   current?: true;
@@ -39,7 +39,7 @@ type RegHandlerOpts<N extends string = RegQueryName> = {
 type RefinedRegHandlerOpts<N extends string = RegQueryName> = {
   name: RegQueryName | N;
   current: boolean;
-  date?: Date;
+  date?: Date | 'current';
 } & (
   | {
       diff: true;
@@ -86,7 +86,7 @@ const handleRequest = async <N extends string = RegQueryName>(
 
     const handlerOpts: RefinedRegHandlerOpts<N> = {
       name,
-      date: date && new Date(date),
+      date: date === 'current' ? 'current' : date && new Date(date),
       ...(earlierDateDate
         ? { earlierDate: earlierDateDate, diff: true }
         : { diff }),
@@ -258,7 +258,7 @@ export const regulationRoutes: FastifyPluginCallback = (
   fastify.get<Pms<'name'>>('/regulation/:name/current', opts, (req, res) => {
     handleDataRequest(req, res, fastify.redis, {
       name: assertNameSlug(req.params.name),
-      date: toISODate(new Date()),
+      date: 'current',
       current: true,
     });
   });
@@ -273,7 +273,7 @@ export const regulationRoutes: FastifyPluginCallback = (
     (req, res) => {
       handlePdfRequest(req, res, {
         name: assertNameSlug(req.params.name),
-        date: toISODate(new Date()),
+        date: 'current',
         current: true,
       });
     },
@@ -288,7 +288,7 @@ export const regulationRoutes: FastifyPluginCallback = (
   fastify.get<Pms<'name'>>('/regulation/:name/diff', opts, (req, res) => {
     handleDataRequest(req, res, fastify.redis, {
       name: assertNameSlug(req.params.name),
-      date: toISODate(new Date()),
+      date: 'current',
       diff: true,
       earlierDate: 'original',
     });
@@ -302,7 +302,7 @@ export const regulationRoutes: FastifyPluginCallback = (
   fastify.get<Pms<'name'>>('/regulation/:name/diff/pdf', opts, (req, res) => {
     handlePdfRequest(req, res, {
       name: assertNameSlug(req.params.name),
-      date: toISODate(new Date()),
+      date: 'current',
       diff: true,
       earlierDate: 'original',
     });
