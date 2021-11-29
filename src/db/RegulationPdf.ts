@@ -111,7 +111,7 @@ const getStatusText = (regulation: RegulationMaybeDiff): string => {
     );
   }
 
-  if (!timelineDate || timelineDate === lastAmendDate) {
+  if (!timelineDate || timelineDate === (lastAmendDate || effectiveDate)) {
     const fmtLastModified = fmt(lastAmendDate || effectiveDate);
 
     if (repealed) {
