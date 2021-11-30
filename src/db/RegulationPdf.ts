@@ -464,12 +464,16 @@ const _makePublishedPdf = async (
         pdf.modifiedDate < PDF_TEMPLATE_UPDATED;
 
       if (doGeneratePdf) {
-        const regulation =
-          (await getRegulation(
-            regName,
-            { date, diff, earlierDate },
-            routePath,
-          )) || undefined;
+        const { regulation, error } = await getRegulation(
+          regName,
+          { date, diff, earlierDate },
+          routePath,
+        );
+
+        if (error != null) {
+          return { error };
+        }
+
         pdfContents = await makeRegulationPdf(regulation);
         pdfContents && uploadPdf(fileKey, pdfContents);
       }

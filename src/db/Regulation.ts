@@ -20,6 +20,7 @@ import {
   RegulationRedirect,
   Regulation,
   RegulationDiff,
+  RegulationMaybeDiff,
 } from '../routes/types';
 import { extractAppendixesAndComments } from '../utils/extractData';
 import { nameToSlug, toISODate } from '../utils/misc';
@@ -305,30 +306,69 @@ export const fetchModifiedDate = async (name: RegName, date?: Date) => {
 
 // ===========================================================================
 
+type RegOpts = {
+  diff?: boolean;
+  date?: Date | 'current';
+  earlierDate?: Date | 'original';
+};
+
+// ===========================================================================
+
+/**
+ * Returns `true` if the options parameters DO NOT exactly
+ * line-up with the dates in the found regulation.
+ */
+const _isDateMismatch = (
+  regulation: RegulationMaybeDiff | RegulationRedirect | undefined,
+  opts: RegOpts,
+): boolean => {
+  if (!regulation || 'redirectUrl' in regulation) {
+    return false;
+  }
+
+  const { timelineDate, showingDiff } = regulation;
+  const { date, earlierDate } = opts;
+  const isMismatch =
+    (date && date !== 'current' && toISODate(date) !== timelineDate) ||
+    (showingDiff &&
+      earlierDate &&
+      earlierDate !== 'original' &&
+      toISODate(earlierDate) !== showingDiff.from);
+
+  return !!isMismatch;
+};
+
+// ===========================================================================
+
 // ===========================================================================
 
 // eslint-disable-next-line complexity
 export async function getRegulation(
   regulationName: RegName,
-  opts: {
-    diff?: boolean;
-    date?: Date | 'current';
-    earlierDate?: Date | 'original';
-  },
+  opts: RegOpts,
   routePath: string,
-) {
+): Promise<
+  | {
+      regulation: RegulationRedirect | Regulation | RegulationDiff | undefined;
+      error?: never;
+    }
+  | {
+      regulation?: never;
+      error: string;
+    }
+> {
   try {
     const { diff, earlierDate } = opts;
     const date = opts.date === 'current' ? new Date() : opts.date;
 
     const regulation = await getRegulationByName(regulationName);
     if (!regulation) {
-      return null;
+      return { regulation: undefined };
     }
 
     const migrated = await isMigrated(regulation);
     if (!migrated) {
-      return getRegulationRedirect(regulation);
+      return { regulation: getRegulationRedirect(regulation) };
     }
 
     const regulationChange =
@@ -359,24 +399,29 @@ export async function getRegulation(
     }
 
     if (!diff) {
-      return augmentedRegulation;
+      if (_isDateMismatch(augmentedRegulation, opts)) {
+        return { error: 'This variant/version does not exist' };
+      }
+      return { regulation: augmentedRegulation };
     }
 
-    // htmldiff-js has a horrible performance hockey-stick curve
+    // NOTE: htmldiff-js has a horrible performance hockey-stick curve
     // and Byggingareglugerð (0112-2012) is crazy large and has
     // huge amount of detailed changes so certain permutaions
     // need to be cached, lest the server timeout.
     // Those cached/static results are stored in the folder "static-diffs/*"
-    // This is a horrible, horrible hack, and needs proper resolving
+    // FIXME: This is a horrible, horrible hack, and needs proper resolving
     // upstream with a database table containing pre-rendered html diffs.
     // -- Már @2021-11-08
     if (/\/original$/.test(routePath)) {
       const jsonFileName =
         './static-diffs/' + routePath.replace(/\//g, '-') + '.json';
       try {
-        return JSON.parse(
-          readFileSync(jsonFileName).toString(),
-        ) as RegulationDiff;
+        return {
+          regulation: JSON.parse(
+            readFileSync(jsonFileName).toString(),
+          ) as RegulationDiff,
+        };
       } catch (e) {}
     }
     // Resolve/apply diff
@@ -455,8 +500,13 @@ export async function getRegulation(
       to: regulationChange ? regulationChange.date : regulation.effectiveDate,
     };
 
-    return diffedRegulation;
+    if (_isDateMismatch(diffedRegulation, opts)) {
+      return { error: 'This variant/version does not exist' };
+    }
+
+    return { regulation: diffedRegulation };
   } catch (error) {
     console.error(error);
+    return { error: 'ARGH' };
   }
 }

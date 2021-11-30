@@ -133,37 +133,42 @@ const handleDataRequest = (
 
     const cacheKey = routePath;
 
-    const cached = await get<
-      RegulationRedirect | Regulation | RegulationDiff | null
-    >(redis, cacheKey);
+    let result =
+      (await get<
+        RegulationRedirect | Regulation | RegulationDiff | string | null
+      >(redis, cacheKey)) || undefined;
 
-    let regulation;
+    if (result == null) {
+      const { error, regulation } = await getRegulation(
+        slugToName(name),
+        {
+          date,
+          diff,
+          earlierDate,
+        },
+        routePath,
+      );
 
-    if (cached) {
-      regulation = cached;
-    } else {
-      try {
-        regulation = await getRegulation(
-          slugToName(name),
-          {
-            date,
-            diff,
-            earlierDate,
-          },
-          routePath,
-        );
-      } catch (e) {
-        console.error('unable to get regulation', cacheKey, e);
+      if (error === 'ARGH') {
         return res.status(500).send();
       }
-      set(redis, cacheKey, regulation, REGULATION_REDIS_TTL);
+      result = error || regulation;
+      if (!result) {
+        // Shorter cache TTL for "NOT_FOUND" results
+        set(redis, cacheKey, 'NOT_FOUND', 0.2 * REGULATION_REDIS_TTL);
+      } else {
+        set(redis, cacheKey, result, REGULATION_REDIS_TTL);
+      }
     }
 
-    if (!regulation) {
+    if (result === 'NOT_FOUND') {
       return { success: false };
     }
+    if (typeof result === 'string') {
+      return { success: false, error: result };
+    }
     cacheControl(res, REGULATION_TTL);
-    res.send(regulation);
+    res.send(result);
     return { success: true };
   });
 
