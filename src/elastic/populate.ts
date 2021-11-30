@@ -174,7 +174,7 @@ export async function repopulateElastic(client: Client) {
       });
       count++;
       if (count % 100 === 0) {
-        console.log(`… indexed ${count} regulations`);
+        console.info(`… indexed ${count} regulations`);
       }
     }
 
