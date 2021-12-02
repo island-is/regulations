@@ -14,6 +14,7 @@ import { FastifyPluginCallback, FastifyRequest } from 'fastify';
 import { QStr } from 'utils/misc';
 import type { Request as ExpressRequest } from 'express';
 
+const DRAFTS_FOLDER = 'admin-drafts';
 const EMPTY_KEY = '_';
 
 const {
@@ -96,7 +97,7 @@ const getKey = (req: ExpressRequest, _file: MulterFile) => {
 
   const folder = getSingleQuery(req, 'folder').replace(dotPathRe, '/');
 
-  const rootFolder = assertUploadType(req) === 'draft' ? 'draft' : 'files';
+  const rootFolder = assertUploadType(req) === 'draft' ? DRAFTS_FOLDER : '';
   const devFolder = MEDIA_BUCKET_FOLDER || '';
   const originalName = file.originalname.split('/').pop() as string;
   let fileNamePart = originalName.replace(/\.[^.]+$/, '');
@@ -109,7 +110,7 @@ const getKey = (req: ExpressRequest, _file: MulterFile) => {
 
   const fileName = `${fileNamePart}${hash}${fileExtension}`;
 
-  const fileUrl = `/${devFolder}/${rootFolder}/${folder}/${fileName}`
+  const fileUrl = `/${devFolder}/${rootFolder}/files/${folder}/${fileName}`
     // remove double slashes
     .replace(/\/\/+/g, '/')
     .replace(/^\//, '');
