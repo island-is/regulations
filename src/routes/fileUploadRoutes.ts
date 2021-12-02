@@ -21,14 +21,21 @@ const {
   FILE_UPLOAD_KEY_PUBLISH = EMPTY_KEY,
 } = process.env;
 
-const apiKeyUsers: Record<string, 'draft' | 'publish' | undefined> = {
+type UploadType = 'draft' | 'publish';
+
+const apiKeyUsers: Record<string, UploadType | undefined> = {
   [FILE_UPLOAD_KEY_DRAFT]: 'draft',
   [FILE_UPLOAD_KEY_PUBLISH]: 'publish',
 };
 delete apiKeyUsers[EMPTY_KEY]; // Missing env keys must not open a security hole.
 
-const assertUploadType = ({ headers }: Pick<FastifyRequest, 'headers'>) => {
-  const apiKeyHeader = headers['X-APIKey'] || headers['x-apikey'];
+/** Asserts that FastifyRequest.headers contain an allowed X-APIKey header value
+ * and returns the relevant UploadType string
+ *
+ * Throws if valid API key is not provided
+ */
+const assertUploadType = (req: Pick<FastifyRequest, 'headers'>): UploadType => {
+  const apiKeyHeader = req.headers['X-APIKey'] || req.headers['x-apikey'];
   const uploadType = apiKeyUsers[String(apiKeyHeader)];
   if (!uploadType) {
     throw new Error('Authentication needed');
@@ -90,7 +97,7 @@ const getKey = (req: ExpressRequest, _file: MulterFile) => {
   const folder = getSingleQuery(req, 'folder').replace(dotPathRe, '/');
 
   const rootFolder = assertUploadType(req) === 'draft' ? 'draft' : 'files';
-  const bucketFolder = MEDIA_BUCKET_FOLDER || '';
+  const devFolder = MEDIA_BUCKET_FOLDER || '';
   const originalName = file.originalname.split('/').pop() as string;
   let fileNamePart = originalName.replace(/\.[^.]+$/, '');
   const fileExtension = originalName.slice(fileNamePart.length).toLowerCase();
@@ -102,7 +109,7 @@ const getKey = (req: ExpressRequest, _file: MulterFile) => {
 
   const fileName = `${fileNamePart}${hash}${fileExtension}`;
 
-  const fileUrl = `/${bucketFolder}/${rootFolder}/${folder}/${fileName}`
+  const fileUrl = `/${devFolder}/${rootFolder}/${folder}/${fileName}`
     // remove double slashes
     .replace(/\/\/+/g, '/')
     .replace(/^\//, '');

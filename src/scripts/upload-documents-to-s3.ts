@@ -13,7 +13,7 @@ import {
 const QUERY_REPLACEMENT = '__q__';
 
 // Stupid cloning for stupid streams
-const stupidClone = (stream: Readable) =>
+const stupidStreamClone = (stream: Readable) =>
   new Promise<[Readable, Readable]>((resolve, reject) => {
     const b1: Array<Buffer> = [];
     const b2: Array<Buffer> = [];
@@ -90,7 +90,7 @@ const makeFileKey = (fullUrl: string) => {
       if (!res.ok) {
         throw new Error(`Error fetching '${fullUrl}' (${res.status})`);
       }
-      const [fileA, fileB] = await stupidClone(res.body as Readable);
+      const [fileA, fileB] = await stupidStreamClone(res.body as Readable);
 
       const fileType = await file_type.fromStream(fileA);
 
