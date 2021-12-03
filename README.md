@@ -13,8 +13,9 @@ Set `process.env.PORT` to use a different port.
 
 ## Running
 
-To be able to run both `api` and `files proxy` project from the same codebase on Heroku, we need to
-set the `start` command "dynamically". On Heroku this is set in the `START_COMMAND` env variable.
+To be able to run both `api` and `files proxy` project from the same codebase on
+Heroku, we need to set the `start` command "dynamically". On Heroku this is set
+in the `START_COMMAND` env variable.
 
 Locally this needs to be passed to the `npm start` command:
 
@@ -103,3 +104,9 @@ START_COMMAND="npm run start-api" npm start
   `0221-2001`)_
 - `date` – Valid ISODate _(Example: `2020-01-01`)_
 - `earlierDate` – Valid ISODate _(Example: `2013-10-16`)_
+
+## File/image upoads
+
+- `POST /api/v1/file-upload`  
+  Accepts multipart form uploads from the regulations rich-text editor and saves
+  them in a S3 bucket and returns the resulting URL

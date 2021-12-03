@@ -80,3 +80,7 @@ og skila til baka map á forminu:
 
 Þetta map getur svo cleanup rútína á request endanum notað til að endurskrifa
 myndaslóðirnar í reglugerðatextum áður en reglugerðin er vistuð.
+
+## Uppfæra README.md
+
+...skjala nýja endapunktinn
