@@ -55,7 +55,7 @@ const proxyProps = (
 // ---------------------------------------------------------------------------
 
 const fastify = fast({
-  // logger: true,
+  logger: true,
   ignoreTrailingSlash: true,
   /**
     This rewrite function serves to add suffix to pdf urls.

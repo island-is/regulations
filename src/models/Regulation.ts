@@ -11,10 +11,10 @@ type RegulationAttributes = {
   publishedDate: ISODate;
   effectiveDate: ISODate;
   updateComment?: string;
-  status: 'raw' | 'unsafe' | 'draft' | 'text_locked' | 'migrated';
+  status: 'draft' | 'text_locked' | 'migrated';
   type?: 'base' | 'amending';
   ministryId?: number;
-  _externalsource?: string;
+  originalDoc?: string;
 };
 
 @Table({ tableName: 'Regulation', timestamps: false })
@@ -26,43 +26,54 @@ export class DB_Regulation
     primaryKey: true,
     autoIncrement: true,
     type: DataType.INTEGER,
-    comment: 'migrated as-is from old table',
+    comment: 'Migrated as-is from old Eplica database',
   })
   id!: number;
 
   @Column({
     type: DataType.STRING,
-    comment: 'html encoding fixes of title from old table before migration',
+    comment: 'The original title of the regulation (text/plain)',
   })
   title!: PlainText;
 
   @Column({
     type: DataType.STRING(9),
-    comment: 'migrated as-is from old table',
+    comment:
+      'The publication number/year of the regulation (Normalized format "NNNN/YYYY")',
   })
   name!: RegName;
 
-  @Column({ type: DataType.STRING, comment: 'migrated as-is from old table' })
+  @Column({
+    type: DataType.STRING,
+    comment:
+      'The original text body of the regulation (including appendix chapters and "comments from the editor") (text/html)',
+  })
   text!: HTMLText;
-
-  @Column({ type: DataType.DATEONLY, comment: 'migrated as-is from old table' })
-  signatureDate!: ISODate;
-
-  @Column({ type: DataType.DATEONLY, comment: 'migrated as-is from old table' })
-  publishedDate!: ISODate;
 
   @Column({
     type: DataType.DATEONLY,
     comment:
-      'migrated as-is from old table. NOTE: Regulation.effectiveDate and RegulationChange.date are NOT the same thing, though they are often the same value',
+      'Date of physical/official signature by the minister and/or other officials',
+  })
+  signatureDate!: ISODate;
+
+  @Column({
+    type: DataType.DATEONLY,
+    comment: 'Official date of publication in Stjórnartíðindi',
+  })
+  publishedDate!: ISODate;
+
+  @Column({
+    type: DataType.DATEONLY,
+    comment: 'NOTE: This date is for informational purposes only',
   })
   effectiveDate!: ISODate;
 
   @Column({
-    type: DataType.ENUM('raw', 'unsafe', 'draft', 'text_locked', 'migrated'),
+    type: DataType.ENUM('draft', 'text_locked', 'migrated'),
     comment: 'Status of regulation after manual processing',
   })
-  status!: 'raw' | 'unsafe' | 'draft' | 'text_locked' | 'migrated';
+  status!: 'draft' | 'text_locked' | 'migrated';
 
   @Column({
     type: DataType.ENUM('base', 'amending'),
@@ -74,7 +85,7 @@ export class DB_Regulation
   @Column({
     type: DataType.INTEGER,
     allowNull: true,
-    comment: 'The ministry this Regulation belongs to',
+    comment: 'The ministry this Regulation belongs to currently',
   })
   ministryId?: number;
 
@@ -84,6 +95,8 @@ export class DB_Regulation
   @Column({
     type: DataType.STRING,
     allowNull: true,
+    comment:
+      "URL of the official/original PDF version in Stjórnartíðindi's document store (mostly relevant for older regluations)",
   })
-  _externalsource?: string;
+  originalDoc?: string;
 }

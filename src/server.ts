@@ -22,7 +22,7 @@ import { serveRobotsTxt } from 'utils/server-utils';
 // ===========================================================================
 
 const fastify = fast({
-  // logger: true,
+  logger: true,
   ignoreTrailingSlash: true,
   // rewriteUrl: (req) => {
   //   console.log('FOOBAR', { url: req.url });

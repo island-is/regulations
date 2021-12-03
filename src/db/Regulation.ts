@@ -199,7 +199,7 @@ const augmentRegulation = async (
     signatureDate,
     publishedDate,
     effectiveDate,
-    _externalsource,
+    originalDoc,
     repealedBeacuseReasons,
   } = regulation;
 
@@ -249,7 +249,7 @@ const augmentRegulation = async (
     lawChapters,
     history,
     effects,
-    originalDoc: _externalsource?.replace(/^http:\/\//, 'https://'),
+    originalDoc,
     pdfVersion,
     // timelineDate: undefined,
     // showingDiff: undefined,
@@ -259,13 +259,13 @@ const augmentRegulation = async (
 const getRegulationRedirect = (
   regulation: DB_Regulation,
 ): RegulationRedirect => {
-  const { name, title, _externalsource } = regulation;
+  const { name, title, originalDoc } = regulation;
   return {
     name,
     title,
     redirectUrl:
       'https://www.reglugerd.is/reglugerdir/allar/nr/' + nameToSlug(name),
-    originalDoc: _externalsource,
+    originalDoc: originalDoc,
   };
 };
 
@@ -281,7 +281,7 @@ async function isMigrated(regulation: DB_Regulation) {
     // treated as implicitly "migrated"  –- Már@2012-11-26
     migrated = !task || task.migrated;
   } else {
-    migrated = ['text_locked', 'migrated'].includes(regulation.status);
+    migrated = regulation.status !== 'draft';
   }
   return migrated;
 }

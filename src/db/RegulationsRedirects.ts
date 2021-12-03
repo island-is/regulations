@@ -12,7 +12,7 @@ type Redirects = Array<RegQueryName>;
 
 export async function getRegulationsRedirects() {
   const sql = `
-  (select name from Regulation where type = 'amending' and status in ('text_locked', 'migrated'))
+  (select name from Regulation where type = 'amending' and status != 'draft')
   union all
   (select name from Regulation as r join Task as t on r.id = t.regulationId where t.migrated = true)
   ;`;
