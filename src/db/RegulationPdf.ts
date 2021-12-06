@@ -48,9 +48,9 @@ export type InputRegulation = Pick<
   timelineDate?: undefined;
   repealedDate?: undefined;
   repealed?: undefined;
-  signatureDate?: Regulation['signatureDate'];
   publishedDate?: Regulation['publishedDate'];
-  effectiveDate?: Regulation['effectiveDate'];
+  // signatureDate?: Regulation['signatureDate'];
+  // effectiveDate?: Regulation['effectiveDate'];
   history?: undefined;
   pdfVersion?: undefined;
 };
@@ -156,8 +156,6 @@ const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
     text,
     appendixes,
     comments = '',
-    // effectiveDate,
-    // signatureDate,
     publishedDate,
     pdfVersion,
   } = regulation;
@@ -298,9 +296,9 @@ const cleanUpRegulationBodyInput = (
   const body = reqBody as Record<string, unknown>;
 
   const name = assertRegName(String(body.name));
-  const effectiveDate = assertISODate(String(body.effectiveDate));
   const publishedDate = assertISODate(String(body.publishedDate));
-  const signatureDate = assertISODate(String(body.signatureDate));
+  // const signatureDate = assertISODate(String(body.signatureDate));
+  // const effectiveDate = assertISODate(String(body.effectiveDate));
 
   const dirtyTitle = String(body.title);
   const dirtyText = String(body.text) as HTMLText;
@@ -334,9 +332,9 @@ const cleanUpRegulationBodyInput = (
       appendixes,
       comments,
       name,
-      signatureDate,
       publishedDate,
-      effectiveDate,
+      // signatureDate,
+      // effectiveDate,
     };
   }
 };
