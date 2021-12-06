@@ -70,7 +70,7 @@ export type RegulationHistoryItem = {
 // ---------------------------------------------------------------------------
 
 export type RegulationEffect = {
-  /** effectiveDate for this impact */
+  /** effective-/publishDate for this impact */
   date: ISODate;
   /** Publication name of the affected Regulation */
   name: RegName;
