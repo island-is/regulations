@@ -31,7 +31,7 @@ export class DB_RegulationCancel
 
   @Column({
     type: DataType.DATEONLY,
-    comment: 'the "effectiveDate" of the cancellation',
+    comment: 'the date when the cancellation comes into effect',
   })
   date!: ISODate;
 }

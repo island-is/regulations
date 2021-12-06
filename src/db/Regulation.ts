@@ -395,7 +395,7 @@ export async function getRegulation(
     if (opts.date !== 'current') {
       augmentedRegulation.timelineDate = regulationChange
         ? regulationChange.date
-        : augmentedRegulation.effectiveDate;
+        : augmentedRegulation.publishedDate;
     }
 
     if (!diff) {
@@ -496,8 +496,8 @@ export async function getRegulation(
 
     diffedRegulation.showingDiff = {
       // from: earlierState.date || regulation.publishedDate,
-      from: fromChange ? fromChange.date : regulation.effectiveDate,
-      to: regulationChange ? regulationChange.date : regulation.effectiveDate,
+      from: fromChange ? fromChange.date : regulation.publishedDate,
+      to: regulationChange ? regulationChange.date : regulation.publishedDate,
     };
 
     if (_isDateMismatch(diffedRegulation, opts)) {
