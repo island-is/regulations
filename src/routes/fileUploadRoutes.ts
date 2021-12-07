@@ -297,7 +297,6 @@ const fileUrlsMapper = (req: FastifyRequest) => {
 };
 
 const uploadFile = async (file: FileUrlMapping) => {
-  let uploadedCount = 0;
   const errored: Array<string> = [];
   const doLog = !!MEDIA_BUCKET_FOLDER || process.env.NODE_ENV !== 'production';
   const fileKey = file.newUrl.replace(FILE_SERVER, '');
@@ -322,15 +321,11 @@ const uploadFile = async (file: FileUrlMapping) => {
       })
       .promise()
       .then((data) => {
-        uploadedCount++;
         doLog &&
           console.info('🆗 Uploaded', {
             oldUrl: file.oldUrl,
             key: data.Key,
           });
-        if (uploadedCount % 100 === 0) {
-          console.info(`✅ ${uploadedCount} uploaded`);
-        }
       });
   } catch (error) {
     const message = error instanceof Error ? error.message : error;
