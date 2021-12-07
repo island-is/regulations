@@ -248,19 +248,16 @@ const makeFileKey = (fullUrl: string, req: FastifyRequest) => {
 
     return FILE_SERVER + fileKey;
   } catch (error) {
-    console.log({ error });
-
+    console.error({ error });
     return '';
   }
 };
 
-const fileUrlsUploader = (
+const fileUrlsMapper = (
   req: FastifyRequest,
   reply: FastifyReply,
   done: HookHandlerDoneFunction,
 ) => {
-  const apiKeyHeader = req.headers['X-APIKey'] || req.headers['x-apikey'];
-  const uploadType = apiKeyUsers[String(apiKeyHeader)];
   const fileUrls: Array<{ oldUrl: string; newUrl: string }> = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const bdy = req.body as any;
@@ -348,7 +345,7 @@ export const fileUploadRoutes: FastifyPluginCallback = (
           done(error as Error);
         }
       },
-      preHandler: fileUrlsUploader,
+      preHandler: fileUrlsMapper,
     },
     (request, reply) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
