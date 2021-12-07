@@ -297,7 +297,6 @@ const fileUrlsMapper = (req: FastifyRequest) => {
 };
 
 const uploadFile = async (file: FileUrlMapping) => {
-  const errored: Array<string> = [];
   const doLog = !!MEDIA_BUCKET_FOLDER || process.env.NODE_ENV !== 'production';
   const fileKey = file.newUrl.replace(FILE_SERVER, '');
 
@@ -330,7 +329,6 @@ const uploadFile = async (file: FileUrlMapping) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : error;
     console.info('⚠️ ', message);
-    fileKey && errored.push(file.oldUrl + '\t\t' + FILE_SERVER + '/' + fileKey);
   }
 };
 
