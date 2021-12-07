@@ -1,0 +1,10 @@
+{
+  "target": "ES2020",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+  "exclude": ["dist"],
+  "include": ["types/**/*.d.ts", "src/**/*.ts", "src/**/*.tsx"]
+}

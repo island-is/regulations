@@ -7,6 +7,10 @@ const opts = process.argv.slice(2).reduce((map, arg) => {
   return map;
 }, {});
 
+const outdir = 'dist';
+
+require('del').sync(outdir);
+
 require('esbuild')
   .build({
     entryPoints: [
@@ -24,7 +28,7 @@ require('esbuild')
     platform: 'node',
     target: ['node16'],
     format: 'cjs',
-    outdir: 'dist',
+    outdir,
 
     external: [
       ...Object.keys(pkg.dependencies || {}),

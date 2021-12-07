@@ -1,5 +1,4 @@
 import { FastifyRedis } from 'fastify-redis';
-import { RegQueryName } from 'routes/types';
 
 export async function get<T = unknown | null>(
   client: FastifyRedis | null,

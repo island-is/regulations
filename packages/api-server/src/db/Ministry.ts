@@ -1,5 +1,5 @@
 import { DB_Ministry, DB_Regulation } from '../models';
-import { Ministry, MinistrySlug } from 'routes/types';
+import { Ministry, MinistrySlug } from '../routes/types';
 import { Op } from 'sequelize';
 
 export async function getAllMinistries(slugs?: Array<MinistrySlug>) {

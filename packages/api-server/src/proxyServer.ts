@@ -5,7 +5,7 @@ import { DAY, HOUR, SECOND } from '@hugsmidjan/qj/time';
 import { Writable } from 'stream';
 import { cacheControl } from './utils/misc';
 import { AWS_BUCKET_NAME, AWS_REGION_NAME, API_SERVER } from './constants';
-import { serveRobotsTxt } from 'utils/server-utils';
+import { serveRobotsTxt } from './utils/server-utils';
 
 const { PORT, PROXY_PORT, FORCE_HTTPS } = process.env;
 

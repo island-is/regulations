@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
     "lib": ["dom", "esnext"],
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -9,16 +8,21 @@
     "module": "esnext",
     "moduleResolution": "node",
     "newLine": "LF",
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
     "resolveJsonModule": true,
-    "baseUrl": "src",
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "strictBindCallApply": false,
-    "noImplicitThis": false
+    "noImplicitThis": false,
+
+    "isolatedModules": true
+
+    // "rootDir": "."
+
+    // "baseUrl": ".",
+    // "paths": {
+    //   "@my-monorepo/*": ["./packages/*"]
+    // }
   },
 
-  "exclude": ["node_modules", "dist"],
-  "include": ["types/**/*.d.ts", "src/**/*.ts"]
+  "exclude": ["node_modules"]
 }

@@ -1,5 +1,5 @@
 import { FastifyRedis } from 'fastify-redis';
-import { get, set } from 'utils/cache';
+import { get, set } from '../utils/cache';
 import { getRegulation } from '../db/Regulation';
 import {
   assertISODate,
@@ -7,7 +7,6 @@ import {
   slugToName,
   Pms,
   cacheControl,
-  toISODate,
 } from '../utils/misc';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

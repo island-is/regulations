@@ -15,7 +15,7 @@ import {
   assertUploadType,
   DRAFTS_FOLDER,
   QUERY_REPLACEMENT,
-} from 'routes/fileUploadRoutes';
+} from '../routes/fileUploadRoutes';
 
 // Stupid cloning for stupid streams
 const stupidStreamClone = (stream: Readable) =>

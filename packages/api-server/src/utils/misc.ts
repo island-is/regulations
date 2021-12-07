@@ -43,7 +43,7 @@ const reRegQueryNameFlex = /^\d{1,4}-\d{4}$/;
 export const assertNameSlug = (slug?: string): RegQueryName | undefined => {
   if (slug && reRegQueryNameFlex.test(slug)) {
     return (
-      slug.length === 9 ? slug : ('000' + slug).substr(-9)
+      slug.length === 9 ? slug : ('000' + slug).slice(-9)
     ) as RegQueryName;
   }
 };
@@ -61,7 +61,7 @@ export const assertNameSlug = (slug?: string): RegQueryName | undefined => {
 export const assertRegName = (slug?: string): RegName | undefined => {
   slug = slug && slug.replace('-', '/');
   if (slug && /^\d{1,4}\/\d{4}$/.test(slug)) {
-    return (slug.length === 9 ? slug : ('000' + slug).substr(-9)) as RegName;
+    return (slug.length === 9 ? slug : ('000' + slug).slice(-9)) as RegName;
   }
 };
 
@@ -82,7 +82,7 @@ export function toISODate(
       date = undefined;
     }
   }
-  return date ? (date.toISOString().substr(0, 10) as ISODate) : null;
+  return date ? (date.toISOString().slice(0, 10) as ISODate) : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -102,7 +102,7 @@ export function toISODateTime(
       date = undefined;
     }
   }
-  return date ? (date.toISOString().substr(0, 19) as ISODateTime) : null;
+  return date ? (date.toISOString().slice(0, 19) as ISODateTime) : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -119,7 +119,7 @@ const smellsLikeISODate = (maybeISODate?: string): maybeISODate is string =>
  */
 export const assertISODate = (maybeISODate?: string): ISODate | undefined => {
   if (smellsLikeISODate(maybeISODate)) {
-    const date = new Date(maybeISODate).toISOString().substr(0, 10) as ISODate;
+    const date = new Date(maybeISODate).toISOString().slice(0, 10) as ISODate;
     if (date === maybeISODate) {
       return date;
     }

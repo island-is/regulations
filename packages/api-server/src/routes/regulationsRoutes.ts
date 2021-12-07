@@ -1,5 +1,5 @@
 import { FastifyPluginCallback } from 'fastify';
-import { get, set } from 'utils/cache';
+import { get, set } from '../utils/cache';
 import {
   PER_PAGE,
   getNewestRegulations,

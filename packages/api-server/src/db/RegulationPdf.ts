@@ -9,7 +9,7 @@ import {
   RegName,
   RegQueryName,
   ISODateTime,
-} from 'routes/types';
+} from '../routes/types';
 import {
   assertISODate,
   assertRegName,
@@ -411,13 +411,13 @@ const getPdfFileKey = (routePath: string) =>
 
 // ===========================================================================
 
-type PDFGenResults = Promise<{
+type PDFGenResults = {
   fileName?: string;
   pdfContents?: Buffer | false;
   error?: string;
-}>;
+};
 
-export const makeDraftPdf = async (body: unknown): PDFGenResults => {
+export const makeDraftPdf = async (body: unknown): Promise<PDFGenResults> => {
   const unpublishedReg = cleanUpRegulationBodyInput(body);
   if (unpublishedReg) {
     const fileName =
@@ -433,7 +433,7 @@ export const makeDraftPdf = async (body: unknown): PDFGenResults => {
 const _makePublishedPdf = async (
   routePath: string,
   opts: RegOpts,
-): PDFGenResults => {
+): Promise<PDFGenResults> => {
   const { name, diff, earlierDate } = opts;
   const date = opts.date === 'current' ? new Date() : opts.date;
 

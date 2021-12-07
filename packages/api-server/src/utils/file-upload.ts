@@ -5,7 +5,7 @@ import multerS3 from 'multer-s3-transform';
 import { createHash } from 'crypto';
 import { Readable } from 'stream';
 import type { Request as ExpressRequest } from 'express';
-import { assertUploadType, DRAFTS_FOLDER } from 'routes/fileUploadRoutes';
+import { assertUploadType, DRAFTS_FOLDER } from '../routes/fileUploadRoutes';
 import {
   AWS_BUCKET_NAME,
   AWS_REGION_NAME,
@@ -153,7 +153,7 @@ storage._handleFile = function (req, file, cb) {
       fileData.push(data);
     })
     .on('end', () => {
-      const $hash$ = hash.digest('hex').substr(0, 8);
+      const $hash$ = hash.digest('hex').slice(0, 8);
       multerS3_handleFile.call(
         _this,
         req,

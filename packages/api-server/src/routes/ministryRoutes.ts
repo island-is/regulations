@@ -1,6 +1,6 @@
 import { FastifyPluginCallback } from 'fastify';
-import { MinistryAttributes } from 'models';
-import { get, set } from 'utils/cache';
+import { MinistryAttributes } from '../models';
+import { get, set } from '../utils/cache';
 import { cacheControl, QStr } from '../utils/misc';
 import { getAllMinistries } from '../db/Ministry';
 import { MinistryListItem, MinistrySlug } from './types';

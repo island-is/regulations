@@ -1,5 +1,5 @@
 import { FastifyPluginCallback } from 'fastify';
-import { get, set } from 'utils/cache';
+import { get, set } from '../utils/cache';
 import { cacheControl, QStr } from '../utils/misc';
 import { getLawChapterTree, getLawChapterList } from '../db/LawChapter';
 import { LawChapter, LawChapterSlug, LawChapterTree } from './types';

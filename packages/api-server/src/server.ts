@@ -17,7 +17,7 @@ import { fileUploadRoutes } from './routes/fileUploadRoutes';
 import fastifyMultipart from 'fastify-multipart';
 
 import { connectSequelize } from './utils/sequelize';
-import { serveRobotsTxt } from 'utils/server-utils';
+import { serveRobotsTxt } from './utils/server-utils';
 
 // ===========================================================================
 

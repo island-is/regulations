@@ -1,8 +1,8 @@
 import { FILE_SERVER } from '../constants';
 import { FastifyPluginCallback, FastifyRequest } from 'fastify';
-import { QStr } from 'utils/misc';
-import { fileUploader, MulterS3StorageFile } from 'utils/file-upload';
-import { fileUrlsMapper, uploadFile } from 'utils/file-upload-urls';
+import { QStr } from '../utils/misc';
+import { fileUploader, MulterS3StorageFile } from '../utils/file-upload';
+import { fileUrlsMapper, uploadFile } from '../utils/file-upload-urls';
 
 export const DRAFTS_FOLDER = 'admin-drafts';
 export const EMPTY_KEY = '_';
