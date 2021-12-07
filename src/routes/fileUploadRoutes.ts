@@ -115,11 +115,16 @@ export const fileUploadRoutes: FastifyPluginCallback = (
       },
     },
     (request, reply) => {
-      const files = fileUrlsMapper(request);
+      const fileInfoList = fileUrlsMapper(request);
 
-      reply.send(files);
+      reply.send(
+        fileInfoList.map(({ oldUrl, newUrl }) => ({
+          oldUrl,
+          newUrl,
+        })),
+      );
 
-      files.forEach((file) => uploadFile(file));
+      fileInfoList.forEach((file) => uploadFile(file));
     },
   );
 

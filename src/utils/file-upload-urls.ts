@@ -37,9 +37,10 @@ const stupidStreamClone = (stream: Readable) =>
       });
   });
 
-const makeFileKey = (fullUrl: string, req: FastifyRequest) => {
+// FIXME: Add tests!
+const makeFileKey = (url: string, req: FastifyRequest) => {
   try {
-    fullUrl = ('' + fullUrl).replace(`${DRAFTS_FOLDER}/`, '');
+    const fullUrl = url.replace(`${DRAFTS_FOLDER}/`, '');
     const { hostname, pathname } = new URL(
       fullUrl.replace(/\?/g, QUERY_REPLACEMENT),
     );
@@ -63,10 +64,10 @@ const makeFileKey = (fullUrl: string, req: FastifyRequest) => {
       .replace(/\/\/+/g, '/')
       .replace(/^\//, '');
 
-    return FILE_SERVER + fileKey;
+    return fileKey;
   } catch (error) {
     console.error({ error });
-    return '';
+    return undefined;
   }
 };
 
@@ -77,37 +78,55 @@ function ensureObject(cand: unknown): Record<string, unknown> {
   return {};
 }
 function ensureStringArray(cand: unknown): Array<string> {
-  if (Array.isArray(cand) && !cand.find((item) => typeof item !== 'string')) {
-    return cand.filter((u) => !!u) as Array<string>;
+  if (Array.isArray(cand)) {
+    return cand.filter(
+      (item): item is string => !!item && typeof item === 'string',
+    );
   }
   return [];
 }
 
-type FileUrlMapping = { oldUrl: string; newUrl: string };
+type FileUrlMapping = {
+  oldUrl: string;
+  oldUrlFull: string;
+  newUrl: string;
+  fileKey: string;
+};
+
+// FIXME: Add tests!
 export const fileUrlsMapper = (req: FastifyRequest) => {
   const fileUrls: Array<FileUrlMapping> = [];
   const bdy = ensureObject(req.body);
   const links = ensureStringArray(bdy.urls);
 
-  links.forEach((url) => {
-    if (/^\//.test(url)) {
-      url = OLD_SERVER + url;
+  links.forEach((oldUrl) => {
+    let oldUrlFull = oldUrl;
+    if (/^\//.test(oldUrlFull)) {
+      oldUrlFull = OLD_SERVER + oldUrlFull;
     }
-    fileUrls.push({ oldUrl: url, newUrl: makeFileKey(url, req) });
+    const fileKey = makeFileKey(oldUrl, req);
+    if (fileKey) {
+      fileUrls.push({
+        oldUrl,
+        oldUrlFull,
+        newUrl: FILE_SERVER + '/' + fileKey,
+        fileKey,
+      });
+    }
   });
 
   return fileUrls;
 };
 
-export const uploadFile = async (file: FileUrlMapping) => {
+export const uploadFile = async (fileInfo: FileUrlMapping) => {
+  const { fileKey, oldUrlFull } = fileInfo;
   const doLog = !!MEDIA_BUCKET_FOLDER || process.env.NODE_ENV !== 'production';
-  const fileKey = file.newUrl.replace(FILE_SERVER, '');
 
   try {
     const s3 = new S3({ region: AWS_REGION_NAME });
-    const res = await fetch(file.oldUrl);
+    const res = await fetch(oldUrlFull);
     if (!res.ok) {
-      throw new Error(`Error fetching '${file.oldUrl}' (${res.status})`);
+      throw new Error(`Error fetching '${oldUrlFull}' (${res.status})`);
     }
     const [fileA, fileB] = await stupidStreamClone(res.body as Readable);
 
@@ -125,7 +144,7 @@ export const uploadFile = async (file: FileUrlMapping) => {
       .then((data) => {
         doLog &&
           console.info('🆗 Uploaded', {
-            oldUrl: file.oldUrl,
+            oldUrl: oldUrlFull,
             key: data.Key,
           });
       });
