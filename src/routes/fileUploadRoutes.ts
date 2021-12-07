@@ -2,20 +2,28 @@ import multer from 'fastify-multer';
 import S3 from 'aws-sdk/clients/s3';
 import multerS3 from 'multer-s3-transform';
 import { createHash } from 'crypto';
-import { Readable } from 'stream';
+import { PassThrough, Readable } from 'stream';
 import sharp from 'sharp';
+
 import {
   FILE_SERVER,
   AWS_BUCKET_NAME,
   AWS_REGION_NAME,
   MEDIA_BUCKET_FOLDER,
+  OLD_SERVER,
 } from '../constants';
-import { FastifyPluginCallback, FastifyRequest } from 'fastify';
+import {
+  FastifyPluginCallback,
+  FastifyReply,
+  FastifyRequest,
+  HookHandlerDoneFunction,
+} from 'fastify';
 import { QStr } from 'utils/misc';
 import type { Request as ExpressRequest } from 'express';
 
 const DRAFTS_FOLDER = 'admin-drafts';
 const EMPTY_KEY = '_';
+const QUERY_REPLACEMENT = '__q__';
 
 const {
   FILE_UPLOAD_KEY_DRAFT = EMPTY_KEY,
@@ -38,6 +46,7 @@ delete apiKeyUsers[EMPTY_KEY]; // Missing env keys must not open a security hole
 const assertUploadType = (req: Pick<FastifyRequest, 'headers'>): UploadType => {
   const apiKeyHeader = req.headers['X-APIKey'] || req.headers['x-apikey'];
   const uploadType = apiKeyUsers[String(apiKeyHeader)];
+
   if (!uploadType) {
     throw new Error('Authentication needed');
   }
@@ -206,6 +215,66 @@ const fileUploader = multer({
   storage,
 }).single('file');
 
+
+const makeFileKey = (fullUrl: string, req: FastifyRequest) => {
+  try {
+    fullUrl = ('' + fullUrl).replace(`${DRAFTS_FOLDER}/`, '');
+    if (/^\//.test(fullUrl)) {
+      fullUrl = 'https://www.reglugerd.is' + fullUrl;
+    }
+
+    const { hostname, pathname } = new URL(
+      fullUrl.replace(/\?/g, QUERY_REPLACEMENT),
+    );
+
+    const pathPrefix =
+      hostname === 'www.stjornartidindi.is'
+        ? 'stjornartidindi/'
+        : !/(?:\.reglugerd\.is)$/.test(hostname)
+        ? `ext/${hostname}/`
+        : '';
+
+    const devFolder = MEDIA_BUCKET_FOLDER || '';
+    const rootFolder =
+      assertUploadType(req) === 'draft' &&
+      !fullUrl.startsWith(FILE_SERVER) &&
+      !fullUrl.startsWith(OLD_SERVER)
+        ? DRAFTS_FOLDER
+        : '';
+
+    const fileKey = `/${devFolder}/${rootFolder}/${pathPrefix}/${pathname}`
+      // remove double slashes
+      .replace(/\/\/+/g, '/');
+
+    return FILE_SERVER + fileKey;
+  } catch (error) {
+    console.log({ error });
+
+    return '';
+  }
+};
+
+const fileUrlsUploader = (
+  req: FastifyRequest,
+  reply: FastifyReply,
+  done: HookHandlerDoneFunction,
+) => {
+  const apiKeyHeader = req.headers['X-APIKey'] || req.headers['x-apikey'];
+  const uploadType = apiKeyUsers[String(apiKeyHeader)];
+  const fileUrls: Array<{ oldUrl: string; newUrl: string }> = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const bdy = req.body as any;
+  const links = (bdy?.data as Array<string> | null) ?? [];
+
+  links.forEach((url) => {
+    fileUrls.push({ oldUrl: url, newUrl: makeFileKey(url, req) });
+  });
+
+  bdy.fileUrls = fileUrls;
+
+  done();
+};
+
 // ---------------------------------------------------------------------------
 
 export const fileUploadRoutes: FastifyPluginCallback = (
@@ -253,6 +322,39 @@ export const fileUploadRoutes: FastifyPluginCallback = (
       const uploadInfo = fileObj.transforms ? fileObj.transforms[0] : fileObj;
 
       reply.send({ location: FILE_SERVER + '/' + uploadInfo.key });
+    },
+  );
+
+  /**
+   * Uploads files from urls into S3 bucket and returns mappings for new urls.
+   *
+   * Accepts post body containing Array<string>
+   *
+   * Requires a valid `X-APIKey: [secretKey]` HTTP header
+   *
+   * @returns {Array<{ oldUrl: string; newUrl: string; }>}}
+   */
+
+  fastify.post(
+    '/file-upload-urls',
+    {
+      ...opts,
+      onRequest: (request, reply, done) => {
+        try {
+          assertUploadType(request);
+          done();
+        } catch (error) {
+          reply.code(403);
+          done(error as Error);
+        }
+      },
+      preHandler: fileUrlsUploader,
+    },
+    (request, reply) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const files = (request.body as any).fileUrls ?? [];
+
+      reply.send(files);
     },
   );
 

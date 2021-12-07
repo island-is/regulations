@@ -10,6 +10,8 @@ if (!AWS_BUCKET_NAME || !AWS_REGION_NAME) {
 
 export { AWS_BUCKET_NAME, AWS_REGION_NAME, MEDIA_BUCKET_FOLDER };
 
+export const OLD_SERVER = 'https://www.reglugerd.is';
+
 export const FILE_SERVER =
   process.env.DEV_FILE_SERVER || 'https://files.reglugerd.is';
 
