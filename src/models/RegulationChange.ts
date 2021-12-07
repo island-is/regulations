@@ -34,7 +34,7 @@ export class DB_RegulationChange
 
   @Column({
     type: DataType.DATEONLY,
-    comment: 'The effective/publishing date of the change',
+    comment: 'the "effectiveDate" of the change',
   })
   date!: ISODate;
 
