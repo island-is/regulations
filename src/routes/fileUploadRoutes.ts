@@ -237,11 +237,11 @@ const stupidStreamClone = (stream: Readable) =>
       });
   });
 
-const makeFileKey = (fullUrl: string, req: FastifyRequest) => {
+const makeFileKey = (rawUrl: string, req: FastifyRequest) => {
   try {
-    fullUrl = ('' + fullUrl).replace(`${DRAFTS_FOLDER}/`, '');
+    let fullUrl = ('' + rawUrl).replace(`${DRAFTS_FOLDER}/`, '');
     if (/^\//.test(fullUrl)) {
-      fullUrl = 'https://www.reglugerd.is' + fullUrl;
+      fullUrl = OLD_SERVER + fullUrl;
     }
 
     const { hostname, pathname } = new URL(
@@ -251,15 +251,13 @@ const makeFileKey = (fullUrl: string, req: FastifyRequest) => {
     const pathPrefix =
       hostname === 'www.stjornartidindi.is'
         ? 'stjornartidindi/'
-        : !/(?:\.reglugerd\.is)$/.test(hostname)
+        : hostname !== FILE_SERVER && hostname !== OLD_SERVER
         ? `ext/${hostname}/`
         : '';
 
     const devFolder = MEDIA_BUCKET_FOLDER || '';
     const rootFolder =
-      assertUploadType(req) === 'draft' &&
-      !fullUrl.startsWith(FILE_SERVER) &&
-      !fullUrl.startsWith(OLD_SERVER)
+      assertUploadType(req) === 'draft' && !fullUrl.startsWith(FILE_SERVER)
         ? DRAFTS_FOLDER
         : '';
 
@@ -274,24 +272,28 @@ const makeFileKey = (fullUrl: string, req: FastifyRequest) => {
   }
 };
 
+function ensureObject(cand: unknown): Record<string, unknown> | undefined {
+  if (cand && typeof cand === 'object' && !Array.isArray(cand)) {
+    return cand as Record<string, unknown>;
+  }
+}
+function ensureStringArray(cand: unknown): Array<string> | undefined {
+  if (Array.isArray(cand) && !cand.find((item) => typeof item !== 'string')) {
+    return cand.find((u) => !!u) as Array<string>;
+  }
+}
+
 type FileUrlMapping = { oldUrl: string; newUrl: string };
-const fileUrlsMapper = (
-  req: FastifyRequest,
-  reply: FastifyReply,
-  done: HookHandlerDoneFunction,
-) => {
+const fileUrlsMapper = (req: FastifyRequest) => {
   const fileUrls: Array<FileUrlMapping> = [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const bdy = req.body as any;
-  const links = (bdy?.data as Array<string> | null) ?? [];
+  const bdy = ensureObject(req.body) || {};
+  const links = ensureStringArray(bdy.urls) || [];
 
   links.forEach((url) => {
     fileUrls.push({ oldUrl: url, newUrl: makeFileKey(url, req) });
   });
 
-  bdy.fileUrls = fileUrls;
-
-  done();
+  return fileUrls;
 };
 
 const uploadFile = async (file: FileUrlMapping) => {
@@ -410,11 +412,9 @@ export const fileUploadRoutes: FastifyPluginCallback = (
           done(error as Error);
         }
       },
-      preHandler: fileUrlsMapper,
     },
     (request, reply) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const files: Array<FileUrlMapping> = (request.body as any).fileUrls ?? [];
+      const files = fileUrlsMapper(request);
 
       reply.send(files);
 
