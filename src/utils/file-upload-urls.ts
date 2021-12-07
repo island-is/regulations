@@ -37,13 +37,9 @@ const stupidStreamClone = (stream: Readable) =>
       });
   });
 
-const makeFileKey = (rawUrl: string, req: FastifyRequest) => {
+const makeFileKey = (fullUrl: string, req: FastifyRequest) => {
   try {
-    let fullUrl = ('' + rawUrl).replace(`${DRAFTS_FOLDER}/`, '');
-    if (/^\//.test(fullUrl)) {
-      fullUrl = OLD_SERVER + fullUrl;
-    }
-
+    fullUrl = ('' + fullUrl).replace(`${DRAFTS_FOLDER}/`, '');
     const { hostname, pathname } = new URL(
       fullUrl.replace(/\?/g, QUERY_REPLACEMENT),
     );
@@ -72,24 +68,29 @@ const makeFileKey = (rawUrl: string, req: FastifyRequest) => {
   }
 };
 
-function ensureObject(cand: unknown): Record<string, unknown> | undefined {
+function ensureObject(cand: unknown): Record<string, unknown> {
   if (cand && typeof cand === 'object' && !Array.isArray(cand)) {
     return cand as Record<string, unknown>;
   }
+  return {};
 }
-function ensureStringArray(cand: unknown): Array<string> | undefined {
+function ensureStringArray(cand: unknown): Array<string> {
   if (Array.isArray(cand) && !cand.find((item) => typeof item !== 'string')) {
-    return cand.find((u) => !!u) as Array<string>;
+    return cand.filter((u) => !!u) as Array<string>;
   }
+  return [];
 }
 
 type FileUrlMapping = { oldUrl: string; newUrl: string };
 export const fileUrlsMapper = (req: FastifyRequest) => {
   const fileUrls: Array<FileUrlMapping> = [];
-  const bdy = ensureObject(req.body) || {};
-  const links = ensureStringArray(bdy.urls) || [];
+  const bdy = ensureObject(req.body);
+  const links = ensureStringArray(bdy.urls);
 
   links.forEach((url) => {
+    if (/^\//.test(url)) {
+      url = OLD_SERVER + url;
+    }
     fileUrls.push({ oldUrl: url, newUrl: makeFileKey(url, req) });
   });
 
