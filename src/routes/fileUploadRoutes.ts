@@ -4,6 +4,8 @@ import multerS3 from 'multer-s3-transform';
 import { createHash } from 'crypto';
 import { PassThrough, Readable } from 'stream';
 import sharp from 'sharp';
+import file_type from 'file-type';
+import fetch from 'node-fetch';
 
 import {
   FILE_SERVER,
@@ -215,6 +217,25 @@ const fileUploader = multer({
   storage,
 }).single('file');
 
+// Stupid cloning for stupid streams
+const stupidStreamClone = (stream: Readable) =>
+  new Promise<[Readable, Readable]>((resolve, reject) => {
+    const b1: Array<Buffer> = [];
+    const b2: Array<Buffer> = [];
+    stream
+      .on('data', (data: Buffer) => {
+        b1.push(data);
+        b2.push(data);
+      })
+      .on('end', () => {
+        const s1 = Readable.from(b1).pipe(new PassThrough());
+        const s2 = Readable.from(b2).pipe(new PassThrough());
+        resolve([s1, s2]);
+      })
+      .on('error', (error) => {
+        reject(error);
+      });
+  });
 
 const makeFileKey = (fullUrl: string, req: FastifyRequest) => {
   try {
@@ -253,12 +274,13 @@ const makeFileKey = (fullUrl: string, req: FastifyRequest) => {
   }
 };
 
+type FileUrlMapping = { oldUrl: string; newUrl: string };
 const fileUrlsMapper = (
   req: FastifyRequest,
   reply: FastifyReply,
   done: HookHandlerDoneFunction,
 ) => {
-  const fileUrls: Array<{ oldUrl: string; newUrl: string }> = [];
+  const fileUrls: Array<FileUrlMapping> = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const bdy = req.body as any;
   const links = (bdy?.data as Array<string> | null) ?? [];
@@ -270,6 +292,49 @@ const fileUrlsMapper = (
   bdy.fileUrls = fileUrls;
 
   done();
+};
+
+const uploadFile = async (file: FileUrlMapping) => {
+  let uploadedCount = 0;
+  const errored: Array<string> = [];
+  const doLog = !!MEDIA_BUCKET_FOLDER || process.env.NODE_ENV !== 'production';
+  const fileKey = file.newUrl.replace(FILE_SERVER, '');
+
+  try {
+    const s3 = new S3({ region: AWS_REGION_NAME });
+    const res = await fetch(file.oldUrl);
+    if (!res.ok) {
+      throw new Error(`Error fetching '${file.oldUrl}' (${res.status})`);
+    }
+    const [fileA, fileB] = await stupidStreamClone(res.body as Readable);
+
+    const fileType = await file_type.fromStream(fileA);
+
+    await s3
+      .upload({
+        Bucket: AWS_BUCKET_NAME,
+        Key: fileKey,
+        ACL: 'public-read',
+        ContentType: fileType?.mime,
+        Body: fileB,
+      })
+      .promise()
+      .then((data) => {
+        uploadedCount++;
+        doLog &&
+          console.info('🆗 Uploaded', {
+            oldUrl: file.oldUrl,
+            key: data.Key,
+          });
+        if (uploadedCount % 100 === 0) {
+          console.info(`✅ ${uploadedCount} uploaded`);
+        }
+      });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : error;
+    console.info('⚠️ ', message);
+    fileKey && errored.push(file.oldUrl + '\t\t' + FILE_SERVER + '/' + fileKey);
+  }
 };
 
 // ---------------------------------------------------------------------------
@@ -349,9 +414,11 @@ export const fileUploadRoutes: FastifyPluginCallback = (
     },
     (request, reply) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const files = (request.body as any).fileUrls ?? [];
+      const files: Array<FileUrlMapping> = (request.body as any).fileUrls ?? [];
 
       reply.send(files);
+
+      files.forEach((file) => uploadFile(file));
     },
   );
 
