@@ -47,9 +47,10 @@ const makeFileKey = (fullUrl: string, req: FastifyRequest) => {
     const pathPrefix =
       hostname === 'www.stjornartidindi.is'
         ? 'stjornartidindi/'
-        : hostname !== FILE_SERVER && hostname !== OLD_SERVER
-        ? `ext/${hostname}/`
-        : '';
+        : FILE_SERVER.endsWith('//' + hostname) ||
+          OLD_SERVER.endsWith('//' + hostname)
+        ? ''
+        : `ext/${hostname}/`;
 
     const devFolder = MEDIA_BUCKET_FOLDER || '';
     const rootFolder =
@@ -59,7 +60,8 @@ const makeFileKey = (fullUrl: string, req: FastifyRequest) => {
 
     const fileKey = `/${devFolder}/${rootFolder}/${pathPrefix}/${pathname}`
       // remove double slashes
-      .replace(/\/\/+/g, '/');
+      .replace(/\/\/+/g, '/')
+      .replace(/^\//, '');
 
     return FILE_SERVER + fileKey;
   } catch (error) {
