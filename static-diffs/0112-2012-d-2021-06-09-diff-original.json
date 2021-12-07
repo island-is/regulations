@@ -19,7 +19,7 @@
     }
   ],
   "comments": "",
-  "lastAmendDate": "2021-06-09",
+  "lastAmendDate": "2021-11-26",
   "lawChapters": [
     {
       "name": "36. Mannvirkjagerð, húsnæðismál og brunamál — Byggingarheimildir, skipulag o.fl.",
@@ -85,6 +85,12 @@
       "date": "2021-06-09",
       "name": "0667/2021",
       "title": "Reglugerð um (10.) breytingu á byggingarreglugerð, nr. 112/2012.",
+      "effect": "amend"
+    },
+    {
+      "date": "2021-11-26",
+      "name": "1321/2021",
+      "title": "Reglugerð um (11.) breytingu á byggingarreglugerð, nr. 112/2012.",
       "effect": "amend"
     }
   ],
