@@ -99,6 +99,7 @@ const dedupeUrls = (urls: Array<FileUrlMapping>) => {
 
   urls.forEach((u) => {
     if (!foundArr.includes(u.oldUrlFull)) {
+      foundArr.push(u.oldUrlFull);
       newArray.push(u);
     }
   });
