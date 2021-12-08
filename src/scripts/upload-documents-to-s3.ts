@@ -90,17 +90,24 @@ const makeFileKey = (fullUrl: string) => {
       if (!res.ok) {
         throw new Error(`Error fetching '${fullUrl}' (${res.status})`);
       }
-      const [fileA, fileB] = await stupidStreamClone(res.body as Readable);
+      let Body = res.body as Readable;
 
-      const fileType = await file_type.fromStream(fileA);
+      let ContentType: string | undefined =
+        res.headers.get('content-type') || undefined;
+
+      if (!ContentType) {
+        const [fileA, fileB] = await stupidStreamClone(res.body as Readable);
+        Body = fileA;
+        ContentType = (await file_type.fromStream(fileB))?.mime;
+      }
 
       await s3
         .upload({
           Bucket: AWS_BUCKET_NAME,
           Key: makeFileKey(fullUrl),
           ACL: 'public-read',
-          ContentType: fileType?.mime,
-          Body: fileB,
+          ContentType,
+          Body,
         })
         .promise()
         .then((data) => {
