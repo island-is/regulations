@@ -105,11 +105,13 @@ export const fileUrlsMapper = (req: FastifyRequest) => {
       oldUrlFull = OLD_SERVER + oldUrlFull;
     }
     const fileKey = makeFileKey(oldUrl, req);
-    if (fileKey) {
+    const newUrl = FILE_SERVER + '/' + fileKey;
+
+    if (fileKey && oldUrl !== newUrl) {
       fileUrls.push({
         oldUrl,
         oldUrlFull,
-        newUrl: FILE_SERVER + '/' + fileKey,
+        newUrl,
         fileKey,
       });
     }
