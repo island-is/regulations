@@ -93,6 +93,18 @@ type FileUrlMapping = {
   fileKey: string;
 };
 
+const dedupeUrls = (urls: Array<FileUrlMapping>) => {
+  const newArray: Array<FileUrlMapping> = [];
+  const foundArr: Array<string> = [];
+
+  urls.forEach((u) => {
+    if (!foundArr.includes(u.oldUrlFull)) {
+      newArray.push(u);
+    }
+  });
+  return newArray;
+};
+
 // FIXME: Add tests!
 export const fileUrlsMapper = (req: FastifyRequest) => {
   const fileUrls: Array<FileUrlMapping> = [];
@@ -117,7 +129,7 @@ export const fileUrlsMapper = (req: FastifyRequest) => {
     }
   });
 
-  return fileUrls;
+  return dedupeUrls(fileUrls);
 };
 
 export const uploadFile = async (fileInfo: FileUrlMapping) => {
