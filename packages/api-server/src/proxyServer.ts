@@ -4,7 +4,7 @@ import proxy, { FastifyHttpProxyOptions } from 'fastify-http-proxy';
 import { DAY, HOUR, SECOND } from '@hugsmidjan/qj/time';
 import { Writable } from 'stream';
 import { cacheControl } from './utils/misc';
-import { AWS_BUCKET_NAME, AWS_REGION_NAME, API_SERVER } from './constants';
+import { AWS_BUCKET_NAME, AWS_REGION_NAME, API_URL } from './constants';
 import { serveRobotsTxt } from './utils/server-utils';
 
 const { PORT, PROXY_PORT, FORCE_HTTPS } = process.env;
@@ -85,7 +85,7 @@ fastify.register(fastifyRateLimiter, {
 });
 
 fastify.register(proxy, {
-  upstream: API_SERVER,
+  upstream: API_URL,
   prefix: '/pdf',
   http: { requestOptions: { timeout: 40 * SECOND } },
   // http2: { requestTimeout: 40 * SECOND },

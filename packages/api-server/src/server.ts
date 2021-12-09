@@ -34,15 +34,14 @@ fastify.register(fastifyRateLimiter, {
   timeWindow: '1 minute',
 });
 
-const { ROUTES_USERNAME, ROUTES_PASSWORD, PORT, REDIS_URL, REDIS_TLS_URL } =
-  process.env;
+const { ROUTES_USERNAME, ROUTES_PASSWORD, PORT, REDIS_URL } = process.env;
 
-if (REDIS_TLS_URL || REDIS_URL) {
+if (REDIS_URL) {
   console.info('redis active');
-  const url = REDIS_TLS_URL ?? REDIS_URL;
+  const url = REDIS_URL;
 
   const tls =
-    (url?.indexOf('rediss') ?? -1) >= 0
+    (url.indexOf('rediss') ?? -1) >= 0
       ? {
           rejectUnauthorized: false,
         }
