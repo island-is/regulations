@@ -22,8 +22,8 @@ import {
   RegulationDiff,
   RegulationMaybeDiff,
 } from '../routes/types';
-import { extractAppendixesAndComments } from '../utils/extractData';
-import { nameToSlug, toISODate } from '../utils/misc';
+import { extractAppendixesAndComments } from '@island.is/regulations-tools/cleanupEditorOutput';
+import { nameToSlug, toISODate } from '@island.is/regulations-tools/utils';
 import promiseAll from '@hugsmidjan/qj/promiseAllObject';
 import { FILE_SERVER } from '../constants';
 import { readFileSync } from 'fs';
@@ -435,7 +435,7 @@ export async function getRegulation(
 
     if (!regulationChange) {
       // Here the "active" regulation is the original and any diffing should be against the empty string
-      earlierState = extractAppendixesAndComments('' as HTMLText);
+      earlierState = extractAppendixesAndComments('');
       earlierTitle = '';
     } else if (earlierDate === 'original') {
       earlierState = extractAppendixesAndComments(regulation.text);

@@ -1,141 +1,15 @@
 import { format as _formatDate } from 'date-fns';
 import { is as locale } from 'date-fns/locale';
-import { ISODate, ISODateTime, RegName, RegQueryName } from '../routes/types';
+import { ISODate } from '../routes/types';
 import { FastifyReply } from 'fastify';
 import fs from 'fs';
 import { parse } from 'path';
 import { HOUR } from '@hugsmidjan/qj/time';
 
-/** Converts a Regulation `name` into a URL path segment
- *
- *  Example: '0123/2020' --> '0123-2020'
- */
-export const nameToSlug = (regulationName: RegName): RegQueryName =>
-  regulationName.replace('/', '-') as RegQueryName;
-
-/** Converts a RegQueryName to Regulation `name` into a URL path segment
- *
- *  Example: '0123-2020' --> '0123/2020'
- */
-export const slugToName = (regulationName: RegQueryName): RegName =>
-  regulationName.replace('-', '/') as RegName;
-
-// ---------------------------------------------------------------------------
-
-/** Pretty-formats a Regulation `name` for human consumption
- *
- * Chops off leading zeros.
- */
-export const prettyName = (regulationName: RegName) =>
-  regulationName.replace(/^0+/, '');
-
-// ---------------------------------------------------------------------------
-
-const reRegQueryNameFlex = /^\d{1,4}-\d{4}$/;
-
-/** Returns a fully zero-padded RegQueryName.
- *
- * Returns `undefined` if the slug doesn't roughly look like a valid regulation number
- *
- *  Example: '23-2020' --> '0023-2020'
- *  Example: '0123-202' --> undefined
- */
-export const assertNameSlug = (slug?: string): RegQueryName | undefined => {
-  if (slug && reRegQueryNameFlex.test(slug)) {
-    return (
-      slug.length === 9 ? slug : ('000' + slug).slice(-9)
-    ) as RegQueryName;
-  }
-};
-
-// ---------------------------------------------------------------------------
-
-/** Returns a fully zero-padded RegName.
- *
- * Returns `undefined` if the slug doesn't roughly look like a valid regulation number
- *
- *  Example: '23-2020' --> '0023/2020'
- *  Example: '23/2020' --> '0023/2020'
- *  Example: '0123-202' --> undefined
- */
-export const assertRegName = (slug?: string): RegName | undefined => {
-  slug = slug && slug.replace('-', '/');
-  if (slug && /^\d{1,4}\/\d{4}$/.test(slug)) {
-    return (slug.length === 9 ? slug : ('000' + slug).slice(-9)) as RegName;
-  }
-};
-
-// ---------------------------------------------------------------------------
-
-export function toISODate(date: Date): ISODate;
-export function toISODate(date: null | undefined): null;
-export function toISODate(
-  date: Date | string | null | undefined,
-): ISODate | null;
-
-export function toISODate(
-  date: Date | string | null | undefined,
-): ISODate | null {
-  if (typeof date === 'string') {
-    date = new Date(date);
-    if (isNaN(date.getTime())) {
-      date = undefined;
-    }
-  }
-  return date ? (date.toISOString().slice(0, 10) as ISODate) : null;
-}
-
-// ---------------------------------------------------------------------------
-
-export function toISODateTime(date: Date): ISODateTime;
-export function toISODateTime(date: null | undefined): null;
-export function toISODateTime(
-  date: Date | string | null | undefined,
-): ISODateTime | null;
-
-export function toISODateTime(
-  date: Date | string | null | undefined,
-): ISODateTime | null {
-  if (typeof date === 'string') {
-    date = new Date(date);
-    if (isNaN(date.getTime())) {
-      date = undefined;
-    }
-  }
-  return date ? (date.toISOString().slice(0, 19) as ISODateTime) : null;
-}
-
-// ---------------------------------------------------------------------------
-
-const smellsLikeISODate = (maybeISODate?: string): maybeISODate is string =>
-  /^\d{4}-\d{2}-\d{2}$/.test(maybeISODate || '');
-
-/** Asserts that the incoming string is a valid ISODate.
- *
- * Returns undefined otherwise.
- *
- * Example: `2012-09-30` --> `2012-09-30`
- * Example: `2012-09-31` --> undefined
- */
-export const assertISODate = (maybeISODate?: string): ISODate | undefined => {
-  if (smellsLikeISODate(maybeISODate)) {
-    const date = new Date(maybeISODate).toISOString().slice(0, 10) as ISODate;
-    if (date === maybeISODate) {
-      return date;
-    }
-  }
-};
-
 // ---------------------------------------------------------------------------
 
 export const formatDate = (date: ISODate, format = 'd. MMM yyyy'): string =>
   _formatDate(new Date(date), format, { locale });
-
-// ---------------------------------------------------------------------------
-
-declare const IntPositive__Brand: unique symbol;
-/** Positive integer (>1) */
-export type IntPositive = number & { [IntPositive__Brand]: true };
 
 // ---------------------------------------------------------------------------
 
@@ -150,15 +24,6 @@ export type QStr<keys extends string> = {
 
 // ---------------------------------------------------------------------------
 
-export const assertPosInt = (maybeNumber?: string): IntPositive | undefined => {
-  const num = Number(maybeNumber);
-  return num && num > 0 && num === Math.floor(num)
-    ? (num as IntPositive)
-    : undefined;
-};
-
-// ---------------------------------------------------------------------------
-
 const HOURS = 60 * 60;
 export const cacheControl = (res: FastifyReply<any>, ttl_hrs: number): void => {
   res.headers({
@@ -168,10 +33,6 @@ export const cacheControl = (res: FastifyReply<any>, ttl_hrs: number): void => {
 };
 
 // ---------------------------------------------------------------------------
-
-/** Type-guarding filter function to weed out nully values. */
-export const isNonNull = <T>(val: T): val is Exclude<T, undefined | null> =>
-  val !== null;
 
 // ---------------------------------------------------------------------------
 

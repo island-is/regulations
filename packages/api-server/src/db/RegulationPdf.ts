@@ -10,19 +10,19 @@ import {
   RegQueryName,
   ISODateTime,
 } from '../routes/types';
+import { formatDate as fmt } from '../utils/misc';
 import {
+  isNonNull,
   assertISODate,
   assertRegName,
-  formatDate as fmt,
-  isNonNull,
   nameToSlug,
   prettyName,
   slugToName,
   toISODate,
   toISODateTime,
-} from '../utils/misc';
-import { cleanupAllEditorOutputs } from '@hugsmidjan/regulations-editor/cleanupEditorOutput';
-import { cleanTitle } from '@hugsmidjan/regulations-editor/cleanTitle';
+} from '@island.is/regulations-tools/utils';
+import { cleanupAllEditorOutputs } from '@island.is/regulations-tools/cleanupEditorOutput';
+import { cleanTitle } from '@island.is/regulations-tools/cleanTitle';
 import fs from 'fs';
 import { exec } from 'child_process';
 import { writeFile, unlink, readFile } from 'fs/promises';

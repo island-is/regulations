@@ -29,7 +29,9 @@ require('esbuild')
     outdir,
 
     external: [
-      ...Object.keys(pkg.dependencies || {}),
+      ...Object.keys(pkg.dependencies || {}).filter(
+        (d) => !d.startsWith('@island.is/regulations-'),
+      ),
       ...Object.keys(pkg.peerDependencies || {}),
     ],
     bundle: true,

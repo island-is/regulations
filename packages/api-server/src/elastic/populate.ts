@@ -3,13 +3,12 @@ import { RegulationListItemFull, getAllRegulations } from '../db/Regulations';
 import { Client } from '@elastic/elasticsearch';
 import { performance } from 'perf_hooks';
 import { getSettingsTemplate, mappingTemplate } from './template';
+import { loadData, storeData } from '../utils/misc';
 import {
   assertNameSlug,
   assertRegName,
-  loadData,
   slugToName,
-  storeData,
-} from '../utils/misc';
+} from '@island.is/regulations-tools/utils';
 
 const INDEX_NAME = 'regulations';
 

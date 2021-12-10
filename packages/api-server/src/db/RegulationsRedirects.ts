@@ -1,7 +1,7 @@
 import { RegName, RegQueryName } from '../routes/types';
 import { db } from '../utils/sequelize';
 import { QueryTypes } from 'sequelize';
-import { nameToSlug } from '../utils/misc';
+import { nameToSlug } from '@island.is/regulations-tools/utils';
 
 type SQLRedirect = {
   id: number;

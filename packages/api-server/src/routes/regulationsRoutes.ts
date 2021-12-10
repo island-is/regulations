@@ -7,14 +7,9 @@ import {
   getAllRegulations,
   RegulationListItemFull,
 } from '../db/Regulations';
-import {
-  assertPosInt,
-  cacheControl,
-  IntPositive,
-  loadData,
-  QStr,
-  storeData,
-} from '../utils/misc';
+import { assertPosInt } from '@island.is/regulations-tools/utils';
+import { IntPositive } from '@island.is/regulations-tools/types';
+import { cacheControl, loadData, QStr, storeData } from '../utils/misc';
 
 const NEWEST_TTL = 0.5;
 const NEWEST_REDIS_TTL = NEWEST_TTL * 60 * 60;

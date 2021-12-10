@@ -5,9 +5,8 @@ import {
   assertISODate,
   assertNameSlug,
   slugToName,
-  Pms,
-  cacheControl,
-} from '../utils/misc';
+} from '@island.is/regulations-tools/utils';
+import { Pms, cacheControl } from '../utils/misc';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {

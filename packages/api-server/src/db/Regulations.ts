@@ -12,7 +12,7 @@ import { getRegulationLawChapters } from './LawChapter';
 import { db } from '../utils/sequelize';
 import { BindOrReplacements, QueryTypes } from 'sequelize';
 import promiseAll from '@hugsmidjan/qj/promiseAllObject';
-import { eliminateComments } from '../utils/extractData';
+import { eliminateComments } from '@island.is/regulations-tools/cleanupEditorOutput';
 
 export const PER_PAGE = 30;
 
