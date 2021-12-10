@@ -1,7 +1,7 @@
 {
   "name": "@island.is/regulations-",
   "description": "Mini monorepo for the Regulations API and file-servers andthe regulations-editor library",
-  "repository": "ssh://git@github.com/hugsmidjan-is/reglugerdir-api.git",
+  "repository": "ssh://git@github.com:island-is/regulations.git",
   "license": "MIT",
   "private": true,
   "engines": {
