@@ -14,14 +14,14 @@
     "strictBindCallApply": false,
     "noImplicitThis": false,
 
-    "isolatedModules": true
+    "isolatedModules": true,
 
-    // "rootDir": "."
-
+    // "rootDir": ".",
     // "baseUrl": ".",
-    // "paths": {
-    //   "@my-monorepo/*": ["./packages/*"]
-    // }
+    "paths": {
+      // "@island.is/regulations-tools": ["./packages/tools/src"],
+      "@island.is/regulations-tools/*": ["./packages/tools/src/*"]
+    }
   },
 
   "exclude": ["node_modules"]
