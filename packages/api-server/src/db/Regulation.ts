@@ -1,4 +1,4 @@
-import htmldiff from 'htmldiff-js';
+import { execute as htmldiff } from '@island.is/regulations-tools/htmldiff-js';
 import { db } from '../utils/sequelize';
 import { FindAttributeOptions, Op, QueryTypes } from 'sequelize';
 import {
@@ -37,7 +37,7 @@ const SLOW_DIFF_LIMIT = 1500;
 
 const getDiff = (older: HTMLText, newer: HTMLText, raw?: boolean) => {
   const startTime = Date.now();
-  let diffed = htmldiff.execute(older, newer);
+  let diffed = htmldiff(older, newer);
   if (!raw) {
     diffed = diffed
       .replace(/<del [^>]+>\n*<\/del>/g, '')

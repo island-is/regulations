@@ -51,7 +51,6 @@
     "fastify-rate-limit": "^5.0.1",
     "fastify-redis": "^4.3.3",
     "file-type": "^16.5.3",
-    "htmldiff-js": "^1.0.5",
     "jsdom": "^16.5.2",
     "multer-s3-transform": "^2.10.3",
     "mysql2": "^2.2.5",

@@ -599,7 +599,6 @@ __metadata:
     fastify-rate-limit: ^5.0.1
     fastify-redis: ^4.3.3
     file-type: ^16.5.3
-    htmldiff-js: ^1.0.5
     jsdom: ^16.5.2
     multer-s3-transform: ^2.10.3
     mysql2: ^2.2.5
@@ -632,7 +631,7 @@ __metadata:
     esbuild: ^0.14.2
     esbuild-plugin-d.ts: ^1.0.6
     glob: ^7.2.0
-    htmldiff-js: ^1.0.5
+    htmldiff-js: "github:hugsmidjan-is/htmldiff-js"
     jest: ^26.6.3
     jsdom: ^16.4.0
     react: ^17.0.1
@@ -5100,10 +5099,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"htmldiff-js@npm:^1.0.5":
-  version: 1.0.5
-  resolution: "htmldiff-js@npm:1.0.5"
-  checksum: a3d7814a6e7d24432a726310fe925ef44db9629c17164f4cba478164f63eac06e6486162e8cab5d6c298ca37dec495ace774c1dd9c61bdb2110dbaaf28787053
+"htmldiff-js@github:hugsmidjan-is/htmldiff-js":
+  version: 1.1.0
+  resolution: "htmldiff-js@https://github.com/hugsmidjan-is/htmldiff-js.git#commit=3e3a53e74150f16c48a71d81775d79d7872e587e"
+  checksum: 63993171b65657090543d0006dbd9cc14c06877ea62a07313e8f1778c90fa4f72c5dfa0eaff5839981c9d89a2efee58be6ea7c3bbb3322a085fdab035ff395d5
   languageName: node
   linkType: hard
 
