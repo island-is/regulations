@@ -7,18 +7,16 @@ const opts = process.argv.slice(2).reduce((map, arg) => {
   return map;
 }, {});
 
-const outdir = 'dist';
+const srcdir = './src/';
+const outdir = './dist/';
 
-require('del').sync(outdir);
+require('child_process').execSync('rm -rf ' + outdir);
 
 require('esbuild')
   .build({
-    entryPoints: [
-      'server.ts',
-      'proxyServer.ts',
-      'scripts/upload-documents-to-s3.ts',
-      'RegulationPdf.css',
-    ].map((file) => './src/' + file),
+    entryPoints: ['server.ts', 'proxyServer.ts', 'RegulationPdf.css'].map(
+      (file) => srcdir + file,
+    ),
     entryNames: '[name]',
     define: {
       'process.env.DEV_FILE_SERVER': JSON.stringify(
