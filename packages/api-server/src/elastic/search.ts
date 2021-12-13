@@ -2,13 +2,10 @@ import { Client, errors } from '@elastic/elasticsearch';
 import esb from 'elastic-builder';
 import xss from 'xss';
 import { PER_PAGE } from '../db/Regulations';
-import {
-  RegulationListItem,
-  RegulationSearchResults,
-  Year,
-} from '../routes/types';
+import { RegulationListItem, RegulationSearchResults } from '../routes/types';
 import range from '@hugsmidjan/qj/range';
 import zeroPad from '@hugsmidjan/qj/zeroPad';
+import { ensureReasonableYear } from '@island.is/regulations-tools/utils';
 // import { RegulationsIndexBody } from './populate';
 
 export type SearchQueryParams = {
@@ -21,15 +18,6 @@ export type SearchQueryParams = {
   iR?: string; // 'true' to include repelled regulations
   page?: string; // pagination page
 };
-
-/** Asserts that string is a number between 1900 and 2150
- *
- * Guards against "Infinity" and unreasonably sized numbers
- */
-const assertReasonableYear = (maybeYear?: string): Year | undefined =>
-  maybeYear && /^\d{4}$/.test(maybeYear)
-    ? (Math.max(1900, Math.min(2150, Number(maybeYear))) as Year)
-    : undefined;
 
 const cleanQuery = (q: string | undefined) =>
   q && xss(q).replace(/\s+/g, ' ').trim().toLowerCase();
@@ -45,7 +33,7 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
 
   const iAQuery = query.iA === 'true';
   const iRQuery = query.iR === 'true';
-  const yearFrom = assertReasonableYear(query.year);
+  const yearFrom = ensureReasonableYear(query.year);
 
   if (!iAQuery) {
     filters.push(esb.termQuery('type', 'base'));
@@ -54,7 +42,7 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
     filters.push(esb.termQuery('repealed', false));
   }
   if (yearFrom) {
-    const yearTo = Math.max(yearFrom, assertReasonableYear(query.yearTo) || 0);
+    const yearTo = Math.max(yearFrom, ensureReasonableYear(query.yearTo) || 0);
     const years = range(yearFrom, yearTo);
     filters.push(esb.termsQuery('year', years));
   }

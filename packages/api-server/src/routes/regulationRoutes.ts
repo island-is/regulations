@@ -2,8 +2,8 @@ import { FastifyRedis } from 'fastify-redis';
 import { get, set } from '../utils/cache';
 import { getRegulation } from '../db/Regulation';
 import {
-  assertISODate,
-  assertNameSlug,
+  ensureISODate,
+  ensureNameSlug,
   slugToName,
 } from '@island.is/regulations-tools/utils';
 import { Pms, cacheControl } from '../utils/misc';
@@ -51,8 +51,8 @@ type RefinedRegHandlerOpts<N extends string = RegQueryName> = {
 
 // ===========================================================================
 
-const assertEarlierDate = (maybeEDate?: string): EarlierDate | undefined =>
-  maybeEDate === 'original' ? 'original' : assertISODate(maybeEDate);
+const ensureEarlierDate = (maybeEDate?: string): EarlierDate | undefined =>
+  maybeEDate === 'original' ? 'original' : ensureISODate(maybeEDate);
 
 // ---------------------------------------------------------------------------
 
@@ -235,7 +235,7 @@ export const regulationRoutes: FastifyPluginCallback = (
    */
   fastify.get<Pms<'name'>>('/regulation/:name/original', opts, (req, res) => {
     handleDataRequest(req, res, fastify.redis, {
-      name: assertNameSlug(req.params.name),
+      name: ensureNameSlug(req.params.name),
     });
   });
   /**
@@ -248,7 +248,7 @@ export const regulationRoutes: FastifyPluginCallback = (
     opts,
     (req, res) => {
       handlePdfRequest(req, res, {
-        name: assertNameSlug(req.params.name),
+        name: ensureNameSlug(req.params.name),
       });
     },
   );
@@ -260,7 +260,7 @@ export const regulationRoutes: FastifyPluginCallback = (
    */
   fastify.get<Pms<'name'>>('/regulation/:name/current', opts, (req, res) => {
     handleDataRequest(req, res, fastify.redis, {
-      name: assertNameSlug(req.params.name),
+      name: ensureNameSlug(req.params.name),
       date: 'current',
       current: true,
     });
@@ -275,7 +275,7 @@ export const regulationRoutes: FastifyPluginCallback = (
     opts,
     (req, res) => {
       handlePdfRequest(req, res, {
-        name: assertNameSlug(req.params.name),
+        name: ensureNameSlug(req.params.name),
         date: 'current',
         current: true,
       });
@@ -290,7 +290,7 @@ export const regulationRoutes: FastifyPluginCallback = (
    */
   fastify.get<Pms<'name'>>('/regulation/:name/diff', opts, (req, res) => {
     handleDataRequest(req, res, fastify.redis, {
-      name: assertNameSlug(req.params.name),
+      name: ensureNameSlug(req.params.name),
       date: 'current',
       diff: true,
       earlierDate: 'original',
@@ -304,7 +304,7 @@ export const regulationRoutes: FastifyPluginCallback = (
    */
   fastify.get<Pms<'name'>>('/regulation/:name/diff/pdf', opts, (req, res) => {
     handlePdfRequest(req, res, {
-      name: assertNameSlug(req.params.name),
+      name: ensureNameSlug(req.params.name),
       date: 'current',
       diff: true,
       earlierDate: 'original',
@@ -322,8 +322,8 @@ export const regulationRoutes: FastifyPluginCallback = (
     opts,
     (req, res) => {
       handleDataRequest(req, res, fastify.redis, {
-        name: assertNameSlug(req.params.name),
-        date: assertISODate(req.params.date),
+        name: ensureNameSlug(req.params.name),
+        date: ensureISODate(req.params.date),
       });
     },
   );
@@ -338,8 +338,8 @@ export const regulationRoutes: FastifyPluginCallback = (
     opts,
     (req, res) => {
       handlePdfRequest(req, res, {
-        name: assertNameSlug(req.params.name),
-        date: assertISODate(req.params.date),
+        name: ensureNameSlug(req.params.name),
+        date: ensureISODate(req.params.date),
       });
     },
   );
@@ -356,8 +356,8 @@ export const regulationRoutes: FastifyPluginCallback = (
     opts,
     (req, res) => {
       handleDataRequest(req, res, fastify.redis, {
-        name: assertNameSlug(req.params.name),
-        date: assertISODate(req.params.date),
+        name: ensureNameSlug(req.params.name),
+        date: ensureISODate(req.params.date),
         diff: true,
       });
     },
@@ -374,8 +374,8 @@ export const regulationRoutes: FastifyPluginCallback = (
     opts,
     (req, res) => {
       handlePdfRequest(req, res, {
-        name: assertNameSlug(req.params.name),
-        date: assertISODate(req.params.date),
+        name: ensureNameSlug(req.params.name),
+        date: ensureISODate(req.params.date),
         diff: true,
       });
     },
@@ -394,10 +394,10 @@ export const regulationRoutes: FastifyPluginCallback = (
     opts,
     (req, res) => {
       handleDataRequest(req, res, fastify.redis, {
-        name: assertNameSlug(req.params.name),
-        date: assertISODate(req.params.date),
+        name: ensureNameSlug(req.params.name),
+        date: ensureISODate(req.params.date),
         diff: true,
-        earlierDate: assertEarlierDate(req.params.earlierDate),
+        earlierDate: ensureEarlierDate(req.params.earlierDate),
       });
     },
   );
@@ -414,10 +414,10 @@ export const regulationRoutes: FastifyPluginCallback = (
     opts,
     (req, res) => {
       handlePdfRequest(req, res, {
-        name: assertNameSlug(req.params.name),
-        date: assertISODate(req.params.date),
+        name: ensureNameSlug(req.params.name),
+        date: ensureISODate(req.params.date),
         diff: true,
-        earlierDate: assertEarlierDate(req.params.earlierDate),
+        earlierDate: ensureEarlierDate(req.params.earlierDate),
       });
     },
   );

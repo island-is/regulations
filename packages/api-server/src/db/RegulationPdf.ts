@@ -13,8 +13,8 @@ import {
 import { formatDate as fmt } from '../utils/misc';
 import {
   isNonNull,
-  assertISODate,
-  assertRegName,
+  ensureISODate,
+  ensureRegName,
   nameToSlug,
   prettyName,
   slugToName,
@@ -295,10 +295,10 @@ const cleanUpRegulationBodyInput = (
   }
   const body = reqBody as Record<string, unknown>;
 
-  const name = assertRegName(String(body.name));
-  const publishedDate = assertISODate(String(body.publishedDate));
-  // const signatureDate = assertISODate(String(body.signatureDate));
-  // const effectiveDate = assertISODate(String(body.effectiveDate));
+  const name = ensureRegName(String(body.name));
+  const publishedDate = ensureISODate(String(body.publishedDate));
+  // const signatureDate = ensureISODate(String(body.signatureDate));
+  // const effectiveDate = ensureISODate(String(body.effectiveDate));
 
   const dirtyTitle = String(body.title);
   const dirtyText = String(body.text) as HTMLText;

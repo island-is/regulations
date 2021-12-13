@@ -7,7 +7,7 @@ import {
   getAllRegulations,
   RegulationListItemFull,
 } from '../db/Regulations';
-import { assertPosInt } from '@island.is/regulations-tools/utils';
+import { ensurePosInt } from '@island.is/regulations-tools/utils';
 import { IntPositive } from '@island.is/regulations-tools/types';
 import { cacheControl, loadData, QStr, storeData } from '../utils/misc';
 
@@ -26,7 +26,7 @@ export const regulationsRoutes: FastifyPluginCallback = (
   fastify.get<QStr<'page'>>('/regulations/newest', opts, async (req, res) => {
     const { redis } = fastify;
 
-    const page = assertPosInt(req.query.page || '') || (1 as IntPositive);
+    const page = ensurePosInt(req.query.page || '') || (1 as IntPositive);
 
     const cacheKey = `regulations-newest-page-${page}`;
     const cached = await get<Array<RegulationListItemFull> | null>(

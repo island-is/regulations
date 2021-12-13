@@ -5,8 +5,8 @@ import { performance } from 'perf_hooks';
 import { getSettingsTemplate, mappingTemplate } from './template';
 import { loadData, storeData } from '../utils/misc';
 import {
-  assertNameSlug,
-  assertRegName,
+  ensureNameSlug,
+  ensureRegName,
   slugToName,
 } from '@island.is/regulations-tools/utils';
 
@@ -217,8 +217,8 @@ export async function updateElasticItem(
   client: Client,
   query: { name?: string },
 ) {
-  const _nameSlug = assertNameSlug(query.name);
-  const name = _nameSlug ? slugToName(_nameSlug) : assertRegName(query.name);
+  const _nameSlug = ensureNameSlug(query.name);
+  const name = _nameSlug ? slugToName(_nameSlug) : ensureRegName(query.name);
 
   if (!name) {
     return { success: false };
