@@ -631,7 +631,7 @@ __metadata:
     esbuild: ^0.14.2
     esbuild-plugin-d.ts: ^1.0.6
     glob: ^7.2.0
-    htmldiff-js: "github:hugsmidjan-is/htmldiff-js"
+    htmldiff-js: "github:hugsmidjan-is/htmldiff-js#semver:^1.1.0"
     jest: ^26.6.3
     jsdom: ^16.4.0
     react: ^17.0.1
@@ -5099,10 +5099,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"htmldiff-js@github:hugsmidjan-is/htmldiff-js":
+"htmldiff-js@github:hugsmidjan-is/htmldiff-js#semver:^1.1.0":
   version: 1.1.0
-  resolution: "htmldiff-js@https://github.com/hugsmidjan-is/htmldiff-js.git#commit=3e3a53e74150f16c48a71d81775d79d7872e587e"
-  checksum: 63993171b65657090543d0006dbd9cc14c06877ea62a07313e8f1778c90fa4f72c5dfa0eaff5839981c9d89a2efee58be6ea7c3bbb3322a085fdab035ff395d5
+  resolution: "htmldiff-js@https://github.com/hugsmidjan-is/htmldiff-js.git#commit=f8f444428205b16db1e3fd74af56634a35ecad67"
+  checksum: 2cb6cdb43c2fc4d3fc7cde4ef5dc18fd55f72d8eab215ceb19bbcba08c74d1176f2f4dde30e01475e8e2d492b0e7870f008b2c7452deebacd9170490c1b9552f
   languageName: node
   linkType: hard
 
