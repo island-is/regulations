@@ -22,7 +22,7 @@ import {
   RegulationDiff,
   RegulationMaybeDiff,
 } from '../routes/types';
-import { extractAppendixesAndComments } from '@island.is/regulations-tools/utils';
+import { extractAppendixesAndComments } from '@island.is/regulations-tools/textHelpers';
 import { nameToSlug, toISODate } from '@island.is/regulations-tools/utils';
 import promiseAll from '@hugsmidjan/qj/promiseAllObject';
 import { FILE_SERVER } from '../constants';
