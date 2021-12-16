@@ -1,5 +1,6 @@
 require('dotenv').config();
 const pkg = require('./package.json');
+const toolsPkg = require('@island.is/regulations-tools/package.json');
 
 const opts = process.argv.slice(2).reduce((map, arg) => {
   const [key, value] = arg.replace(/^-+/, '').split('=');
@@ -29,11 +30,12 @@ require('esbuild')
     outdir,
 
     external: [
-      ...Object.keys(pkg.dependencies || {}).filter(
-        (d) => !d.startsWith('@island.is/regulations-'),
-      ),
+      ...Object.keys(pkg.dependencies || {}),
       ...Object.keys(pkg.peerDependencies || {}),
-    ],
+      ...Object.keys(toolsPkg.dependencies || {}),
+      ...Object.keys(toolsPkg.peerDependencies || {}),
+    ].filter((d) => !d.startsWith('@island.is/regulations-')),
+
     bundle: true,
     minify: false,
     watch: opts.watch,
