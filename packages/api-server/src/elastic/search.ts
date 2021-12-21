@@ -1,11 +1,12 @@
 import { Client, errors } from '@elastic/elasticsearch';
-import esb from 'elastic-builder';
-import xss from 'xss';
-import { PER_PAGE } from '../db/Regulations';
-import { RegulationListItem, RegulationSearchResults } from '../routes/types';
 import range from '@hugsmidjan/qj/range';
 import zeroPad from '@hugsmidjan/qj/zeroPad';
 import { ensureReasonableYear } from '@island.is/regulations-tools/utils';
+import esb from 'elastic-builder';
+import xss from 'xss';
+
+import { PER_PAGE } from '../db/Regulations';
+import { RegulationListItem, RegulationSearchResults } from '../routes/types';
 // import { RegulationsIndexBody } from './populate';
 
 export type SearchQueryParams = {

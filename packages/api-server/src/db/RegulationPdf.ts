@@ -1,42 +1,44 @@
+import arrayToObject from '@hugsmidjan/qj/arrayToObject';
+import { SECOND } from '@hugsmidjan/qj/time';
+import { cleanTitle } from '@island.is/regulations-tools/cleanTitle';
+import { cleanupAllEditorOutputs } from '@island.is/regulations-tools/cleanupEditorOutput';
 import {
-  Regulation,
-  Appendix,
-  HTMLText,
-  PlainText,
-  RegulationMaybeDiff,
-  RegulationRedirect,
-  RegulationDiff,
-  RegName,
-  RegQueryName,
-  ISODateTime,
-} from '../routes/types';
-import { formatDate as fmt } from '../utils/misc';
-import {
-  isNonNull,
   ensureISODate,
   ensureRegName,
+  isNonNull,
   nameToSlug,
   prettyName,
   slugToName,
   toISODate,
   toISODateTime,
 } from '@island.is/regulations-tools/utils';
-import { cleanupAllEditorOutputs } from '@island.is/regulations-tools/cleanupEditorOutput';
-import { cleanTitle } from '@island.is/regulations-tools/cleanTitle';
-import fs from 'fs';
+import S3 from 'aws-sdk/clients/s3';
 import { exec } from 'child_process';
-import { writeFile, unlink, readFile } from 'fs/promises';
-import arrayToObject from '@hugsmidjan/qj/arrayToObject';
+import fs from 'fs';
+import { readFile, unlink, writeFile } from 'fs/promises';
+import fetch from 'node-fetch';
+
 import {
   AWS_BUCKET_NAME,
   AWS_REGION_NAME,
   MEDIA_BUCKET_FOLDER,
   PDF_TEMPLATE_UPDATED,
 } from '../constants';
+import {
+  Appendix,
+  HTMLText,
+  ISODateTime,
+  PlainText,
+  RegName,
+  RegQueryName,
+  Regulation,
+  RegulationDiff,
+  RegulationMaybeDiff,
+  RegulationRedirect,
+} from '../routes/types';
+import { formatDate as fmt } from '../utils/misc';
+
 import { fetchModifiedDate, getRegulation } from './Regulation';
-import S3 from 'aws-sdk/clients/s3';
-import fetch from 'node-fetch';
-import { SECOND } from '@hugsmidjan/qj/time';
 
 export type InputRegulation = Pick<
   Regulation,

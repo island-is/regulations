@@ -1,4 +1,4 @@
-import { Model, Table, Column, DataType } from 'sequelize-typescript';
+import { Column, DataType, Model, Table } from 'sequelize-typescript';
 
 type TaskAttributes = {
   id: number;

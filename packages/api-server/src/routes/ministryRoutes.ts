@@ -1,10 +1,12 @@
+import { DAY, SECOND } from '@hugsmidjan/qj/time';
 import { FastifyPluginCallback } from 'fastify';
+
+import { getAllMinistries } from '../db/Ministry';
 import { MinistryAttributes } from '../models';
 import { get, set } from '../utils/cache';
 import { cacheControl, QStr } from '../utils/misc';
-import { getAllMinistries } from '../db/Ministry';
+
 import { MinistryListItem, MinistrySlug } from './types';
-import { DAY, SECOND } from '@hugsmidjan/qj/time';
 
 const MINISTRY_TTL = 1;
 const MINISTRY_REDIS_TTL = 1 * (DAY / SECOND);

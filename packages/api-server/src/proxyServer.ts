@@ -1,11 +1,12 @@
-import { fastify as fast } from 'fastify';
-import fastifyRateLimiter from 'fastify-rate-limit';
-import proxy, { FastifyHttpProxyOptions } from 'fastify-http-proxy';
 import { DAY, HOUR, SECOND } from '@hugsmidjan/qj/time';
+import { fastify as fast } from 'fastify';
+import proxy, { FastifyHttpProxyOptions } from 'fastify-http-proxy';
+import fastifyRateLimiter from 'fastify-rate-limit';
 import { Writable } from 'stream';
+
 import { cacheControl } from './utils/misc';
-import { AWS_BUCKET_NAME, AWS_REGION_NAME, API_URL } from './constants';
 import { serveRobotsTxt } from './utils/server-utils';
+import { API_URL, AWS_BUCKET_NAME, AWS_REGION_NAME } from './constants';
 
 const { PORT, PROXY_PORT, FORCE_HTTPS } = process.env;
 

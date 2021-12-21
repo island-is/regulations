@@ -1,5 +1,5 @@
-import fetch from 'node-fetch';
 import promiseAll from '@hugsmidjan/qj/promiseAllObject';
+import fetch from 'node-fetch';
 
 const getDictionaryFile = async (
   sha: string,

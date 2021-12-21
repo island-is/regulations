@@ -1,13 +1,13 @@
 import S3 from 'aws-sdk/clients/s3';
+import { FastifyRequest } from 'fastify';
 import file_type from 'file-type';
 import fetch from 'node-fetch';
 import { PassThrough, Readable } from 'stream';
-import { FastifyRequest } from 'fastify';
 
 import {
-  FILE_SERVER,
   AWS_BUCKET_NAME,
   AWS_REGION_NAME,
+  FILE_SERVER,
   MEDIA_BUCKET_FOLDER,
   OLD_SERVER,
 } from '../constants';

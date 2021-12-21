@@ -1,6 +1,7 @@
 import { FastifyPluginCallback } from 'fastify';
-import { cacheControl } from '../utils/misc';
+
 import { getRegulationsYears } from '../db/Regulations';
+import { cacheControl } from '../utils/misc';
 
 const YEARS_TTL = 1;
 

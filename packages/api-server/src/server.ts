@@ -1,21 +1,19 @@
 import { fastify as fast } from 'fastify';
-import fastifyRateLimiter from 'fastify-rate-limit';
 import fastifyBasicAuth, { FastifyBasicAuthOptions } from 'fastify-basic-auth';
-import fastifyRedis, { FastifyRedisPluginOptions } from 'fastify-redis';
-
 import fastifyCompress from 'fastify-compress';
 import fastifyElasticsearch from 'fastify-elasticsearch';
-import { elasticSearchRoutes, elasticRebuildRoutes } from './elastic/routes';
+import fastifyMultipart from 'fastify-multipart';
+import fastifyRateLimiter from 'fastify-rate-limit';
+import fastifyRedis, { FastifyRedisPluginOptions } from 'fastify-redis';
 
+import { elasticRebuildRoutes, elasticSearchRoutes } from './elastic/routes';
+import { fileUploadRoutes } from './routes/fileUploadRoutes';
+import { lawChapterRoutes } from './routes/lawChapterRoutes';
+import { ministryRoutes } from './routes/ministryRoutes';
+import { redirectsRoutes } from './routes/redirectsRoutes';
 import { regulationRoutes } from './routes/regulationRoutes';
 import { regulationsRoutes } from './routes/regulationsRoutes';
-import { ministryRoutes } from './routes/ministryRoutes';
-import { lawChapterRoutes } from './routes/lawChapterRoutes';
 import { yearsRoutes } from './routes/yearsRoutes';
-import { redirectsRoutes } from './routes/redirectsRoutes';
-import { fileUploadRoutes } from './routes/fileUploadRoutes';
-import fastifyMultipart from 'fastify-multipart';
-
 import { connectSequelize } from './utils/sequelize';
 import { serveRobotsTxt } from './utils/server-utils';
 

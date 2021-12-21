@@ -1,14 +1,16 @@
-import { ISODate, RegName } from '../routes/types';
-import { RegulationListItemFull, getAllRegulations } from '../db/Regulations';
 import { Client } from '@elastic/elasticsearch';
-import { performance } from 'perf_hooks';
-import { getSettingsTemplate, mappingTemplate } from './template';
-import { loadData, storeData } from '../utils/misc';
 import {
   ensureNameSlug,
   ensureRegName,
   slugToName,
 } from '@island.is/regulations-tools/utils';
+import { performance } from 'perf_hooks';
+
+import { getAllRegulations, RegulationListItemFull } from '../db/Regulations';
+import { ISODate, RegName } from '../routes/types';
+import { loadData, storeData } from '../utils/misc';
+
+import { getSettingsTemplate, mappingTemplate } from './template';
 
 const INDEX_NAME = 'regulations';
 

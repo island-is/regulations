@@ -1,16 +1,17 @@
 import S3 from 'aws-sdk/clients/s3';
-import multer from 'fastify-multer';
-import sharp from 'sharp';
-import multerS3 from 'multer-s3-transform';
 import { createHash } from 'crypto';
-import { Readable } from 'stream';
 import type { Request as ExpressRequest } from 'express';
-import { assertUploadType, DRAFTS_FOLDER } from '../routes/fileUploadRoutes';
+import multer from 'fastify-multer';
+import multerS3 from 'multer-s3-transform';
+import sharp from 'sharp';
+import { Readable } from 'stream';
+
 import {
   AWS_BUCKET_NAME,
   AWS_REGION_NAME,
   MEDIA_BUCKET_FOLDER,
 } from '../constants';
+import { assertUploadType, DRAFTS_FOLDER } from '../routes/fileUploadRoutes';
 
 // `multer-s3-transform` doesn't have TypeScript definitions, so we just make do with this
 // copied over from https://www.npmjs.com/package/multer-s3-transform#file-information

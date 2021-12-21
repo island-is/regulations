@@ -1,8 +1,8 @@
-import { QueryTypes } from 'sequelize';
-import { db } from '../utils/sequelize';
+import { Op, QueryTypes } from 'sequelize';
+
 import { DB_LawChapter } from '../models';
-import { LawChapterTree, LawChapter, LawChapterSlug } from '../routes/types';
-import { Op } from 'sequelize';
+import { LawChapter, LawChapterSlug, LawChapterTree } from '../routes/types';
+import { db } from '../utils/sequelize';
 
 export async function getLawChapterTree(): Promise<LawChapterTree> {
   const chapters = await DB_LawChapter.findAll({ order: [['slug', 'ASC']] });

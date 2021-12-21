@@ -1,5 +1,7 @@
 import { FastifyPluginCallback } from 'fastify';
+
 import { QStr } from '../utils/misc';
+
 import {
   recreateElastic,
   repopulateElastic,

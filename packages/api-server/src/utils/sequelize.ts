@@ -1,11 +1,11 @@
 import { Sequelize } from 'sequelize-typescript';
 
-import { DB_Regulation } from '../models/Regulation';
-import { DB_RegulationChange } from '../models/RegulationChange';
-import { DB_RegulationCancel } from '../models/RegulationCancel';
-import { DB_Regulation_LawChapter } from '../models/Regulation_LawChapter';
-import { DB_Ministry } from '../models/Ministry';
 import { DB_LawChapter } from '../models/LawChapter';
+import { DB_Ministry } from '../models/Ministry';
+import { DB_Regulation } from '../models/Regulation';
+import { DB_Regulation_LawChapter } from '../models/Regulation_LawChapter';
+import { DB_RegulationCancel } from '../models/RegulationCancel';
+import { DB_RegulationChange } from '../models/RegulationChange';
 import { DB_Task } from '../models/Task';
 
 export let db: Sequelize;

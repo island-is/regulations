@@ -1,18 +1,20 @@
-import { DB_Regulation, DB_Task } from '../models';
-import {
-  RegName,
-  ISODate,
-  RegulationListItem,
-  LawChapter,
-  Year,
-  RegulationYears,
-} from '../routes/types';
-import { getMinistry } from './Ministry';
-import { getRegulationLawChapters } from './LawChapter';
-import { db } from '../utils/sequelize';
-import { BindOrReplacements, QueryTypes } from 'sequelize';
 import promiseAll from '@hugsmidjan/qj/promiseAllObject';
 import { eliminateComments } from '@island.is/regulations-tools/textHelpers';
+import { BindOrReplacements, QueryTypes } from 'sequelize';
+
+import { DB_Regulation, DB_Task } from '../models';
+import {
+  ISODate,
+  LawChapter,
+  RegName,
+  RegulationListItem,
+  RegulationYears,
+  Year,
+} from '../routes/types';
+import { db } from '../utils/sequelize';
+
+import { getRegulationLawChapters } from './LawChapter';
+import { getMinistry } from './Ministry';
 
 export const PER_PAGE = 30;
 

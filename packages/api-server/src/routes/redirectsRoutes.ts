@@ -1,6 +1,7 @@
 import { FastifyPluginCallback } from 'fastify';
-import { cacheControl } from '../utils/misc';
+
 import { getRegulationsRedirects } from '../db/RegulationsRedirects';
+import { cacheControl } from '../utils/misc';
 
 const REDIRECTS_TTL = 1;
 

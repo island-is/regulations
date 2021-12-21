@@ -1,9 +1,11 @@
+import { DAY, SECOND } from '@hugsmidjan/qj/time';
 import { FastifyPluginCallback } from 'fastify';
+
+import { getLawChapterList, getLawChapterTree } from '../db/LawChapter';
 import { get, set } from '../utils/cache';
 import { cacheControl, QStr } from '../utils/misc';
-import { getLawChapterTree, getLawChapterList } from '../db/LawChapter';
+
 import { LawChapter, LawChapterSlug, LawChapterTree } from './types';
-import { DAY, SECOND } from '@hugsmidjan/qj/time';
 
 const LAWCHAPTER_TTL = 24;
 const LAWCHAPTER_REDIS_TTL = 1 * (DAY / SECOND);

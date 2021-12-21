@@ -1,32 +1,34 @@
+import promiseAll from '@hugsmidjan/qj/promiseAllObject';
 import { execute as htmldiff } from '@island.is/regulations-tools/htmldiff-js';
-import { db } from '../utils/sequelize';
-import { FindAttributeOptions, Op, QueryTypes } from 'sequelize';
-import {
-  DB_Regulation,
-  DB_RegulationChange,
-  DB_RegulationCancel,
-  DB_Task,
-} from '../models';
-import { getMinistry } from './Ministry';
-import { getRegulationLawChapters } from './LawChapter';
-import {
-  HTMLText,
-  PlainText,
-  ISODate,
-  ISODateTime,
-  RegName,
-  RegulationEffect,
-  RegulationHistoryItem,
-  RegulationRedirect,
-  Regulation,
-  RegulationDiff,
-  RegulationMaybeDiff,
-} from '../routes/types';
 import { extractAppendixesAndComments } from '@island.is/regulations-tools/textHelpers';
 import { nameToSlug, toISODate } from '@island.is/regulations-tools/utils';
-import promiseAll from '@hugsmidjan/qj/promiseAllObject';
-import { FILE_SERVER } from '../constants';
 import { readFileSync } from 'fs';
+import { FindAttributeOptions, Op, QueryTypes } from 'sequelize';
+
+import { FILE_SERVER } from '../constants';
+import {
+  DB_Regulation,
+  DB_RegulationCancel,
+  DB_RegulationChange,
+  DB_Task,
+} from '../models';
+import {
+  HTMLText,
+  ISODate,
+  ISODateTime,
+  PlainText,
+  RegName,
+  Regulation,
+  RegulationDiff,
+  RegulationEffect,
+  RegulationHistoryItem,
+  RegulationMaybeDiff,
+  RegulationRedirect,
+} from '../routes/types';
+import { db } from '../utils/sequelize';
+
+import { getRegulationLawChapters } from './LawChapter';
+import { getMinistry } from './Ministry';
 
 // ---------------------------------------------------------------------------
 

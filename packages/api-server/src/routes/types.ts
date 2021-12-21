@@ -1,7 +1,7 @@
 import type {
+  ISODate,
   Ministry,
   RegName,
-  ISODate,
   Year,
 } from '@island.is/regulations-tools/types';
 

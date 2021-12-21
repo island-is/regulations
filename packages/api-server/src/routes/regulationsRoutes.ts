@@ -1,14 +1,15 @@
+import { IntPositive } from '@island.is/regulations-tools/types';
+import { ensurePosInt } from '@island.is/regulations-tools/utils';
 import { FastifyPluginCallback } from 'fastify';
-import { get, set } from '../utils/cache';
+
 import {
-  PER_PAGE,
+  getAllRegulations,
   getNewestRegulations,
   getRegulationsCount,
-  getAllRegulations,
+  PER_PAGE,
   RegulationListItemFull,
 } from '../db/Regulations';
-import { ensurePosInt } from '@island.is/regulations-tools/utils';
-import { IntPositive } from '@island.is/regulations-tools/types';
+import { get, set } from '../utils/cache';
 import { cacheControl, loadData, QStr, storeData } from '../utils/misc';
 
 const NEWEST_TTL = 0.5;
