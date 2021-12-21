@@ -95,17 +95,14 @@ type HistoryData = ReadonlyArray<{
   name: RegName;
   status: string;
   type: 'base' | 'amending';
-  effectiveDate: Date;
+  date: Date;
 }>;
 
 async function getRegulationHistory(regulation: DB_Regulation) {
-  const historyData = <HistoryData>await db.query(
-    'call regulationHistoryByName(:name)',
-    {
-      replacements: { name: regulation.name },
-      type: QueryTypes.RAW,
-    },
-  );
+  const historyData = (await db.query('call regulationHistoryByName(:name)', {
+    replacements: { name: regulation.name },
+    type: QueryTypes.RAW,
+  })) as HistoryData;
 
   return (
     historyData
@@ -114,8 +111,8 @@ async function getRegulationHistory(regulation: DB_Regulation) {
       // Simply ignore unfinished (still empty) impact records
       .filter((ch) => !ch.impactMissing)
       .map(
-        ({ name, title, reason, effectiveDate }): RegulationHistoryItem => ({
-          date: toISODate(effectiveDate) as ISODate,
+        ({ name, title, reason, date }): RegulationHistoryItem => ({
+          date: toISODate(date) as ISODate,
           name,
           title,
           effect: reason as Exclude<typeof reason, 'root'>, // root has already been hacked off by slice above
