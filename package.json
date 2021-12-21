@@ -18,8 +18,8 @@
     "start": "yarn workspace $START_COMMAND",
     "lint": "eslint \"*.{js,ts,tsx}\" \"packages/*/src/**/*.{js,ts,tsx}\"",
     "format:eslint": "eslint --fix  \"*.{js,ts,tsx}\"  \"packages/*/*.{js,ts,tsx}\" \"packages/*/src/**/*.{js,ts,tsx}\"",
-    "format:prettier": "prettier --write \"*.{json,md}\"  \"packages/*/*.{json,md}\"\"packages/*/src/**/*.{json,md,html}\"",
-    "format": "concurrently yarn:format:*"
+    "format:prettier": "prettier --write \"*.{json,md}\"  \"packages/*/*.{json,md}\" \"packages/*/src/**/*.{json,md,html}\"",
+    "format": "yarn run format:eslint  &&  yarn run format:prettier"
   },
   "devDependencies": {
     "@hugsmidjan/hxmstyle": "^5.3.0",
