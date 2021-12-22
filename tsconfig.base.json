@@ -13,6 +13,7 @@
     "strict": true,
     "strictBindCallApply": false,
     "noImplicitThis": false,
+    "noUncheckedIndexedAccess": true,
 
     "isolatedModules": true,
 

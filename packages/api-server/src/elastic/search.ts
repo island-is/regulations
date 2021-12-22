@@ -69,7 +69,7 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
         const nameRe = /^(\d{1,4})\s*[-/]\s*((?:19|20)\d{2})$/;
         const m = word.match(nameRe);
         if (m) {
-          const [_, number, year] = m;
+          const [_, number, year] = m as [string, string, string];
           const numberPadded = zeroPad(parseInt(number), 4);
           names.push(numberPadded + '/' + year);
           return `"${number}-${year}"`;

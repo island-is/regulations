@@ -15,17 +15,18 @@ export async function getLawChapterTree(): Promise<LawChapterTree> {
 
   chapters.forEach((chapter) => {
     const { parentId, title, slug } = chapter;
-    if (!parentId) {
+    const parentChapter = parentId && parents[parentId];
+    if (parentChapter) {
+      parentChapter.subChapters.push({
+        name: title,
+        slug,
+      });
+    } else {
       parents[chapter.id] = {
         name: title,
         slug,
         subChapters: [],
       };
-    } else {
-      parents[parentId].subChapters.push({
-        name: title,
-        slug,
-      });
     }
   });
 

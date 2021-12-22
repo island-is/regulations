@@ -96,7 +96,7 @@ const handleRequest = async <N extends string = RegQueryName>(
     // provide this info?
     const routePath = req.url
       .replace(/^\/api\/v[0-9]+\/regulation\//, '')
-      .split('?')[0] // remove any potential query strings
+      .split('?')[0]! // remove any potential query strings
       .replace(/\/pdf$/, ''); // and chop off pdf suffixes, if present
 
     const { success, error } = await handler(res, handlerOpts, routePath);
