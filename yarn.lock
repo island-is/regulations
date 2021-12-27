@@ -604,7 +604,7 @@ __metadata:
   dependencies:
     "@hugsmidjan/qj": ^4.7.0
     "@hugsmidjan/react": ^0.4.4
-    "@tinymce/tinymce-react": ^3.8.4
+    "@tinymce/tinymce-react": ^3.13.0
     "@types/cleanup-prettier": "npm:@types/prettier@2.1.6"
     "@types/glob": ^7.2.0
     "@types/jest": ^27.0.3
@@ -620,7 +620,7 @@ __metadata:
     jsdom: ^16.4.0
     react: ^17.0.1
     react-dom: ^17.0.1
-    tinymce: ^5.6.2
+    tinymce: ^5.10.2
     translate.js: ^1.3.2
     ts-jest: ^26.4.4
     typescript: ^4.1.3
@@ -958,7 +958,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tinymce/tinymce-react@npm:^3.8.4":
+"@tinymce/tinymce-react@npm:^3.13.0":
   version: 3.13.0
   resolution: "@tinymce/tinymce-react@npm:3.13.0"
   dependencies:
@@ -9954,7 +9954,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tinymce@npm:^5.5.1, tinymce@npm:^5.6.2":
+"tinymce@npm:^5.10.2, tinymce@npm:^5.5.1":
   version: 5.10.2
   resolution: "tinymce@npm:5.10.2"
   checksum: 6f80abd64f51f558a6135e48fb5061a5fed2badfc742c1560dfc1b56be2f9a30cfe48e48f8aaa14537dc9526ee70ece5408272245109114cdf894e07492497ff
