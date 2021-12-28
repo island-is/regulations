@@ -1,6 +1,9 @@
 import promiseAll from '@hugsmidjan/qj/promiseAllObject';
 import { execute as htmldiff } from '@island.is/regulations-tools/htmldiff-js';
-import { extractAppendixesAndComments } from '@island.is/regulations-tools/textHelpers';
+import {
+  dePrettify,
+  extractAppendixesAndComments,
+} from '@island.is/regulations-tools/textHelpers';
 import { nameToSlug, toISODate } from '@island.is/regulations-tools/utils';
 import { readFileSync } from 'fs';
 import { FindAttributeOptions, Op, QueryTypes } from 'sequelize';
@@ -71,6 +74,10 @@ async function getRegulationByName(
       attributes,
       where: { name },
     })) ?? undefined;
+
+  if (regulation) {
+    regulation.text = dePrettify(regulation.text);
+  }
   return regulation;
 }
 
@@ -169,6 +176,10 @@ async function getLatestRegulationChange(
         ['id', 'ASC'],
       ],
     })) ?? undefined;
+
+  if (regulationChange) {
+    regulationChange.text = dePrettify(regulationChange.text);
+  }
   return regulationChange;
 }
 
@@ -236,14 +247,14 @@ const augmentRegulation = async (
     name,
     title: regulationChange ? regulationChange.title : regulation.title,
     text,
+    appendixes,
+    comments,
     signatureDate,
     publishedDate,
     effectiveDate,
     ministry,
     repealed: !!repealedDate || repealedBeacuseReasons,
     repealedDate,
-    appendixes,
-    comments,
     lastAmendDate,
     lawChapters,
     history,
