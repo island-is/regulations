@@ -190,20 +190,40 @@ export async function getAllRegulations(opts?: {
     replacements.nameFilter = nameFilter;
   }
 
+  const selectChangeColumn = (col: string) => `
+    COALESCE(
+      (
+        SELECT ch.${col}
+        FROM RegulationChange AS ch
+        JOIN Regulation AS changing_r ON changing_r.id = ch.changingId
+        WHERE
+          ch.regulationId = r.id
+          AND ch.date <= now()
+          AND ch.${col} != ''
+        ORDER BY
+          ch.date DESC,
+          changing_r.publishedDate DESC,
+          ch.id DESC
+        LIMIT 1
+      ),
+      r.${col}
+    )
+    `;
+
   const sql = `
     select
       r.id,
       r.name,
-      COALESCE((select title from RegulationChange where regulationId = r.id and date <= now() and title != '' order by date desc limit 1), r.title) as title,
+      ${selectChangeColumn('title')} as title,
       ${
         // Inefficient repetition, but works. TODO: Make this more fancy with Blackjack and CTEs??
         full || extra
-          ? 'COALESCE((select text from RegulationChange where regulationId = r.id and date <= now() and text != "" order by date desc limit 1), r.text) as text,'
-          : ''
+          ? `COALESCE(${selectChangeColumn('text')}), r.text) as text,`
+          : ``
       }
       t.done as migrated,
       r.type,
-      COALESCE((select ministryId from RegulationChange where regulationId = r.id and date <= now() order by date desc limit 1), r.ministryId) as ministryId,
+      r.ministryId,
       r.publishedDate,
       r.effectiveDate,
       c.date as repealedDate,

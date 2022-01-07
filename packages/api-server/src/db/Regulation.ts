@@ -3,7 +3,7 @@ import { execute as htmldiff } from '@island.is/regulations-tools/htmldiff-js';
 import { extractAppendixesAndComments } from '@island.is/regulations-tools/textHelpers';
 import { nameToSlug, toISODate } from '@island.is/regulations-tools/utils';
 import { readFileSync } from 'fs';
-import { FindAttributeOptions, Op, QueryTypes } from 'sequelize';
+import { FindAttributeOptions, QueryTypes } from 'sequelize';
 
 import { FILE_SERVER } from '../constants';
 import {
@@ -154,35 +154,28 @@ async function getRegulationEffects(regulationId: number) {
 async function getLatestRegulationChange(
   regulationId: number,
   beforeDate: Date = new Date(),
-  attributes?: FindAttributeOptions,
+  cols: Array<keyof DB_RegulationChange | '*'> = ['*'],
 ) {
-  const regulationChange =
-    (await DB_RegulationChange.findOne({
-      attributes,
-      where: {
-        regulationId,
-        text: { [Op.ne]: '' }, // Simply ignore unfinished (still empty) impact records
-        date: { [Op.lte]: beforeDate },
-      },
-      order: [
-        ['date', 'DESC'],
-        ['id', 'ASC'],
-      ],
-    })) ?? undefined;
-  return regulationChange;
+  const changeQuery = `
+    SELECT ch.${cols.join(', ch.')}
+    FROM RegulationChange AS ch
+    JOIN Regulation AS r ON r.id = ch.changingId
+    WHERE
+      ch.regulationId = :regulationId
+      AND ch.text != ''
+      AND ch.date <= :beforeDate
+    ORDER BY
+      ch.date DESC,
+      r.publishedDate DESC,
+      id DESC
+    LIMIT 1
+  ;`;
+  const regulationChange = await db.query<DB_RegulationChange>(changeQuery, {
+    replacements: { regulationId, beforeDate },
+    type: QueryTypes.SELECT,
+  });
+  return regulationChange[0];
 }
-
-// async function getRegulationChanges(regulationId: number) {
-//   const connection = getConnection();
-//   const regulationChanges = await connection
-//     .getRepository(DB_RegulationChange)
-//     .createQueryBuilder('changes')
-//     .where('regulationId = :regulationId', { regulationId })
-//     .orderBy('date', 'DESC')
-//     .addOrderBy('id', 'ASC')
-//     .getMany();
-//   return regulationChanges;
-// }
 
 // ---------------------------------------------------------------------------
 
@@ -442,6 +435,10 @@ export async function getRegulation(
     } else {
       let eDate = earlierDate;
       if (!eDate) {
+        // NOTE: If there are more than once change on a given date, the latest one is always selected
+        // and then compared against the latest change affecting the day before.
+        // Viewing ultra fine-grained diffs within a single day, is not supported as of yet.
+        // … and may never be supported..?
         eDate = new Date(regulationChange.date);
         eDate.setDate(eDate.getDate() - 1);
       }
