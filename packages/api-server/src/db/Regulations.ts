@@ -273,10 +273,10 @@ export async function getRegulationsOptionsList(
       r.name,
       ${selectChangeColumn('title')} as title,
       t.done as migrated,
-      c.date as repealedDate,
+      ch.date as repealedDate,
       r.repealedBeacuseReasons
     from Regulation as r
-    left join RegulationCancel as c on c.regulationId = r.id
+    left join RegulationCancel as ch on ch.regulationId = r.id
     left join Task as t on t.regulationId = r.id
     where r.name IN (:nameFilter)
     order by r.publishedDate DESC, r.id DESC
