@@ -279,7 +279,6 @@ export async function getRegulationsOptionsList(
     left join RegulationCancel as ch on ch.regulationId = r.id
     left join Task as t on t.regulationId = r.id
     where r.name IN (:nameFilter)
-    order by r.publishedDate DESC, r.id DESC
   ;`;
 
   const today = new Date();
