@@ -6,6 +6,7 @@ import {
 import {
   ensurePosInt,
   ensureRegName,
+  isNonNull,
 } from '@island.is/regulations-tools/utils';
 import { FastifyPluginCallback } from 'fastify';
 
