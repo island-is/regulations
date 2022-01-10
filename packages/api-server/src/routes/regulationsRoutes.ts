@@ -1,7 +1,6 @@
 import { DAY, SECOND } from '@hugsmidjan/qj/time';
 import {
   IntPositive,
-  RegName,
   RegulationOptionsList,
 } from '@island.is/regulations-tools/types';
 import {
@@ -180,9 +179,9 @@ export const regulationsRoutes: FastifyPluginCallback = (
 
       const names = req.query.names ? req.query.names.split(',') : [];
 
-      const regNames = names.filter((name) =>
-        ensureRegName(name),
-      ) as Array<RegName>;
+      const regNames = names
+        .map((maybeName) => ensureRegName(maybeName))
+        .filter(isNonNull);
 
       if (!regNames.length) {
         return [];

@@ -282,6 +282,8 @@ export async function getRegulationsOptionsList(
     order by r.publishedDate DESC, r.id DESC
   ;`;
 
+  const today = new Date();
+
   const regulationsOptions = await db.query<
     Pick<
       SQLRegulationsItem,
@@ -298,7 +300,10 @@ export async function getRegulationsOptionsList(
       name: opt.name,
       migrated: !!opt.migrated,
       cancelled:
-        opt.repealedDate || opt.repealedBeacuseReasons ? true : undefined,
+        (opt.repealedDate && new Date(opt.repealedDate) <= today) ||
+        !!opt.repealedBeacuseReasons
+          ? true
+          : undefined,
     };
   });
 }
