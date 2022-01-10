@@ -8,6 +8,7 @@ import {
   LawChapter,
   RegName,
   RegulationListItem,
+  RegulationOptionsList,
   RegulationYears,
   Year,
 } from '../routes/types';
@@ -163,6 +164,26 @@ export async function getNewestRegulations(opts: {
   return await augmentRegulationList(regulations, { ministry: true });
 }
 
+const selectChangeColumn = (col: string) => `
+COALESCE(
+  (
+    SELECT ch.${col}
+    FROM RegulationChange AS ch
+    JOIN Regulation AS changing_r ON changing_r.id = ch.changingId
+    WHERE
+      ch.regulationId = r.id
+      AND ch.date <= now()
+      AND ch.${col} != ''
+    ORDER BY
+      ch.date DESC,
+      changing_r.publishedDate DESC,
+      ch.id DESC
+    LIMIT 1
+  ),
+  r.${col}
+)
+`;
+
 /**
  * Returns all base regulations
  * @param {boolean} full - Include text and minitry info
@@ -189,26 +210,6 @@ export async function getAllRegulations(opts?: {
     whereConds.push(`r.name IN (:nameFilter)`);
     replacements.nameFilter = nameFilter;
   }
-
-  const selectChangeColumn = (col: string) => `
-    COALESCE(
-      (
-        SELECT ch.${col}
-        FROM RegulationChange AS ch
-        JOIN Regulation AS changing_r ON changing_r.id = ch.changingId
-        WHERE
-          ch.regulationId = r.id
-          AND ch.date <= now()
-          AND ch.${col} != ''
-        ORDER BY
-          ch.date DESC,
-          changing_r.publishedDate DESC,
-          ch.id DESC
-        LIMIT 1
-      ),
-      r.${col}
-    )
-    `;
 
   const sql = `
     select
@@ -257,5 +258,47 @@ export async function getAllRegulations(opts?: {
     text: full || extra,
     ministry: full || extra,
     lawChapters: extra,
+  });
+}
+
+/**
+ * Returns RegulationsOptionsList[] based on RegName[]
+ * @returns {RegulationsOptionsList[]}
+ */
+export async function getRegulationsOptionsList(
+  nameFilter: Array<RegName>,
+): Promise<RegulationOptionsList> {
+  const sql = `
+    select
+      r.name,
+      ${selectChangeColumn('title')} as title,
+      t.done as migrated,
+      c.date as repealedDate,
+      r.repealedBeacuseReasons
+    from Regulation as r
+    left join RegulationCancel as c on c.regulationId = r.id
+    left join Task as t on t.regulationId = r.id
+    where r.name IN (:nameFilter)
+    order by r.publishedDate DESC, r.id DESC
+  ;`;
+
+  const regulationsOptions = await db.query<
+    Pick<
+      SQLRegulationsItem,
+      'name' | 'title' | 'migrated' | 'repealedDate' | 'repealedBeacuseReasons'
+    >
+  >(sql, {
+    replacements: { nameFilter },
+    type: QueryTypes.SELECT,
+  });
+
+  return regulationsOptions.map((opt) => {
+    return {
+      title: opt.title,
+      name: opt.name,
+      migrated: !!opt.migrated,
+      cancelled:
+        opt.repealedDate || opt.repealedBeacuseReasons ? true : undefined,
+    };
   });
 }
