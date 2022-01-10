@@ -1,11 +1,20 @@
-import { IntPositive } from '@island.is/regulations-tools/types';
-import { ensurePosInt } from '@island.is/regulations-tools/utils';
+import { DAY, SECOND } from '@hugsmidjan/qj/time';
+import {
+  IntPositive,
+  RegulationOptionsList,
+} from '@island.is/regulations-tools/types';
+import {
+  ensurePosInt,
+  ensureRegName,
+  isNonNull,
+} from '@island.is/regulations-tools/utils';
 import { FastifyPluginCallback } from 'fastify';
 
 import {
   getAllRegulations,
   getNewestRegulations,
   getRegulationsCount,
+  getRegulationsOptionsList,
   PER_PAGE,
   RegulationListItemFull,
 } from '../db/Regulations';
@@ -14,6 +23,9 @@ import { cacheControl, loadData, QStr, storeData } from '../utils/misc';
 
 const NEWEST_TTL = 0.5;
 const NEWEST_REDIS_TTL = NEWEST_TTL * 60 * 60;
+
+const OPTIONSLIST_TTL = 24;
+const OPTIONSLIST_REDIS_TTL = 1 * (DAY / SECOND);
 
 export const regulationsRoutes: FastifyPluginCallback = (
   fastify,
@@ -153,6 +165,50 @@ export const regulationsRoutes: FastifyPluginCallback = (
     }
     res.send(data);
   });
+
+  /**
+   * Use-case: Fetch RegulationOption[] by list of regName[]
+   * for Ísland.is's regulation admin editor impacts registration
+   * @param {string} names - Comma separated list of RegNames to filter
+   * @returns {RegulationOptionsList}
+   */
+  fastify.get<QStr<'names'>>(
+    '/regulations/optionsList',
+    opts,
+    async (req, res) => {
+      const { redis } = fastify;
+
+      const names = req.query.names ? req.query.names.split(',') : [];
+
+      const regNames = names
+        .map((maybeName) => ensureRegName(maybeName))
+        .filter(isNonNull);
+
+      if (!regNames.length) {
+        return [];
+      }
+
+      const cacheKey = `regulationsOptionsList-${regNames.join(',')}`;
+      const cached = await get<RegulationOptionsList | null>(redis, cacheKey);
+
+      let optionsList;
+
+      if (cached) {
+        optionsList = cached;
+      } else {
+        try {
+          optionsList = await getRegulationsOptionsList(regNames);
+        } catch (e) {
+          console.error('unable to get regulations optionsList', names, e);
+          return res.status(500).send();
+        }
+        set(redis, cacheKey, optionsList, OPTIONSLIST_REDIS_TTL);
+      }
+
+      cacheControl(res, OPTIONSLIST_TTL);
+      res.send(optionsList);
+    },
+  );
 
   done();
 };

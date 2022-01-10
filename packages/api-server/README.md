@@ -59,6 +59,8 @@ START_COMMAND="npm run start-api" npm start
 - `GET /api/v1/regulations/all/extra`  
   Returns all regulations ordered by publisheddate
   - including text, law chapters and ministry for advanced search
+- `GET /api/v1/regulations/optionsList?names=1719/2021,0100/2021`  
+  Returns regulations optionsList filtered by RegNames
 
 ## Regulation
 
