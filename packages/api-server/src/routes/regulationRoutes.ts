@@ -9,7 +9,7 @@ import { FastifyRedis } from 'fastify-redis';
 import { getRegulation } from '../db/Regulation';
 import { makeDraftPdf, makePublishedPdf } from '../db/RegulationPdf';
 import { get, set } from '../utils/cache';
-import { cacheControl, Pms } from '../utils/misc';
+import { cacheControl, Pms, QStr } from '../utils/misc';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
@@ -173,11 +173,24 @@ const handleDataRequest = (
 
 // ===========================================================================
 
+type PdfResponseType = 'binary' | 'base64';
+
+function parsePdfResponseType(input: unknown): PdfResponseType | undefined {
+  if (input === 'binary') {
+    return 'binary';
+  }
+  if (input === 'base64') {
+    return 'base64';
+  }
+  return undefined;
+}
+
 const handlePdfRequest = (
   req: FastifyRequest,
   res: FastifyReply,
   opts: RegHandlerOpts<'new'>,
   body?: unknown,
+  responseType?: PdfResponseType,
 ) =>
   handleRequest(req, res, opts, async (res, opts, routePath) => {
     const job =
@@ -203,6 +216,14 @@ const handlePdfRequest = (
 
     if (!opts.current) {
       res.header('X-Robots-Tag', 'noindex');
+    }
+
+    if (responseType === 'base64') {
+      const data = pdfContents.toString('base64');
+
+      res.code(200).send({ fileName, data });
+
+      return { success: true };
     }
 
     res
@@ -431,9 +452,16 @@ export const regulationRoutes: FastifyPluginCallback = (
    * @body {Regulation} Regulation object with optional name
    * @returns pdf file
    */
-  fastify.post('/regulation/generate-pdf', opts, (req, res) => {
-    handlePdfRequest(req, res, { name: 'new' }, req.body);
-  });
+  fastify.post<QStr<'responseType'>>(
+    '/regulation/generate-pdf',
+    opts,
+    (req, res) => {
+      const responseType =
+        parsePdfResponseType(req.query.responseType) ?? 'binary';
+
+      handlePdfRequest(req, res, { name: 'new' }, req.body, responseType);
+    },
+  );
 
   done();
 };
