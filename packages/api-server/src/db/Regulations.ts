@@ -218,9 +218,7 @@ export async function getAllRegulations(opts?: {
       ${selectChangeColumn('title')} as title,
       ${
         // Inefficient repetition, but works. TODO: Make this more fancy with Blackjack and CTEs??
-        full || extra
-          ? `COALESCE(${selectChangeColumn('text')}), r.text) as text,`
-          : ``
+        full || extra ? `${selectChangeColumn('text')} as text,` : ``
       }
       t.done as migrated,
       r.type,
