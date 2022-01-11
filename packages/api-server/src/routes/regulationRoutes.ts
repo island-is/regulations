@@ -221,6 +221,7 @@ const handlePdfRequest = (
     if (responseType === 'base64') {
       res.code(200).send({
         fileName,
+        mimeType: 'application/pdf',
         data: pdfContents.toString('base64'),
       });
       return { success: true };
