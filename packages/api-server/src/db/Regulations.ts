@@ -8,7 +8,7 @@ import {
   LawChapter,
   RegName,
   RegulationListItem,
-  RegulationOptionsList,
+  RegulationOptionList,
   RegulationYears,
   Year,
 } from '../routes/types';
@@ -265,7 +265,7 @@ export async function getAllRegulations(opts?: {
  */
 export async function getRegulationsOptionsList(
   nameFilter: Array<RegName>,
-): Promise<RegulationOptionsList> {
+): Promise<RegulationOptionList> {
   const sql = `
     select
       r.name,

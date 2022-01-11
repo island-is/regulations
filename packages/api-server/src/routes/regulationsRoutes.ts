@@ -1,7 +1,7 @@
 import { DAY, SECOND } from '@hugsmidjan/qj/time';
 import {
   IntPositive,
-  RegulationOptionsList,
+  RegulationOptionList,
 } from '@island.is/regulations-tools/types';
 import {
   ensurePosInt,
@@ -170,7 +170,7 @@ export const regulationsRoutes: FastifyPluginCallback = (
    * Use-case: Fetch RegulationOption[] by list of regName[]
    * for Ísland.is's regulation admin editor impacts registration
    * @param {string} names - Comma separated list of RegNames to filter
-   * @returns {RegulationOptionsList}
+   * @returns {RegulationOptionList}
    */
   fastify.get<QStr<'names'>>(
     '/regulations/optionsList',
@@ -189,7 +189,7 @@ export const regulationsRoutes: FastifyPluginCallback = (
       }
 
       const cacheKey = `regulationsOptionsList-${regNames.join(',')}`;
-      const cached = await get<RegulationOptionsList | null>(redis, cacheKey);
+      const cached = await get<RegulationOptionList | null>(redis, cacheKey);
 
       let optionsList;
 
