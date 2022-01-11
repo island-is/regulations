@@ -219,10 +219,10 @@ const handlePdfRequest = (
     }
 
     if (responseType === 'base64') {
-      const data = pdfContents.toString('base64');
-
-      res.code(200).send({ fileName, data });
-
+      res.code(200).send({
+        fileName,
+        data: pdfContents.toString('base64'),
+      });
       return { success: true };
     }
 
@@ -235,7 +235,6 @@ const handlePdfRequest = (
       )
       .type('application/pdf')
       .send(pdfContents);
-
     return { success: true };
   });
 
