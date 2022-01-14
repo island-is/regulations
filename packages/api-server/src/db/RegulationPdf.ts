@@ -417,9 +417,9 @@ function getDraftPdfFilename(draftRegulation: InputRegulation): string {
     toISODate(new Date()),
     draftRegulation.name ? ` - ${draftRegulation.name}` : null,
     '.pdf',
-  ].filter(Boolean);
+  ].filter((n?: string | null): n is string => Boolean(n));
 
-  return (parts as Array<string>).join('');
+  return parts.join('');
 }
 
 // ===========================================================================
