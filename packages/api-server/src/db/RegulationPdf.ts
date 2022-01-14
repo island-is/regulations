@@ -390,12 +390,12 @@ type RegOpts = {
 const getPrettyPdfFilename = (
   opts: RegOpts,
   name: RegName,
-  lastÞModified: ISODateTime,
+  lastModified: ISODateTime,
 ) => {
   const { date, diff, earlierDate } = opts;
 
   const nameTxt = nameToSlug(name);
-  const dateTxt = toISODate(date ? date : lastÞModified);
+  const dateTxt = toISODate(date ? date : lastModified);
   const diffTxt = diff ? ' breytingar' : '';
   const earlierDateTxt = !earlierDate
     ? ''
@@ -411,6 +411,17 @@ const _keyPrefix = MEDIA_BUCKET_FOLDER ? MEDIA_BUCKET_FOLDER + '/' : '';
 const getPdfFileKey = (routePath: string) =>
   `${_keyPrefix}pdf/${routePath.replace(/\//g, '--')}.pdf`;
 
+function getDraftPdfFilename(draftRegulation: InputRegulation): string {
+  const parts = [
+    'Reglugerð í vinnslu ',
+    toISODate(new Date()),
+    draftRegulation.name ? ` - ${draftRegulation.name}` : null,
+    '.pdf',
+  ].filter(Boolean);
+
+  return (parts as Array<string>).join('');
+}
+
 // ===========================================================================
 
 type PDFGenResults = {
@@ -422,8 +433,7 @@ type PDFGenResults = {
 export const makeDraftPdf = async (body: unknown): Promise<PDFGenResults> => {
   const unpublishedReg = cleanUpRegulationBodyInput(body);
   if (unpublishedReg) {
-    const fileName =
-      'Reglugerð ' + toISODate(new Date()) + ' – ' + unpublishedReg.name;
+    const fileName = getDraftPdfFilename(unpublishedReg);
     const pdfContents = await makeRegulationPdf(unpublishedReg);
     return { fileName, pdfContents };
   }
