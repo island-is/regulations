@@ -330,6 +330,32 @@ const _isDateMismatch = (
   return !!isMismatch;
 };
 
+// ---------------------------------------------------------------------------
+
+/**
+ * Appendixes may be revoked by `RegulationChange`s
+ * Instead of being deleted, they're only emptied
+ * to guarantee sane diffing between arbitrary historic versions
+ * of the regulation.
+ *
+ * The rules is that appendixes can neither be deleted
+ * nor re-ordered by `RegulationChange`s
+ * They can only add new Appendixes or "revoke" (i.e. empty out)
+ * Existing appendixes.
+ *
+ * However, to make the Regulation (or RegulationDiff) nicer to
+ * consume, we filter out those empty appendixes, at the last possible momeent,
+ * after htmldiff has been run on the different versions.
+ */
+const removeEmptyAppendixes = <T extends RegulationMaybeDiff>(
+  regulation: T,
+): T => {
+  regulation.appendixes = (regulation as Regulation).appendixes.filter(
+    (a) => !a.title && !a.text,
+  );
+  return regulation;
+};
+
 // ===========================================================================
 
 // ===========================================================================
@@ -394,7 +420,7 @@ export async function getRegulation(
       if (_isDateMismatch(augmentedRegulation, opts)) {
         return { error: 'This variant/version does not exist' };
       }
-      return { regulation: augmentedRegulation };
+      return { regulation: removeEmptyAppendixes(augmentedRegulation) };
     }
 
     // NOTE: htmldiff-js has a horrible performance hockey-stick curve
@@ -500,7 +526,7 @@ export async function getRegulation(
       return { error: 'This variant/version does not exist' };
     }
 
-    return { regulation: diffedRegulation };
+    return { regulation: removeEmptyAppendixes(diffedRegulation) };
   } catch (error) {
     console.error(error);
     return { error: 'ARGH' };
