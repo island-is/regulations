@@ -153,7 +153,7 @@ title at the top of the text)
     - `id="*"`
   - Parents: `p`, `li`, `td`, `th` (nearest block level ancestors)
 
-## Signature block paragraphs
+## Signature block paragraphs (optional)
 
 - **`<p class="Dags">`** (Signature time and place)
   - Content: text, inline-elements
