@@ -74,7 +74,9 @@ export const fileUploadRoutes: FastifyPluginCallback = (
       preHandler: fileUploader,
     },
     (request, reply) => {
-      const fileObj = (request as any).file as MulterS3StorageFile | undefined;
+      const fileObj = (
+        request as unknown as { file: MulterS3StorageFile | undefined }
+      ).file;
 
       // NOTE: Not sure if this is needed. May be handled inside `fileUploader` – Már @2021-11-03
       if (!fileObj) {
@@ -84,8 +86,10 @@ export const fileUploadRoutes: FastifyPluginCallback = (
 
       // !!MEDIA_BUCKET_FOLDER && console.info(fileObj);
 
-      // @ts-expect-error  (multer-s3-transform has no .d.ts files)
-      const uploadInfo = fileObj.transforms ? fileObj.transforms[0] : fileObj;
+      const uploadInfo =
+        // @ts-expect-error  (multer-s3-transform has no .d.ts files)
+        (fileObj.transforms as Array<MulterS3StorageFile> | undefined)?.[0] ||
+        fileObj;
 
       reply.send({ location: FILE_SERVER + '/' + uploadInfo.key });
     },

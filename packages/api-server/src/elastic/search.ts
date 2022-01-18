@@ -6,7 +6,14 @@ import esb from 'elastic-builder';
 import xss from 'xss';
 
 import { PER_PAGE } from '../db/Regulations';
-import { RegulationListItem, RegulationSearchResults } from '../routes/types';
+import {
+  ISODate,
+  Ministry,
+  PlainText,
+  RegName,
+  RegulationListItem,
+  RegulationSearchResults,
+} from '../routes/types';
 // import { RegulationsIndexBody } from './populate';
 
 export type SearchQueryParams = {
@@ -147,17 +154,32 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
       console.error(value);
       // console.error((err as any).body.error.failed_shards);
     }
-    const hits = elasticResponse.body?.hits || {};
+
+    type MockElasticHits = {
+      hits?: Array<{
+        _source: {
+          name: RegName;
+          title: PlainText;
+          publishedDate: ISODate;
+          ministry: Ministry;
+        };
+      }>;
+      total?: { value?: number };
+    };
+
+    const hits =
+      (elasticResponse.body as unknown as { hits: MockElasticHits } | undefined)
+        ?.hits || {};
 
     searchHits =
-      hits.hits?.map((hit: any) => {
+      hits.hits?.map((hit) => {
         return {
           name: hit._source.name,
           title: hit._source.title,
           publishedDate: hit._source.publishedDate,
           ministry: hit._source.ministry,
         };
-      }) ?? [];
+      }) || [];
 
     totalItems = hits.total?.value ?? 0;
   }
