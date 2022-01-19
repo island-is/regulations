@@ -436,8 +436,7 @@ const _makePublishedPdf = async (
   routePath: string,
   opts: RegOpts,
 ): Promise<PDFGenResults> => {
-  const { name, diff, earlierDate } = opts;
-  const date = opts.date === 'current' ? new Date() : opts.date;
+  const { date, name, diff, earlierDate } = opts;
 
   const regName = slugToName(name);
   const fileKey = getPdfFileKey(routePath);
@@ -495,6 +494,7 @@ const pdfJobs: Record<
 
 export const makePublishedPdf = (routePath: string, opts: RegOpts) => {
   let job = pdfJobs[routePath];
+
   if (!job) {
     job = _makePublishedPdf(routePath, opts);
     pdfJobs[routePath] = job;

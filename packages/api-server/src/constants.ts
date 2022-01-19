@@ -17,6 +17,6 @@ export const OLD_SERVER = 'https://www.reglugerd.is';
 
 export { FILE_SERVER } from '@island.is/regulations-tools/constants';
 
-export const API_URL = API_SERVER + '/regulation';
+export const API_URL = API_SERVER + '/api/v1/regulation';
 
 export const PDF_TEMPLATE_UPDATED = '2021-11-09T13:05';
