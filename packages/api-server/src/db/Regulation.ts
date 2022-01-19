@@ -167,7 +167,7 @@ async function getLatestRegulationChange(
     ORDER BY
       ch.date DESC,
       r.publishedDate DESC,
-      id DESC
+      ch.id DESC
     LIMIT 1
   ;`;
   const regulationChange = await db.query<DB_RegulationChange>(changeQuery, {
