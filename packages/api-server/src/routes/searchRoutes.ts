@@ -1,13 +1,12 @@
 import { FastifyPluginCallback } from 'fastify';
 
-import { QStr } from '../utils/misc';
-
 import {
   recreateElastic,
   repopulateElastic,
   updateElasticItem,
-} from './populate';
-import { searchElastic, SearchQueryParams } from './search';
+} from '../elastic/populate';
+import { searchElastic, SearchQueryParams } from '../elastic/search';
+import { QStr } from '../utils/misc';
 
 // ---------------------------------------------------------------------------
 

@@ -6,13 +6,16 @@ import fastifyMultipart from 'fastify-multipart';
 import fastifyRateLimiter from 'fastify-rate-limit';
 import fastifyRedis, { FastifyRedisPluginOptions } from 'fastify-redis';
 
-import { elasticRebuildRoutes, elasticSearchRoutes } from './elastic/routes';
 import { fileUploadRoutes } from './routes/fileUploadRoutes';
 import { lawChapterRoutes } from './routes/lawChapterRoutes';
 import { ministryRoutes } from './routes/ministryRoutes';
 import { redirectsRoutes } from './routes/redirectsRoutes';
 import { regulationRoutes } from './routes/regulationRoutes';
 import { regulationsRoutes } from './routes/regulationsRoutes';
+import {
+  elasticRebuildRoutes,
+  elasticSearchRoutes,
+} from './routes/searchRoutes';
 import { yearsRoutes } from './routes/yearsRoutes';
 import { connectSequelize } from './utils/sequelize';
 import { serveRobotsTxt } from './utils/server-utils';
