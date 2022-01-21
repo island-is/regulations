@@ -19,7 +19,8 @@
     "script": "node -r dotenv/config",
     "//start": "# Þetta er gert í flýti, mætti gera betur svo hægt sé að keyra tvö heroku apps frá sama codebase",
     "start-api": "NODE_ENV=production node -r dotenv/config dist/server.js",
-    "start-proxy": "NODE_ENV=production node -r dotenv/config dist/proxyServer.js"
+    "start-proxy": "NODE_ENV=production node -r dotenv/config dist/proxyServer.js",
+    "test": "yarn jest"
   },
   "engines": {
     "node": "16"
@@ -63,6 +64,8 @@
   },
   "devDependencies": {
     "concurrently": "^6.0.1",
-    "nodemon": "^2.0.15"
+    "jest": "^26.6.3",
+    "nodemon": "^2.0.15",
+    "ts-jest": "^26.4.4"
   }
 }

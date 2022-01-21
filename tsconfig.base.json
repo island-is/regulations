@@ -16,10 +16,7 @@
 
     "isolatedModules": true,
 
-    // "rootDir": ".",
-    // "baseUrl": ".",
     "paths": {
-      // "@island.is/regulations-tools": ["./packages/tools/src"],
       "@island.is/regulations-tools/*": ["./packages/tools/src/*"]
     }
   },
