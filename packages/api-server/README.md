@@ -83,6 +83,9 @@ START_COMMAND="npm run start-api" npm start
   Returns a version of a regulation as it was on a specific `date`, showing the
   total chances since `earlierDate`
 
+You can add `/pdf` to the end of all of the above regulation endpoints, to
+download a PDF version.
+
 ## Search
 
 - `GET /api/v1/search?q=query&year=YYYY&yearTo=YYYY&rn=ministrySlug&ch=lawChapterSlug&iA=bool&iR=bool`  
@@ -107,8 +110,60 @@ START_COMMAND="npm run start-api" npm start
 - `date` – Valid ISODate _(Example: `2020-01-01`)_
 - `earlierDate` – Valid ISODate _(Example: `2013-10-16`)_
 
+---
+
 ## File/image upoads
 
-- `POST /api/v1/file-upload`  
+- `POST /api/v1/file-upload?scope={regulationIdentifier}`  
   Accepts multipart form uploads from the regulations rich-text editor and saves
-  them in a S3 bucket and returns the resulting URL
+  them in an S3 bucket and returns the resulting URL
+
+  - Requires `FILE_UPLOAD_KEY_DRAFT` or `FILE_UPLOAD_KEY_PUBLISH` to be sent via
+    a `X-APIKey` header to A) accept/deny upload requests (security) and B) to
+    select the appropriate folder to upload the files into. (See
+    `assertUploadType(req)`)
+
+  - `env.FILE_UPLOAD_KEY_DRAFT`  
+    is the API key used by the Regulations-admin system on Ísland.is to upload
+    images and documents for regulation drafts, while they're being authored.  
+    (While drafting a new regulation the files are uploaded to an
+    `/admin-drafts/:scope/` folder.)
+
+  - `env.FILE_UPLOAD_KEY_PUBLISH`  
+    is the API key used by Sæmundur's migration/cleanup admin system, to upload
+    images for already published published regulations, **and** the api key used
+    by the Regulations-admin system uses to publish images/documents when a
+    drafted regulation is finally being published.
+
+  - `env.MEDIA_BUCKET_FOLDER`  
+    in "dev-mode" this should always be **non-empty** (e.g. `dev/valur`) but
+    **must be** empty in production. This variable is used to make sure all
+    images/documents we upload during testing/development end up in a separate
+    folder that we can purge with a single AWS CLI command, like so:
+
+        aws s3 --profile regulations rm --recursive  s3://island-is-reglugerd-media/dev
+
+- `POST /api/v1/file-upload-urls`  
+  This endpoint is used when a new regulation is published. All resources that
+  the new regulation points/links to are automatically uploaded to a stable
+  storage in an S3 bucket.
+
+  - Requires `FILE_UPLOAD_KEY_PUBLISH` to be sent via a `X-APIKey` header
+
+  - It accepts JSON payload in the form of
+    `{ urls: Array<URLString>, regName: RegName }`
+
+  - The endpoint then returns a JSON response of type
+    `Array<{ oldUrl: URLString, newUrl: URLString }>`.  
+    All the `newUrl`s point to `https://files.reglugerd.is/` (or
+    `process.env.DEV_FILE_SERVER`)
+
+  - Incoming URLs that start with `/` are assumed to be relative to
+    `https://www.reglugerd.is` (provides sane back-compat with older content)
+
+  - Incoming URLs starting with
+    `https://files.reglugerd.is/admin-drafts/:draftscope/:path` are moved to
+    `https://files.reglugerd.is/files/:regName/:path`
+
+  - Other oncoming URLs starting with `https://files.reglugerd.is/` are left
+    unchanged

@@ -1,5 +1,5 @@
+import { RegName, URLString } from '@island.is/regulations-tools/types';
 import S3 from 'aws-sdk/clients/s3';
-import { FastifyRequest } from 'fastify';
 import file_type from 'file-type';
 import fetch from 'node-fetch';
 import { PassThrough, Readable } from 'stream';
@@ -7,15 +7,15 @@ import { PassThrough, Readable } from 'stream';
 import {
   AWS_BUCKET_NAME,
   AWS_REGION_NAME,
+  DRAFTS_FOLDER,
   FILE_SERVER,
   MEDIA_BUCKET_FOLDER,
   OLD_SERVER,
 } from '../constants';
-import {
-  assertUploadType,
-  DRAFTS_FOLDER,
-  QUERY_REPLACEMENT,
-} from '../routes/fileUploadRoutes';
+
+const QUERY_REPLACEMENT = '__q__';
+
+// ---------------------------------------------------------------------------
 
 // Stupid cloning for stupid streams
 const stupidStreamClone = (stream: Readable) =>
@@ -37,59 +37,50 @@ const stupidStreamClone = (stream: Readable) =>
       });
   });
 
-// FIXME: Add tests!
-const makeFileKey = (url: string, req: FastifyRequest) => {
+// ---------------------------------------------------------------------------
+
+const draftsFolderRe = new RegExp('^/' + DRAFTS_FOLDER + '/(?:[^/]+/)?', 'i');
+
+const _makeFileKey = (
+  urlStr: string,
+  regName: RegName,
+  /** Skip logging errors */
+  silent?: boolean,
+): string | undefined => {
   try {
-    const fullUrl = url.replace(`${DRAFTS_FOLDER}/`, '');
-    const { hostname, pathname } = new URL(
-      fullUrl.replace(/\?/g, QUERY_REPLACEMENT),
+    const { host, pathname } = new URL(
+      // squash queryString into the URL's path
+      urlStr.replace(/\?/g, QUERY_REPLACEMENT),
     );
-
-    const pathPrefix =
-      hostname === 'www.stjornartidindi.is'
-        ? 'stjornartidindi/'
-        : FILE_SERVER.endsWith('//' + hostname) ||
-          OLD_SERVER.endsWith('//' + hostname)
-        ? ''
-        : `ext/${hostname}/`;
-
+    const isOnFileServer = FILE_SERVER.endsWith('//' + host);
+    if (isOnFileServer && !draftsFolderRe.test(pathname)) {
+      // file is aleady *published* on the file-server
+      return undefined;
+    }
+    const path = isOnFileServer
+      ? pathname.replace(draftsFolderRe, '')
+      : host + '/' + pathname;
     const devFolder = MEDIA_BUCKET_FOLDER || '';
-    const rootFolder =
-      assertUploadType(req) === 'draft' && !fullUrl.startsWith(FILE_SERVER)
-        ? DRAFTS_FOLDER
-        : '';
 
-    const fileKey = `/${devFolder}/${rootFolder}/${pathPrefix}/${pathname}`
+    const fileKey = (devFolder + '/files/' + regName + '/' + path)
       // remove double slashes
       .replace(/\/\/+/g, '/')
+      // and leading slash
       .replace(/^\//, '');
 
     return fileKey;
   } catch (error) {
-    console.error({ error });
+    !silent && console.error({ error });
     return undefined;
   }
 };
 
-function ensureObject(cand: unknown): Record<string, unknown> {
-  if (cand && typeof cand === 'object' && !Array.isArray(cand)) {
-    return cand as Record<string, unknown>;
-  }
-  return {};
-}
-function ensureStringArray(cand: unknown): Array<string> {
-  if (Array.isArray(cand)) {
-    return cand.filter(
-      (item): item is string => !!item && typeof item === 'string',
-    );
-  }
-  return [];
-}
+// ---------------------------------------------------------------------------
 
 type FileUrlMapping = {
   oldUrl: string;
   oldUrlFull: string;
-  newUrl: string;
+  newUrl: URLString;
   fileKey: string;
 };
 
@@ -106,19 +97,21 @@ const dedupeUrls = (urls: Array<FileUrlMapping>) => {
   return newArray;
 };
 
+// ---------------------------------------------------------------------------
+
 // FIXME: Add tests!
-export const fileUrlsMapper = (req: FastifyRequest) => {
+// Export for testing
+export const _fileUrlsMapper = (
+  links: ReadonlyArray<string>,
+  regName: RegName,
+  silent?: boolean,
+) => {
   const fileUrls: Array<FileUrlMapping> = [];
-  const bdy = ensureObject(req.body);
-  const links = ensureStringArray(bdy.urls);
 
   links.forEach((oldUrl) => {
-    let oldUrlFull = oldUrl;
-    if (/^\//.test(oldUrlFull)) {
-      oldUrlFull = OLD_SERVER + oldUrlFull;
-    }
-    const fileKey = makeFileKey(oldUrl, req);
-    const newUrl = FILE_SERVER + '/' + fileKey;
+    const oldUrlFull = /^\//.test(oldUrl) ? OLD_SERVER + oldUrl : oldUrl;
+    const fileKey = _makeFileKey(oldUrlFull, regName, silent);
+    const newUrl = (FILE_SERVER + '/' + fileKey) as URLString;
 
     if (fileKey && oldUrl !== newUrl) {
       fileUrls.push({
@@ -133,7 +126,9 @@ export const fileUrlsMapper = (req: FastifyRequest) => {
   return dedupeUrls(fileUrls);
 };
 
-export const uploadFile = async (fileInfo: FileUrlMapping) => {
+// ---------------------------------------------------------------------------
+
+const uploadFile = async (fileInfo: FileUrlMapping) => {
   const { fileKey, oldUrlFull } = fileInfo;
   const doLog = !!MEDIA_BUCKET_FOLDER || process.env.NODE_ENV !== 'production';
 
@@ -174,4 +169,21 @@ export const uploadFile = async (fileInfo: FileUrlMapping) => {
     const message = error instanceof Error ? error.message : error;
     console.error('⚠️ ', message);
   }
+};
+
+// ===========================================================================
+
+export const moveUrlsToFileServer = (
+  links: ReadonlyArray<string>,
+  regName: RegName,
+) => {
+  const fileInfoList = _fileUrlsMapper(links, regName);
+
+  // fire-and-forget uploading
+  fileInfoList.forEach((file) => uploadFile(file));
+
+  return fileInfoList.map(({ oldUrl, newUrl }) => ({
+    oldUrl,
+    newUrl,
+  }));
 };

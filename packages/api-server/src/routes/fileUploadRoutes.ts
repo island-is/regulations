@@ -1,43 +1,16 @@
-import { FastifyPluginCallback, FastifyRequest } from 'fastify';
+import { ensureRegName } from '@island.is/regulations-tools/utils';
+import { FastifyPluginCallback } from 'fastify';
 
 import { FILE_SERVER } from '../constants';
 import { fileUploader, MulterS3StorageFile } from '../utils/file-upload';
-import { fileUrlsMapper, uploadFile } from '../utils/file-upload-urls';
-import { QStr } from '../utils/misc';
-
-export const DRAFTS_FOLDER = 'admin-drafts';
-export const EMPTY_KEY = '_';
-export const QUERY_REPLACEMENT = '__q__';
-
-const {
-  FILE_UPLOAD_KEY_DRAFT = EMPTY_KEY,
-  FILE_UPLOAD_KEY_PUBLISH = EMPTY_KEY,
-} = process.env;
-
-type UploadType = 'draft' | 'publish';
-
-const apiKeyUsers: Record<string, UploadType | undefined> = {
-  [FILE_UPLOAD_KEY_DRAFT]: 'draft',
-  [FILE_UPLOAD_KEY_PUBLISH]: 'publish',
-};
-delete apiKeyUsers[EMPTY_KEY]; // Missing env keys must not open a security hole.
-
-/** Asserts that FastifyRequest.headers contain an allowed X-APIKey header value
- * and returns the relevant UploadType string
- *
- * Throws if valid API key is not provided
- */
-export const assertUploadType = (
-  req: Pick<FastifyRequest, 'headers'>,
-): UploadType => {
-  const apiKeyHeader = req.headers['X-APIKey'] || req.headers['x-apikey'];
-  const uploadType = apiKeyUsers[String(apiKeyHeader)];
-
-  if (!uploadType) {
-    throw new Error('Authentication needed');
-  }
-  return uploadType;
-};
+import { moveUrlsToFileServer } from '../utils/file-upload-urls';
+import {
+  ensureFileScopeToken,
+  ensureObject,
+  ensureStringArray,
+  ensureUploadTypeHeader,
+  QStr,
+} from '../utils/misc';
 
 // ---------------------------------------------------------------------------
 
@@ -58,13 +31,23 @@ export const fileUploadRoutes: FastifyPluginCallback = (
    * @returns {{ location: string }}}
    */
 
-  fastify.post<QStr<'folder'>>(
+  fastify.post<QStr>(
     '/file-upload',
     {
       ...opts,
       onRequest: (request, reply, done) => {
         try {
-          assertUploadType(request);
+          const uploadType = ensureUploadTypeHeader(request);
+          if (!uploadType) {
+            throw new Error('Authentication needed');
+          }
+          const scopeParam = request.query.scope || request.query.scope;
+          if (uploadType === 'publish' && !ensureRegName(scopeParam)) {
+            throw new Error('Scope must be of type RegName');
+          }
+          if (uploadType === 'draft' && !ensureFileScopeToken(scopeParam)) {
+            throw new Error('Invalid scope token');
+          }
           done();
         } catch (error) {
           reply.code(403);
@@ -98,7 +81,7 @@ export const fileUploadRoutes: FastifyPluginCallback = (
   /**
    * Uploads files from urls into S3 bucket and returns mappings for new urls.
    *
-   * Accepts post body containing Array<string>
+   * Accepts post body of type `{ urls: Array<string>, regName: RegName }`
    *
    * Requires a valid `X-APIKey: [secretKey]` HTTP header
    *
@@ -111,7 +94,9 @@ export const fileUploadRoutes: FastifyPluginCallback = (
       ...opts,
       onRequest: (request, reply, done) => {
         try {
-          assertUploadType(request);
+          if (ensureUploadTypeHeader(request) !== 'publish') {
+            throw new Error('Authentication needed');
+          }
           done();
         } catch (error) {
           reply.code(403);
@@ -120,16 +105,27 @@ export const fileUploadRoutes: FastifyPluginCallback = (
       },
     },
     (request, reply) => {
-      const fileInfoList = fileUrlsMapper(request);
+      const _body = ensureObject(request.body);
 
-      reply.send(
-        fileInfoList.map(({ oldUrl, newUrl }) => ({
-          oldUrl,
-          newUrl,
-        })),
-      );
+      const links = ensureStringArray(_body.urls);
+      const regName = ensureRegName(_body.regName);
+      const uploadType = ensureUploadTypeHeader(request);
 
-      fileInfoList.forEach((file) => uploadFile(file));
+      if (!regName) {
+        reply.code(400).send({
+          error: 'Invalid/missing scope token',
+        });
+        return;
+      }
+      if (!uploadType) {
+        // Should never happen. Should be cought in `onRequest` above
+        reply.code(500);
+        return;
+      }
+
+      const urlMap = moveUrlsToFileServer(links, regName);
+
+      reply.send(urlMap);
     },
   );
 

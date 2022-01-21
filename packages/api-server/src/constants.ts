@@ -15,8 +15,11 @@ export { AWS_BUCKET_NAME, AWS_REGION_NAME, MEDIA_BUCKET_FOLDER };
 
 export const OLD_SERVER = 'https://www.reglugerd.is';
 
-export { FILE_SERVER } from '@island.is/regulations-tools/constants';
-
 export const API_URL = API_SERVER + '/api/v1/regulation';
 
 export const PDF_TEMPLATE_UPDATED = '2021-11-09T13:05';
+
+export { FILE_SERVER } from '@island.is/regulations-tools/constants';
+
+/** prefix/root-folder for uploading files/documents for draft regulations */
+export const DRAFTS_FOLDER = 'admin-drafts';

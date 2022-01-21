@@ -9,9 +9,11 @@ import { Readable } from 'stream';
 import {
   AWS_BUCKET_NAME,
   AWS_REGION_NAME,
+  DRAFTS_FOLDER,
   MEDIA_BUCKET_FOLDER,
 } from '../constants';
-import { assertUploadType, DRAFTS_FOLDER } from '../routes/fileUploadRoutes';
+
+import { ensureFileScopeToken, ensureUploadTypeHeader } from './misc';
 
 // `multer-s3-transform` doesn't have TypeScript definitions, so we just make do with this
 // copied over from https://www.npmjs.com/package/multer-s3-transform#file-information
@@ -57,14 +59,13 @@ const getSingleQuery = (req: ExpressRequest, param: string): string => {
   return value || '';
 };
 
-const dotPathRe = /\.+(?:\/|$)/g;
-
 const getKey = (req: ExpressRequest, _file: MulterFile) => {
   const file = _file as MulterFileWithHash;
 
-  const folder = getSingleQuery(req, 'folder').replace(dotPathRe, '/');
+  const folder = ensureFileScopeToken(getSingleQuery(req, 'folder'));
 
-  const rootFolder = assertUploadType(req) === 'draft' ? DRAFTS_FOLDER : '';
+  const rootFolder =
+    ensureUploadTypeHeader(req) === 'draft' ? DRAFTS_FOLDER : '';
   const devFolder = MEDIA_BUCKET_FOLDER || '';
   const originalName = file.originalname.split('/').pop() as string;
   let fileNamePart = originalName.replace(/\.[^.]+$/, '');
