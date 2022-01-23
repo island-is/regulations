@@ -67,7 +67,11 @@ const getKey = (req: ExpressRequest, _file: MulterFile) => {
   const rootFolder =
     ensureUploadTypeHeader(req) === 'draft' ? DRAFTS_FOLDER : '';
   const devFolder = MEDIA_BUCKET_FOLDER || '';
-  const originalName = file.originalname.split('/').pop() as string;
+  const originalName = file.originalname
+    .split('/')
+    .pop()!
+    // normalized names of pasted blobs
+    .replace(/^blobid\d+.png$/, 'pasted--image.png');
   let fileNamePart = originalName.replace(/\.[^.]+$/, '');
   const fileExtension = originalName.slice(fileNamePart.length).toLowerCase();
   if (/^pasted--image/.test(fileNamePart)) {
