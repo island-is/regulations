@@ -76,7 +76,7 @@ const getStatusText = (regulation: RegulationMaybeDiff): string => {
   } = regulation;
   const today = toISODate(new Date());
   const printoutDateStr =
-    ' <small class="printoutdate">(prentað ' + fmt(today) + ')</small>';
+    ' <small class="printoutdate">(Dags. skjals ' + fmt(today) + ')</small>';
 
   if (showingDiff) {
     const { from: dateFrom, to: dateTo } = showingDiff;
@@ -104,7 +104,7 @@ const getStatusText = (regulation: RegulationMaybeDiff): string => {
       (isFuture ? 'væntanlegar' : 'gerðar') +
       (affectingRegulations.length === 1
         ? ` þann ${fmt(dateTo)}`
-        : ` á tímabilinu ${fmt(dateFrom)} – ${fmt(dateTo)}`) +
+        : ` á tímabilinu ${fmt(dateFrom)} til ${fmt(dateTo)}`) +
       `\n<small class="affecting">af rg.nr. ${affectingNames}</small>` +
       ' ' +
       printoutDateStr +
@@ -113,6 +113,7 @@ const getStatusText = (regulation: RegulationMaybeDiff): string => {
   }
 
   if (!timelineDate || timelineDate === (lastAmendDate || publishedDate)) {
+    // Nýjasta gildandi útgáfa
     const fmtLastModified = fmt(lastAmendDate || publishedDate);
 
     if (repealed) {
@@ -124,6 +125,7 @@ const getStatusText = (regulation: RegulationMaybeDiff): string => {
     return `Útgáfa í gildi frá ${fmtLastModified}` + printoutDateStr;
   }
 
+  // non-current version
   const nextTimelineDate = (() => {
     const idx = [{ date: publishedDate }]
       .concat(history)
@@ -134,10 +136,11 @@ const getStatusText = (regulation: RegulationMaybeDiff): string => {
   const fmtDateFrom = fmt(timelineDate);
   const fmtDateTo = fmt(nextTimelineDate || today);
 
+  // framtíðar útgáfur
   if (today < timelineDate) {
     if (nextTimelineDate) {
       return (
-        `Væntanleg útgáfa sem á að gilda frá ${fmtDateFrom} – ${fmtDateTo}` +
+        `Væntanleg útgáfa sem á að gilda frá ${fmtDateFrom} til ${fmtDateTo}` +
         printoutDateStr
       );
     }
@@ -146,7 +149,9 @@ const getStatusText = (regulation: RegulationMaybeDiff): string => {
     );
   }
 
-  return `Útgáfa sem gilti á tímabilinu ${fmtDateFrom} – ${fmtDateTo}`;
+  // NOTE: við gerum engan sérstakan greinarmun á upprunalegri
+  // útgáfu og öðrum eldri útgáfum
+  return `Útgáfa sem gilti á tímabilinu ${fmtDateFrom} til ${fmtDateTo}`;
 };
 
 // ---------------------------------------------------------------------------
