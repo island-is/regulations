@@ -270,6 +270,7 @@ export async function getRegulationsOptionsList(
     select
       r.name,
       ${selectChangeColumn('title')} as title,
+      r.type,
       t.done as migrated,
       ch.date as repealedDate,
       r.repealedBeacuseReasons
@@ -284,7 +285,12 @@ export async function getRegulationsOptionsList(
   const regulationsOptions = await db.query<
     Pick<
       SQLRegulationsItem,
-      'name' | 'title' | 'migrated' | 'repealedDate' | 'repealedBeacuseReasons'
+      | 'name'
+      | 'title'
+      | 'type'
+      | 'migrated'
+      | 'repealedDate'
+      | 'repealedBeacuseReasons'
     >
   >(sql, {
     replacements: { nameFilter },
@@ -295,6 +301,7 @@ export async function getRegulationsOptionsList(
     return {
       title: opt.title,
       name: opt.name,
+      type: opt.type,
       migrated: !!opt.migrated,
       cancelled:
         (opt.repealedDate && new Date(opt.repealedDate) <= today) ||
