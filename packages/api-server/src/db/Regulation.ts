@@ -356,7 +356,7 @@ const removeEmptyAppendixes = <T extends RegulationMaybeDiff>(
   regulation: T,
 ): T => {
   regulation.appendixes = (regulation as Regulation).appendixes.filter(
-    (a) => !a.title && !a.text,
+    (a) => a.title || a.text,
   );
   return regulation;
 };
