@@ -275,19 +275,20 @@ const makeRegulationPdf = (
               unlink(htmlFile);
               if (err) {
                 reject(err);
+              } else {
+                resolve(
+                  readFile(tmpFileName).then((file) => {
+                    unlink(tmpFileName);
+                    return file;
+                  }),
+                );
               }
-              resolve(
-                readFile(tmpFileName).then((file) => {
-                  unlink(tmpFileName);
-                  return file;
-                }),
-              );
             },
           );
         }),
     )
     .catch((err: unknown) => {
-      console.error(err);
+      console.error('Unable to create PDF', err);
       return false;
     });
 };
