@@ -307,6 +307,7 @@ type RegOpts = {
   diff?: boolean;
   date?: Date | 'current';
   earlierDate?: Date | 'original';
+  onDate?: boolean;
 };
 
 // ===========================================================================
@@ -381,7 +382,7 @@ export async function getRegulation(
     }
 > {
   try {
-    const { diff, earlierDate } = opts;
+    const { diff, earlierDate, onDate } = opts;
     const date = opts.date === 'current' ? new Date() : opts.date;
 
     const regulation = await getRegulationByName(regulationName);
@@ -419,6 +420,10 @@ export async function getRegulation(
       augmentedRegulation.timelineDate = regulationChange
         ? regulationChange.date
         : augmentedRegulation.publishedDate;
+    }
+
+    if (onDate) {
+      return { regulation: removeEmptyAppendixes(augmentedRegulation) };
     }
 
     if (!diff) {

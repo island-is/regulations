@@ -33,12 +33,14 @@ type RegHandlerOpts<N extends string = RegQueryName> = {
   date?: ISODate | 'current';
   diff?: boolean;
   earlierDate?: EarlierDate;
+  onDate?: boolean;
   current?: true;
 };
 type RefinedRegHandlerOpts<N extends string = RegQueryName> = {
   name: RegQueryName | N;
   current: boolean;
   date?: Date | 'current';
+  onDate?: boolean;
 } & (
   | {
       diff: true;
@@ -68,7 +70,7 @@ const handleRequest = async <N extends string = RegQueryName>(
     routePath: string,
   ) => Promise<{ success: boolean; error?: string }>,
 ) => {
-  const { name, date, diff, earlierDate, current = false } = opts;
+  const { name, date, diff, onDate, earlierDate, current = false } = opts;
   const dateMissing = 'date' in opts && !date;
   const validEarlierDate =
     !date ||
@@ -90,6 +92,7 @@ const handleRequest = async <N extends string = RegQueryName>(
         ? { earlierDate: earlierDateDate, diff: true }
         : { diff }),
       current,
+      onDate,
     };
 
     // NOTE: Is there a better/cleaner/more robust way to
@@ -128,7 +131,7 @@ const handleDataRequest = (
   opts: RegHandlerOpts,
 ) =>
   handleRequest(req, res, opts, async (res, opts, routePath) => {
-    const { name, date, diff, earlierDate } = opts;
+    const { name, date, onDate, diff, earlierDate } = opts;
 
     const cacheKey = routePath;
 
@@ -144,6 +147,7 @@ const handleDataRequest = (
           date,
           diff,
           earlierDate,
+          onDate,
         },
         routePath,
       );
@@ -152,6 +156,7 @@ const handleDataRequest = (
         return res.status(500).send();
       }
       result = error || regulation;
+
       if (!result) {
         // Shorter cache TTL for "NOT_FOUND" results
         set(redis, cacheKey, 'NOT_FOUND', 0.2 * REGULATION_REDIS_TTL);
@@ -334,7 +339,7 @@ export const regulationRoutes: FastifyPluginCallback = (
   });
 
   /**
-   * Returns a version of a regulation as it was on a specific date
+   * Returns a version of a regulation as it was on a specific valid timeline date
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
    * @param {string} date - ISODate (`YYYY-MM-DD`)
    * @returns {Regulation | RegulationRedirect}
@@ -349,6 +354,25 @@ export const regulationRoutes: FastifyPluginCallback = (
       });
     },
   );
+
+  /**
+   * Returns a version of a regulation as it will be on any specific date
+   * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)
+   * @param {string} date - ISODate (`YYYY-MM-DD`)
+   * @returns {Regulation | RegulationRedirect}
+   */
+  fastify.get<Pms<'name' | 'date'>>(
+    '/regulation/:name/on/:date',
+    opts,
+    (req, res) => {
+      handleDataRequest(req, res, fastify.redis, {
+        name: ensureNameSlug(req.params.name),
+        date: ensureISODate(req.params.date),
+        onDate: true,
+      });
+    },
+  );
+
   /**
    * Returns a version of a regulation as it was on a specific date in PDF format
    * @param {string} name - Name of the Regulation to fetch (`nnnn-yyyyy`)

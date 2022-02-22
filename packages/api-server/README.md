@@ -82,6 +82,8 @@ START_COMMAND="npm run start-api" npm start
 - `GET /api/v1/regulation/:name/d/:date/diff/:earilerDate`  
   Returns a version of a regulation as it was on a specific `date`, showing the
   total chances since `earlierDate`
+- `GET /api/v1/regulation/:name/on/:date`  
+  Returns a version of a regulation as it will be on any specific `date`
 
 You can add `/pdf` to the end of all of the above regulation endpoints, to
 download a PDF version.
