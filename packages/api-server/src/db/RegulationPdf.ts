@@ -275,19 +275,20 @@ const makeRegulationPdf = (
               unlink(htmlFile);
               if (err) {
                 reject(err);
+              } else {
+                resolve(
+                  readFile(tmpFileName).then((file) => {
+                    unlink(tmpFileName);
+                    return file;
+                  }),
+                );
               }
-              resolve(
-                readFile(tmpFileName).then((file) => {
-                  unlink(tmpFileName);
-                  return file;
-                }),
-              );
             },
           );
         }),
     )
     .catch((err: unknown) => {
-      console.error(err);
+      console.error('Unable to create PDF', err);
       return false;
     });
 };
@@ -395,12 +396,12 @@ type RegOpts = {
 const getPrettyPdfFilename = (
   opts: RegOpts,
   name: RegName,
-  lastÞModified: ISODateTime,
+  lastModified: ISODateTime,
 ) => {
   const { date, diff, earlierDate } = opts;
 
   const nameTxt = nameToSlug(name);
-  const dateTxt = toISODate(date ? date : lastÞModified);
+  const dateTxt = toISODate(date ? date : lastModified);
   const diffTxt = diff ? ' breytingar' : '';
   const earlierDateTxt = !earlierDate
     ? ''
@@ -416,6 +417,17 @@ const _keyPrefix = MEDIA_BUCKET_FOLDER ? MEDIA_BUCKET_FOLDER + '/' : '';
 const getPdfFileKey = (routePath: string) =>
   `${_keyPrefix}pdf/${routePath.replace(/\//g, '--')}.pdf`;
 
+function getDraftPdfFilename(draftRegulation: InputRegulation): string {
+  const parts = [
+    'Reglugerð í vinnslu ',
+    toISODate(new Date()),
+    draftRegulation.name ? ` - ${draftRegulation.name}` : null,
+    '.pdf',
+  ].filter((n?: string | null): n is string => Boolean(n));
+
+  return parts.join('');
+}
+
 // ===========================================================================
 
 type PDFGenResults = {
@@ -427,8 +439,7 @@ type PDFGenResults = {
 export const makeDraftPdf = async (body: unknown): Promise<PDFGenResults> => {
   const unpublishedReg = cleanUpRegulationBodyInput(body);
   if (unpublishedReg) {
-    const fileName =
-      'Reglugerð ' + toISODate(new Date()) + ' – ' + unpublishedReg.name;
+    const fileName = getDraftPdfFilename(unpublishedReg);
     const pdfContents = await makeRegulationPdf(unpublishedReg);
     return { fileName, pdfContents };
   }
