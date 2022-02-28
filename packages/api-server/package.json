@@ -26,6 +26,8 @@
     "node": "16"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.53.1",
+    "@aws-sdk/s3-presigned-post": "^3.53.1",
     "@elastic/elasticsearch": "^7.15.0",
     "@hugsmidjan/qj": "^4.6.1",
     "@island.is/regulations-tools": "*",

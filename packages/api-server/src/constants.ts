@@ -1,3 +1,7 @@
+import { ensurePosInt } from '@island.is/regulations-tools/utils';
+
+const AWS_PRESIGNED_POST_EXPIRES_DEFAULT = 600;
+
 const {
   AWS_BUCKET_NAME = '',
   AWS_REGION_NAME = '',
@@ -12,6 +16,11 @@ if (!AWS_BUCKET_NAME || !AWS_REGION_NAME || !API_SERVER) {
 }
 
 export { AWS_BUCKET_NAME, AWS_REGION_NAME, MEDIA_BUCKET_FOLDER };
+
+/** AWS_PRESIGNED_POST_EXPIRES parsed from env or AWS_PRESIGNED_POST_EXPIRES_DEFAULT */
+export const AWS_PRESIGNED_POST_EXPIRES =
+  ensurePosInt(process.env.AWS_PRESIGNED_POST_EXPIRES ?? '') ||
+  AWS_PRESIGNED_POST_EXPIRES_DEFAULT;
 
 export const OLD_SERVER = 'https://www.reglugerd.is';
 

@@ -3,7 +3,7 @@ import { FastifyPluginCallback } from 'fastify';
 
 import { FILE_SERVER } from '../constants';
 import { fileUploader, MulterS3StorageFile } from '../utils/file-upload';
-import { moveUrlsToFileServer } from '../utils/file-upload-urls';
+import { createPresigned, moveUrlsToFileServer } from '../utils/file-upload-urls';
 import {
   ensureFileScopeToken,
   ensureObject,
@@ -126,6 +126,34 @@ export const fileUploadRoutes: FastifyPluginCallback = (
       const urlMap = moveUrlsToFileServer(links, regName);
 
       reply.send(urlMap);
+    },
+  );
+
+  fastify.post(
+    '/file-presigned',
+    {
+      ...opts,
+      onRequest: (request, reply, done) => {
+        try {
+          console.log('ensureUploadTypeHeader(request) :>> ', ensureUploadTypeHeader(request));
+          if (ensureUploadTypeHeader(request) !== 'presigned') {
+            throw new Error('Authentication needed');
+          }
+          done();
+        } catch (error) {
+          reply.code(403);
+          done(error as Error);
+        }
+      },
+    },
+    async (request, reply) => {
+      const presigned = await createPresigned();
+
+      if (presigned) {
+        return reply.send(presigned);
+      }
+
+      return reply.status(500).send();
     },
   );
 
