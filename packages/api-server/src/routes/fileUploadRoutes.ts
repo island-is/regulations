@@ -135,7 +135,6 @@ export const fileUploadRoutes: FastifyPluginCallback = (
       ...opts,
       onRequest: (request, reply, done) => {
         try {
-          console.log('ensureUploadTypeHeader(request) :>> ', ensureUploadTypeHeader(request));
           if (ensureUploadTypeHeader(request) !== 'presigned') {
             throw new Error('Authentication needed');
           }
