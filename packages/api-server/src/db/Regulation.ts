@@ -103,18 +103,22 @@ async function getRegulationHistory(regulation: DB_Regulation) {
     replacements: { name: regulation.name },
     type: QueryTypes.RAW,
   })) as HistoryData;
-
   return (
     historyData
       // strip off the 'root' item
       .slice(1)
-      // Simply ignore unfinished (still empty) impact records
-      .filter((ch) => !ch.impactMissing)
       .map(
-        ({ name, title, reason, date }): RegulationHistoryItem => ({
+        ({
+          name,
+          title,
+          reason,
+          date,
+          impactMissing,
+        }): RegulationHistoryItem => ({
           date: toISODate(date) as ISODate,
           name,
           title,
+          status: impactMissing ? 'pending' : 'published',
           effect: reason as Exclude<typeof reason, 'root'>, // root has already been hacked off by slice above
         }),
       )
