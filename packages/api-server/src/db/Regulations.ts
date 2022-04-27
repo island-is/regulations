@@ -303,7 +303,7 @@ export async function getRegulationsOptionsList(
       name: opt.name,
       type: opt.type,
       migrated: !!opt.migrated,
-      cancelled:
+      repealed:
         (opt.repealedDate && new Date(opt.repealedDate) <= today) ||
         !!opt.repealedBeacuseReasons
           ? true
