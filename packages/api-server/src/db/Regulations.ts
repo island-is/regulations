@@ -268,6 +268,7 @@ export async function getRegulationsOptionsList(
 ): Promise<RegulationOptionList> {
   const sql = `
     select
+      r.id,
       r.name,
       ${selectChangeColumn('title')} as title,
       r.type,
@@ -285,6 +286,7 @@ export async function getRegulationsOptionsList(
   const regulationsOptions = await db.query<
     Pick<
       SQLRegulationsItem,
+      | 'id'
       | 'name'
       | 'title'
       | 'type'
@@ -297,7 +299,7 @@ export async function getRegulationsOptionsList(
     type: QueryTypes.SELECT,
   });
 
-  return regulationsOptions.map((opt) => {
+  const opts = regulationsOptions.map(async (opt) => {
     return {
       title: opt.title,
       name: opt.name,
@@ -308,6 +310,12 @@ export async function getRegulationsOptionsList(
         !!opt.repealedBeacuseReasons
           ? true
           : undefined,
+      // LawChapters used for suggesting chapters in admin
+      lawChapters: await getRegulationLawChapters(opt.id),
     };
   });
+
+  const augmentedOpts: RegulationOptionList = await Promise.all(opts);
+
+  return augmentedOpts;
 }
