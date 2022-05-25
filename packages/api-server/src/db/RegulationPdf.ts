@@ -210,6 +210,7 @@ const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
       ${text}
     </div>
 
+    ${appendixes.length ? '<div class="appendixes">' : ''}
     ${appendixes
       .map(
         ({ title, text }) => `
@@ -217,11 +218,14 @@ const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
       <h2 class="appendix__title">${
         regulation.showingDiff ? title : sanitizeTextContent(title as PlainText)
       }</h2>
-      ${text}
+      <div class="appendix__text">
+        ${text}
+      </div>
     </section>
     `,
       )
       .join('')}
+    ${appendixes.length ? '</div>' : ''}
 
     ${
       comments &&

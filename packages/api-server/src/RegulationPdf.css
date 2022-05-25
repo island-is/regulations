@@ -4,13 +4,13 @@
     --font-family--monospaced: 'Courier New', monospace;
     --font-weight--normal: 400;
     --font-weight--bold: 700;
-    --font-size: 11pt;
+    --font-size: 10.5pt;
     --font-size--small: 0.75em;
-    --font-size--name: 11pt;
-    --font-size--metainfo: 10pt;
-    --font-size--metainfoSmall: 9pt;
+    --font-size--name: 10.5pt;
+    --font-size--metainfo: 9pt;
+    --font-size--metainfoSmall: 8pt;
     --leading: 1.3;
-    --paragraph-space: 0.5em;
+    --paragraph-space: 0.1em;
     --table-border-color: #000;
     --table-border-width: 0.5pt;
     --table-border-width--thick: 1pt;
@@ -297,7 +297,7 @@
     page-break-after: avoid;
     page-break-inside: avoid;
     font-weight: var(--font-weight--bold);
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--paragraph-space);
   }
 
   h1,
@@ -372,16 +372,31 @@
 
   /* ======================================================================= */
 
-  .appendix {
+  .appendixes {
     page-break-before: always;
     page-break-after: always;
   }
 
+  .appendix {
+    margin-bottom: 1.5em;
+  }
+
   .appendix__title {
     margin-top: 0;
+    margin-bottom: var(--paragraph-space);
     font-size: 1em;
-    margin-bottom: 1rem;
     text-transform: uppercase;
+    text-align: center;
+  }
+
+  .appendix__text > p:not([align]) {
+    text-indent: 2em;
+    text-align: justify;
+  }
+  .appendix__text > ul,
+  .appendix__text > ol {
+    padding-left: 1em;
+    text-align: justify;
   }
 
   /* ======================================================================= */
@@ -439,7 +454,6 @@
 
   .regulation__prefix {
     text-transform: uppercase;
-    font-weight: 400;
     text-align: center;
     line-height: 1.1;
     font-size: 1.5em;
@@ -449,21 +463,21 @@
     font-size: 1em;
     line-height: 1.1;
     margin-top: 0;
-    font-weight: 700;
+    font-weight: var(--font-weight--bold);
     text-align: center;
     width: 70%;
     margin: 0 auto;
     margin-bottom: 1.5em;
   }
 
-  .regulation__text > p {
+  .regulation__text > p:not([align]) {
     text-indent: 2em;
+    text-align: justify;
   }
-  .regulation__text > ul {
-    padding-left: 1em;
-  }
+  .regulation__text > ul,
   .regulation__text > ol {
     padding-left: 1em;
+    text-align: justify;
   }
 
   /* ======================================================================= */
