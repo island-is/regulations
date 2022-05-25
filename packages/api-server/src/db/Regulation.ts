@@ -84,6 +84,7 @@ async function getRegulationCancel(regulationId: number) {
   const regulationCancel =
     (await DB_RegulationCancel.findOne({ where: { regulationId } })) ??
     undefined;
+
   return regulationCancel;
 }
 

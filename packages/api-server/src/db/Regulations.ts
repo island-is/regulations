@@ -142,7 +142,7 @@ export async function getNewestRegulations(opts: {
 }) {
   const { skip = 0, take = PER_PAGE } = opts;
 
-  const regulations = <SQLRegulationsList>await DB_Regulation.findAll({
+  const regulations = await DB_Regulation.findAll({
     // NOTE: This is leaky - as both title and ministryId might have changed
     attributes: [
       'id',
