@@ -379,8 +379,9 @@
 
   .appendix__title {
     margin-top: 0;
-    font-size: 1.5em;
+    font-size: 1em;
     margin-bottom: 1rem;
+    text-transform: uppercase;
   }
 
   /* ======================================================================= */
@@ -409,7 +410,6 @@
   }
   .regulation__status {
     position: running(statusBox);
-    font-style: italic;
     font-size: var(--font-size--metainfo);
     white-space: pre-line;
     max-width: 14cm;
@@ -437,10 +437,33 @@
     text-decoration: none;
   }
 
+  .regulation__prefix {
+    text-transform: uppercase;
+    font-weight: 400;
+    text-align: center;
+    line-height: 1.1;
+    font-size: 1.5em;
+    margin-bottom: 0.5em;
+  }
   .regulation__title {
-    font-size: 1.667em;
+    font-size: 1em;
     line-height: 1.1;
     margin-top: 0;
+    font-weight: 700;
+    text-align: center;
+    width: 70%;
+    margin: 0 auto;
+    margin-bottom: 1.5em;
+  }
+
+  .regulation__text > p {
+    text-indent: 2em;
+  }
+  .regulation__text > ul {
+    padding-left: 1em;
+  }
+  .regulation__text > ol {
+    padding-left: 1em;
   }
 
   /* ======================================================================= */

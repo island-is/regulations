@@ -175,7 +175,7 @@ const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
   let statusText: string | undefined;
 
   if (!regulation.history) {
-    statusText = publishedDate && `Útgáfudagur ${fmt(publishedDate)}`;
+    statusText = publishedDate && `${fmt(publishedDate)}`;
   } else {
     statusText = getStatusText(regulation);
   }
@@ -183,6 +183,8 @@ const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
   const footerStr = pdfVersion
     ? `<a class="pdfurl" href="${pdfVersion}">${pdfVersion}</a>`
     : '';
+
+  const titleSub = title.replace(/^Reglugerð /, '');
 
   return `
 <html>
@@ -201,9 +203,12 @@ const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
       ${statusText ? `<div class="regulation__status">${statusText}</div>` : ''}
       ${footerStr ? `<div class="regulation__footer">${footerStr}</div>` : ''}
       </div>
-    <h1 class="regulation__title">${title}</h1>
+    <div class="regulation__prefix">REGLUGERÐ</div>
+    <h1 class="regulation__title">${titleSub}</h1>
 
-    ${text}
+    <div class="regulation__text">
+      ${text}
+    </div>
 
     ${appendixes
       .map(
