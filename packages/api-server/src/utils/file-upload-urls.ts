@@ -182,9 +182,11 @@ export type S3PresignedPost = {
   fields: { [key: string]: string };
 };
 
-export const createPresigned = async (): Promise<S3PresignedPost | null> => {
+export const createPresigned = async (
+  key: string,
+): Promise<S3PresignedPost | null> => {
   const client = new S3Client({ region: AWS_REGION_NAME });
-  const fileKey = 'aa';
+  const fileKey = `dev/mani/${key}`;
   const conditions: Array<Conditions> = [
     { acl: 'public-read' },
     { bucket: AWS_BUCKET_NAME },
@@ -217,7 +219,6 @@ export const createPresigned = async (): Promise<S3PresignedPost | null> => {
     return null;
   }
 };
-
 // ===========================================================================
 
 export const moveUrlsToFileServer = (
