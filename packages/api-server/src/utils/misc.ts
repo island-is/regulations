@@ -74,13 +74,15 @@ const EMPTY_KEY = '_';
 const {
   FILE_UPLOAD_KEY_DRAFT = EMPTY_KEY,
   FILE_UPLOAD_KEY_PUBLISH = EMPTY_KEY,
+  FILE_UPLOAD_KEY_PRESIGNED = EMPTY_KEY,
 } = process.env;
 
-export type UploadType = 'draft' | 'publish';
+export type UploadType = 'draft' | 'publish' | 'presigned';
 
 const apiKeyUsers: Record<string, UploadType | undefined> = {
   [FILE_UPLOAD_KEY_DRAFT]: 'draft',
   [FILE_UPLOAD_KEY_PUBLISH]: 'publish',
+  [FILE_UPLOAD_KEY_PRESIGNED]: 'presigned',
 };
 delete apiKeyUsers[EMPTY_KEY]; // Missing env keys must not open a security hole.
 

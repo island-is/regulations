@@ -3,7 +3,10 @@ import { FastifyPluginCallback } from 'fastify';
 
 import { FILE_SERVER } from '../constants';
 import { fileUploader, MulterS3StorageFile } from '../utils/file-upload';
-import { moveUrlsToFileServer } from '../utils/file-upload-urls';
+import {
+  createPresigned,
+  moveUrlsToFileServer,
+} from '../utils/file-upload-urls';
 import {
   ensureFileScopeToken,
   ensureObject,
@@ -126,6 +129,81 @@ export const fileUploadRoutes: FastifyPluginCallback = (
       const urlMap = moveUrlsToFileServer(links, regName);
 
       reply.send(urlMap);
+    },
+  );
+
+  //* TO satisfy CORS preflights
+  fastify.options(
+    '/file-presigned',
+    {
+      ...opts,
+      onRequest: (request, reply, done) => {
+        done();
+      },
+    },
+    async (request, reply) => {
+      return reply.send();
+    },
+  );
+
+  fastify.post(
+    '/file-presigned',
+    {
+      ...opts,
+      onRequest: (request, reply, done) => {
+        try {
+          if (ensureUploadTypeHeader(request) !== 'presigned') {
+            throw new Error('Authentication needed');
+          }
+          done();
+        } catch (error) {
+          reply.code(403);
+          done(error as Error);
+        }
+      },
+    },
+    async (request, reply) => {
+      const _body = ensureObject(request.body);
+
+      const key = _body.fileName ? String(_body.fileName) : 'default.pdf';
+      const presigned = await createPresigned(key);
+
+      if (presigned) {
+        return reply.send(presigned);
+      }
+
+      return reply.status(500).send();
+    },
+  );
+
+  //Doesn't work
+  fastify.delete(
+    '/file-presigned',
+    {
+      ...opts,
+      onRequest: (request, reply, done) => {
+        try {
+          if (ensureUploadTypeHeader(request) !== 'presigned') {
+            throw new Error('Authentication needed');
+          }
+          done();
+        } catch (error) {
+          reply.code(403);
+          done(error as Error);
+        }
+      },
+    },
+    async (request, reply) => {
+      const _body = ensureObject(request.body);
+
+      const key = _body.fileName ? String(_body.fileName) : 'default.pdf';
+      const presigned = await createPresigned(key);
+
+      if (presigned) {
+        return reply.send(presigned);
+      }
+
+      return reply.status(500).send();
     },
   );
 
