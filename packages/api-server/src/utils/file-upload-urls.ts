@@ -1,6 +1,3 @@
-import { S3Client } from '@aws-sdk/client-s3';
-import { createPresignedPost } from '@aws-sdk/s3-presigned-post';
-import { Conditions } from '@aws-sdk/s3-presigned-post/dist-types/types';
 import { RegName, URLString } from '@island.is/regulations-tools/types';
 import S3 from 'aws-sdk/clients/s3';
 import file_type from 'file-type';
@@ -9,7 +6,6 @@ import { PassThrough, Readable } from 'stream';
 
 import {
   AWS_BUCKET_NAME,
-  AWS_PRESIGNED_POST_EXPIRES,
   AWS_REGION_NAME,
   DRAFTS_FOLDER,
   FILE_SERVER,
@@ -174,52 +170,6 @@ const uploadFile = async (fileInfo: FileUrlMapping) => {
     console.error('⚠️ ', message);
   }
 };
-
-// ===========================================================================
-
-export type S3PresignedPost = {
-  url: string;
-  fields: { [key: string]: string };
-};
-
-export const createPresigned = async (
-  key: string,
-): Promise<S3PresignedPost | null> => {
-  const client = new S3Client({ region: AWS_REGION_NAME });
-  const fileKey = `dev/mani/${key}`;
-  const conditions: Array<Conditions> = [
-    { acl: 'public-read' },
-    { bucket: AWS_BUCKET_NAME },
-  ];
-  const expires = AWS_PRESIGNED_POST_EXPIRES;
-
-  const presignedPostOptions = {
-    Bucket: AWS_BUCKET_NAME,
-    Key: fileKey,
-    Conditions: conditions,
-    Fields: {
-      acl: 'public-read',
-    },
-    Expires: expires,
-  };
-
-  try {
-    const { url, fields } = await createPresignedPost(
-      client,
-      presignedPostOptions,
-    );
-
-    return {
-      url,
-      fields,
-    };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : error;
-    console.error('⚠️ ', message);
-    return null;
-  }
-};
-// ===========================================================================
 
 export const moveUrlsToFileServer = (
   links: ReadonlyArray<string>,

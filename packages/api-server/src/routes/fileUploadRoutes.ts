@@ -1,12 +1,9 @@
 import { ensureRegName } from '@island.is/regulations-tools/utils';
 import { FastifyPluginCallback } from 'fastify';
 
-import { FILE_SERVER } from '../constants';
+import { DRAFTS_FOLDER, FILE_SERVER } from '../constants';
 import { fileUploader, MulterS3StorageFile } from '../utils/file-upload';
-import {
-  createPresigned,
-  moveUrlsToFileServer,
-} from '../utils/file-upload-urls';
+import { moveUrlsToFileServer } from '../utils/file-upload-urls';
 import {
   ensureFileScopeToken,
   ensureObject,
@@ -14,6 +11,7 @@ import {
   ensureUploadTypeHeader,
   QStr,
 } from '../utils/misc';
+import { createPresigned } from '../utils/presigned-post';
 
 // ---------------------------------------------------------------------------
 
@@ -44,7 +42,7 @@ export const fileUploadRoutes: FastifyPluginCallback = (
           if (!uploadType) {
             throw new Error('Authentication needed');
           }
-          const scopeParam = request.query.scope || request.query.scope;
+          const scopeParam = request.query.scope;
           if (uploadType === 'publish' && !ensureRegName(scopeParam)) {
             throw new Error('Scope must be of type RegName');
           }
@@ -70,7 +68,7 @@ export const fileUploadRoutes: FastifyPluginCallback = (
         return;
       }
 
-      // !!MEDIA_BUCKET_FOLDER && console.info(fileObj);
+      //process.env.MEDIA_BUCKET_FOLDER && console.info(fileObj);
 
       const uploadInfo =
         // @ts-expect-error  (multer-s3-transform has no .d.ts files)
@@ -146,14 +144,19 @@ export const fileUploadRoutes: FastifyPluginCallback = (
     },
   );
 
-  fastify.post(
+  fastify.post<QStr>(
     '/file-presigned',
     {
       ...opts,
       onRequest: (request, reply, done) => {
         try {
-          if (ensureUploadTypeHeader(request) !== 'presigned') {
+          const uploadType = ensureUploadTypeHeader(request);
+          if (!uploadType) {
             throw new Error('Authentication needed');
+          }
+          const scopeParam = request.query.scope;
+          if (uploadType === 'draft' && !ensureFileScopeToken(scopeParam)) {
+            throw new Error('Invalid scope token');
           }
           done();
         } catch (error) {
@@ -164,40 +167,16 @@ export const fileUploadRoutes: FastifyPluginCallback = (
     },
     async (request, reply) => {
       const _body = ensureObject(request.body);
+      const _uploadType = ensureUploadTypeHeader(request);
+      const _folder = ensureFileScopeToken(request.query.scope);
+      const rootFolder = _uploadType !== 'publish' ? DRAFTS_FOLDER : '';
 
-      const key = _body.fileName ? String(_body.fileName) : 'default.pdf';
-      const presigned = await createPresigned(key);
-
-      if (presigned) {
-        return reply.send(presigned);
-      }
-
-      return reply.status(500).send();
-    },
-  );
-
-  //Doesn't work
-  fastify.delete(
-    '/file-presigned',
-    {
-      ...opts,
-      onRequest: (request, reply, done) => {
-        try {
-          if (ensureUploadTypeHeader(request) !== 'presigned') {
-            throw new Error('Authentication needed');
-          }
-          done();
-        } catch (error) {
-          reply.code(403);
-          done(error as Error);
-        }
-      },
-    },
-    async (request, reply) => {
-      const _body = ensureObject(request.body);
-
-      const key = _body.fileName ? String(_body.fileName) : 'default.pdf';
-      const presigned = await createPresigned(key);
+      const presigned = await createPresigned(
+        _body.fileName as string,
+        rootFolder,
+        _folder,
+        _body.hash as string,
+      );
 
       if (presigned) {
         return reply.send(presigned);
