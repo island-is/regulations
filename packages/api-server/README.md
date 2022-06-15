@@ -169,3 +169,14 @@ download a PDF version.
 
   - Other oncoming URLs starting with `https://files.reglugerd.is/` are left
     unchanged
+
+- `POST /api/v1/file-presigned`  
+  Generates and a returns a PresignedPost, i.e an object containing an url and
+  all nececcessary headers to enable uploading of files straight to the relevant
+  S3 bucket.
+
+  - Requires `FILE_UPLOAD_KEY_PRESIGNED` to be sent via a `X-APIKey` header
+
+  - It accepts JSON payload in the form of `{ fileName: string, hash: string }`
+
+  - The endpoint then returns a `PresignedPost` object

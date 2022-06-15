@@ -11,7 +11,7 @@ import {
   ensureUploadTypeHeader,
   QStr,
 } from '../utils/misc';
-import { createPresigned } from '../utils/presigned-post';
+import { createPresigned } from '../utils/upload';
 
 // ---------------------------------------------------------------------------
 
@@ -25,11 +25,11 @@ export const fileUploadRoutes: FastifyPluginCallback = (
   /**
    * Uploads file into S3 bucket.
    *
-   * Accepts a `?folder=2021/0123` query parameter (...or `?folder=[draftUUId]`)
+   * Accepts a `?scope=2021/0123` query parameter (...or `?scope=[draftUUId]`)
    *
    * Requires a valid `X-APIKey: [secretKey]` HTTP header
    *
-   * @returns {{ location: string }}}
+   * @returns {{ location: string }}
    */
 
   fastify.post<QStr>(
@@ -68,7 +68,7 @@ export const fileUploadRoutes: FastifyPluginCallback = (
         return;
       }
 
-      //process.env.MEDIA_BUCKET_FOLDER && console.info(fileObj);
+      process.env.MEDIA_BUCKET_FOLDER && console.info(fileObj);
 
       const uploadInfo =
         // @ts-expect-error  (multer-s3-transform has no .d.ts files)
@@ -78,6 +78,60 @@ export const fileUploadRoutes: FastifyPluginCallback = (
       reply.send({ location: FILE_SERVER + '/' + uploadInfo.key });
     },
   );
+
+  /**
+   * Deletes a file from an S3 bucket
+   *
+   * Accepts an exact uri!
+   *
+   * Requires a valid `X-APIKey: [secretKey]` HTTP header
+   *
+   *  @returns {{ status: Boolean}}
+   */
+
+  /*fastify.delete(
+    '/file-upload',
+    {
+      ...opts,
+      onRequest: (request, reply, done) => {
+        try {
+          const uploadType = ensureUploadTypeHeader(request);
+          if (uploadType !== 'draft') {
+            throw new Error('Authentication needed');
+          }
+        } catch (error) {
+          reply.code(403);
+          done(error as Error);
+        }
+      },
+    },
+    async (request, reply) => {
+      const _body = ensureObject(request.body);
+      const _key = 'key' in _body ? _body.key : undefined;
+
+      console.log(_body)
+      console
+
+      if (!_key) {
+        reply.code(400).send({ error: 'Object not found. Nothing to delete' });
+        return;
+      }
+
+      const client = new S3Client({ region: AWS_REGION_NAME });
+      console.log(_key);
+      /*const data = await client.send(
+        new DeleteObjectCommand({
+          Bucket: AWS_BUCKET_NAME,
+          Key: _key as string,
+        }),
+      );
+
+      //console.log(data.DeleteMarker);
+
+      //reply.send({ status: data.DeleteMarker });
+      reply.send({ status: false });
+    },
+  );*/
 
   /**
    * Uploads files from urls into S3 bucket and returns mappings for new urls.
@@ -143,6 +197,18 @@ export const fileUploadRoutes: FastifyPluginCallback = (
       return reply.send();
     },
   );
+
+  /**
+   * Creates a PresignedPost object, containing an url and all neccesary headers to
+   * post directly to an S3 Bucket
+   *
+   * Accepts post body of type `{ fileName: string,  hash: string (hash value of the file to be posted) }`
+   * Also needs a query string of type ?scope=[draftUUID]
+   *
+   * Requires a valid `X-APIKey: [secretKey]` HTTP header
+   *
+   * @returns {S3PresignedPost}
+   */
 
   fastify.post<QStr>(
     '/file-presigned',

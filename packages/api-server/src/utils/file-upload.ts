@@ -67,6 +67,7 @@ const getKey = (req: ExpressRequest, _file: MulterFile) => {
   const rootFolder =
     ensureUploadTypeHeader(req) === 'draft' ? DRAFTS_FOLDER : '';
   const devFolder = MEDIA_BUCKET_FOLDER || '';
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const originalName = file.originalname
     .split('/')
     .pop()!
