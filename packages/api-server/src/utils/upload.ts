@@ -89,7 +89,7 @@ export const createPresigned = async (
     );
 
     return {
-      url: 'https://files.reglugerd.is',
+      url,
       fields,
     };
   } catch (error) {
