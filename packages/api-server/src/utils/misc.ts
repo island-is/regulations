@@ -95,7 +95,9 @@ export const ensureUploadTypeHeader = (
   req: Pick<FastifyRequest, 'headers'>,
 ): UploadType | undefined => {
   const apiKeyHeader = req.headers['X-APIKey'] || req.headers['x-apikey'];
+  const pres = FILE_UPLOAD_KEY_PRESIGNED;
   const uploadType = apiKeyUsers[String(apiKeyHeader)];
+  console.log({ apiKeyHeader, pres, uploadType });
   return uploadType;
 };
 
