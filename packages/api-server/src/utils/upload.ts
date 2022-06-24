@@ -1,23 +1,15 @@
 import { S3Client } from '@aws-sdk/client-s3';
 import { createPresignedPost } from '@aws-sdk/s3-presigned-post';
 import { Conditions } from '@aws-sdk/s3-presigned-post/dist-types/types';
-import { RegName } from '@island.is/regulations-tools/types';
-import type { Request as ExpressRequest } from 'express';
-import { FastifyRequest } from 'fastify';
 
 import {
   AWS_BUCKET_NAME,
   AWS_PRESIGNED_POST_EXPIRES,
   AWS_REGION_NAME,
-  DRAFTS_FOLDER,
   MEDIA_BUCKET_FOLDER,
 } from '../constants';
 
-import {
-  ensureFileScopeToken,
-  ensureUploadTypeHeader,
-  FileScopeToken,
-} from './misc';
+import { ensureFileScopeToken } from './misc';
 
 export type S3PresignedPost = {
   url: string;
@@ -38,11 +30,12 @@ const _generateFileKey = (
     return;
   }
 
-  const originalName = name
-    .split('/')
-    .pop()!
-    // normalized names of pasted blobs
-    .replace(/^blobid\d+.png$/, 'pasted--image.png');
+  const originalName =
+    name
+      .split('/')
+      .pop()
+      // normalized names of pasted blobs
+      ?.replace(/^blobid\d+.png$/, 'pasted--image.png') || '';
   let fileNamePart = originalName.replace(/\.[^.]+$/, '');
   const fileExtension = originalName.slice(fileNamePart.length).toLowerCase();
   if (/^pasted--image/.test(fileNamePart)) {
@@ -96,7 +89,7 @@ export const createPresigned = async (
     );
 
     return {
-      url,
+      url: 'https://files.reglugerd.is',
       fields,
     };
   } catch (error) {
