@@ -189,7 +189,7 @@ const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
   return `
 <html>
   <head>
-    <meta charset="utf8">
+    <meta charset="utf-8">
     <title>${title}</title>
     <style>${CSS}</style>
   </head>

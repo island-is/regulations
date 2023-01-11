@@ -262,7 +262,7 @@
 
   table.layout > * > * > th,
   table.layout > * > * > td {
-    border: o;
+    border: 0;
   }
 
   th {
@@ -477,6 +477,9 @@
   .regulation__text > ul,
   .regulation__text > ol {
     padding-left: 1em;
+  }
+  .regulation__text > ul > li,
+  .regulation__text > ol > li {
     text-align: justify;
   }
 
