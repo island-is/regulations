@@ -56,7 +56,7 @@
     "multer-s3-transform": "^2.10.3",
     "mysql2": "^2.2.5",
     "node-fetch": "^2.6.1",
-    "pagedjs-cli": "^0.1.6",
+    "pagedjs-cli": "^0.3.3",
     "reflect-metadata": "^0.1.13",
     "sequelize": "^6.6.2",
     "sequelize-typescript": "^2.1.0",
