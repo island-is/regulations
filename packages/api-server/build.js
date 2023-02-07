@@ -21,7 +21,7 @@ require('esbuild')
     entryNames: '[name]',
     define: {
       'process.env.DEV_FILE_SERVER': JSON.stringify(
-        process.env.DEV_FILE_SERVER,
+        process.env.DEV_FILE_SERVER || '',
       ),
     },
     platform: 'node',
