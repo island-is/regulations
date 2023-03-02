@@ -1,3 +1,4 @@
+import { ensureRegName, nameToSlug } from '@island.is/regulations-tools/utils';
 import S3 from 'aws-sdk/clients/s3';
 import { createHash } from 'crypto';
 import type { Request as ExpressRequest } from 'express';
@@ -61,8 +62,11 @@ const getSingleQuery = (req: ExpressRequest, param: string): string => {
 
 const getKey = (req: ExpressRequest, _file: MulterFile) => {
   const file = _file as MulterFileWithHash;
+  const regName = ensureRegName(getSingleQuery(req, 'scope'));
 
-  const folder = ensureFileScopeToken(getSingleQuery(req, 'folder'));
+  const folder = ensureFileScopeToken(
+    getSingleQuery(req, 'folder') || (regName ? nameToSlug(regName) : ''),
+  );
 
   const rootFolder =
     ensureUploadTypeHeader(req) === 'draft' ? DRAFTS_FOLDER : '';
