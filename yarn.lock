@@ -1933,6 +1933,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@hugsmidjan/htmldiff-js@npm:^1.2.1":
+  version: 1.2.1
+  resolution: "@hugsmidjan/htmldiff-js@npm:1.2.1"
+  checksum: 1289d9446b984beb8dce10e108c00bba87f41ec320f232d7d3cfa4d18e7257da366c0cf19cad408026e043683c4afff6d10bf6857682172359957f559fe9634c
+  languageName: node
+  linkType: hard
+
 "@hugsmidjan/hxmstyle@npm:^6.3.1":
   version: 6.3.1
   resolution: "@hugsmidjan/hxmstyle@npm:6.3.1"
@@ -2081,6 +2088,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@island.is/regulations-tools@workspace:packages/tools"
   dependencies:
+    "@hugsmidjan/htmldiff-js": ^1.2.1
     "@hugsmidjan/qj": ^4.10.2
     "@hugsmidjan/react": ^0.4.23
     "@tinymce/tinymce-react": ^3.13.0
@@ -2094,7 +2102,6 @@ __metadata:
     esbuild: ^0.16.0
     esbuild-plugin-d.ts: ^1.0.6
     glob: ^7.2.0
-    htmldiff-js: "github:hugsmidjan-is/htmldiff-js#semver:^1.1.1"
     jest: ^29.4.1
     jsdom: ^16.4.0
     react: ^17.0.1
@@ -6720,13 +6727,6 @@ __metadata:
   version: 2.0.2
   resolution: "html-escaper@npm:2.0.2"
   checksum: d2df2da3ad40ca9ee3a39c5cc6475ef67c8f83c234475f24d8e9ce0dc80a2c82df8e1d6fa78ddd1e9022a586ea1bd247a615e80a5cd9273d90111ddda7d9e974
-  languageName: node
-  linkType: hard
-
-"htmldiff-js@github:hugsmidjan-is/htmldiff-js#semver:^1.1.1":
-  version: 1.1.1
-  resolution: "htmldiff-js@https://github.com/hugsmidjan-is/htmldiff-js.git#commit=b2400db41f329180cedf33547f1cc5b6da85f15f"
-  checksum: 34acbed7bbf829a2f99075d54979b3c20ffb5dadf94e754c2d8b3f2ba88ef5a71dcb9d07ce73f12636cfa225110d6dff01c54c594cf6e0853332248016f7ccf6
   languageName: node
   linkType: hard
 
