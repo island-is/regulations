@@ -112,7 +112,7 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    position: relative; /* Silly hack to enable page-break-* rules. See: https://stackoverflow.com/a/12386608 */
+    /* position: relative; / * Silly hack to enable page-break-* rules. See: https://stackoverflow.com/a/12386608 */
   }
   *::before,
   *::after {
@@ -135,6 +135,11 @@
   pre,
   blockquote {
     margin-bottom: var(--paragraph-space);
+  }
+
+  p,
+  li {
+    page-break-inside: avoid;
   }
 
   pre {
