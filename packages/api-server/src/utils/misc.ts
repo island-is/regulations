@@ -26,6 +26,7 @@ export type QStr<keys extends string = string> = {
 // ---------------------------------------------------------------------------
 
 const HOURS = 60 * 60;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const cacheControl = (res: FastifyReply<any>, ttl_hrs: number): void => {
   res.headers({
     'Cache-Control':
@@ -95,9 +96,9 @@ export const ensureUploadTypeHeader = (
   req: Pick<FastifyRequest, 'headers'>,
 ): UploadType | undefined => {
   const apiKeyHeader = req.headers['X-APIKey'] || req.headers['x-apikey'];
-  const pres = FILE_UPLOAD_KEY_PRESIGNED;
+  // const pres = FILE_UPLOAD_KEY_PRESIGNED;
   const uploadType = apiKeyUsers[String(apiKeyHeader)];
-  console.log({ apiKeyHeader, pres, uploadType });
+  // console.log({ apiKeyHeader, pres, uploadType });
   return uploadType;
 };
 

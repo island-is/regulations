@@ -193,6 +193,7 @@ export const fileUploadRoutes: FastifyPluginCallback = (
         done();
       },
     },
+    // eslint-disable-next-line require-await
     async (request, reply) => {
       return reply.send();
     },

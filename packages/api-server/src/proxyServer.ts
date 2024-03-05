@@ -68,6 +68,7 @@ const fastify = fast({
   },
 });
 
+// eslint-disable-next-line require-await
 fastify.addHook('onRequest', async (request, reply) => {
   if (
     request.headers['x-forwarded-proto'] !== 'https' &&

@@ -140,6 +140,7 @@ export async function searchElastic(client: Client, query: SearchQueryParams) {
   let searchHits: Array<RegulationListItem> = [];
 
   if (activeFilters || textSearch.length) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let elasticResponse: Record<string, any> = {};
 
     try {

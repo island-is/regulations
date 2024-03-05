@@ -97,6 +97,7 @@ const handleRequest = async <N extends string = RegQueryName>(
 
     // NOTE: Is there a better/cleaner/more robust way to
     // provide this info?
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const routePath = req.url
       .replace(/^\/api\/v[0-9]+\/regulation\//, '')
       .split('?')[0]! // remove any potential query strings

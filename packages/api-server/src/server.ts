@@ -42,6 +42,7 @@ if (REDIS_URL) {
   const url = REDIS_URL;
 
   const tls =
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     (url.indexOf('rediss') ?? -1) >= 0
       ? {
           rejectUnauthorized: false,

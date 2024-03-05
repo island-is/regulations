@@ -141,6 +141,7 @@ async function getRegulationEffects(regulationId: number) {
     on Regulation.id = effects.regulationId
     order by Regulation.publishedDate, Regulation.id
   ;`;
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const effectsData = <EffectsData>await db.query(effectsQuery, {
     replacements: { changingId: regulationId },
     type: QueryTypes.SELECT,
