@@ -10,6 +10,7 @@
   "private": true,
   "scripts": {
     "build": "tsc --noEmit  &&  NODE_ENV=production node build.js",
+    "heroku-postbuild": "mkdir ./.cache && mv /app/.cache/puppeteer ./.cache",
     "dev-watch": "yarn  &&  yarn concurrently \"tsc --noEmit --watch --preserveWatchOutput\"  \"node build.js --watch\"",
     "dev-api-server": "yarn nodemon -r dotenv/config dist/server.js --ignore 'backup-json/*'",
     "dev-proxy-server": "yarn nodemon -r dotenv/config dist/proxyServer.js --ignore 'backup-json/*'",
@@ -69,9 +70,5 @@
     "jest": "^29.4.1",
     "nodemon": "^2.0.20",
     "ts-jest": "^29.0.5"
-  },
-  "//": "puppeteer version pinned due to heroku pagedjs-cli error",
-  "resolutions": {
-    "puppeteer": "17.1.3"
   }
 }

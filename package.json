@@ -63,8 +63,5 @@
       "eslint-plugin-unused-imports",
       "prettier"
     ]
-  },
-  "resolutions": {
-    "puppeteer": "17.1.3"
   }
 }
