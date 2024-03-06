@@ -106,7 +106,9 @@ const handleRequest = async <N extends string = RegQueryName>(
     const { success, error } = await handler(res, handlerOpts, routePath);
 
     if (!success) {
-      res.code(400).send({ error: error || 'Regulation not found!' });
+      res
+        .code(error ? 500 : 404)
+        .send({ error: error || 'Regulation not found!' });
     }
   } else {
     res
@@ -166,7 +168,7 @@ const handleDataRequest = (
       }
     }
 
-    if (result === 'NOT_FOUND') {
+    if (!result || result === 'NOT_FOUND') {
       return { success: false };
     }
     if (typeof result === 'string') {
