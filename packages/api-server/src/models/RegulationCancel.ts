@@ -1,6 +1,6 @@
 import { Column, DataType, Model, Table } from 'sequelize-typescript';
 
-import { ISODate } from '../routes/types';
+import type { ISODate } from '../routes/types';
 
 type RegulationCancelAttributes = {
   id: number;

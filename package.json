@@ -15,6 +15,7 @@
   ],
   "scripts": {
     "build": "yarn workspace $BUILD_COMMAND",
+    "heroku-postbuild": "yarn workspace $POSTBUILD_COMMAND",
     "start": "yarn workspace $START_COMMAND",
     "lint": "eslint \"*.{js,ts,tsx}\" \"packages/*/src/**/*.{js,ts,tsx}\"",
     "format:eslint": "eslint --fix  \"*.{js,ts,tsx}\"  \"packages/*/*.{js,ts,tsx}\" \"packages/*/src/**/*.{js,ts,tsx}\"",

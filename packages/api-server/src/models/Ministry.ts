@@ -1,6 +1,6 @@
 import { Column, DataType, Model, Table } from 'sequelize-typescript';
 
-import { MinistrySlug } from '../routes/types';
+import type { MinistrySlug } from '../routes/types';
 
 export type MinistryAttributes = {
   id: number;

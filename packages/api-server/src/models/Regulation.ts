@@ -1,6 +1,6 @@
 import { Column, DataType, Model, Table } from 'sequelize-typescript';
 
-import { HTMLText, ISODate, PlainText, RegName } from '../routes/types';
+import type { HTMLText, ISODate, PlainText, RegName } from '../routes/types';
 
 type RegulationAttributes = {
   id: number;
