@@ -157,7 +157,7 @@ const getStatusText = (regulation: RegulationMaybeDiff): string => {
 // ---------------------------------------------------------------------------
 const CSS = fs.readFileSync('./dist/RegulationPdf.css');
 
-const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
+const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation, draft?: boolean) => {
   const {
     name,
     text,
@@ -237,13 +237,13 @@ const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation) => {
     `
     }
 
-    <section class="disclaimer">
+    ${draft ? '' : `<section class="disclaimer">
       <h2 class="disclaimer__title">Fyrirvari</h2>
       <div class="disclaimer__text">
         <p>Reglugerðir eru birtar í B-deild Stjórnartíðinda skv. 3. gr. laga um Stjórnartíðindi og Lögbirtingablað, nr. 15/2005, sbr. reglugerð um útgáfu Stjórnartíðinda nr. 958/2005.</p>
         <p>Sé misræmi milli þess texta sem birtist hér í safninu og þess sem birtur er í útgáfu B-deildar Stjórnartíðinda skal sá síðarnefndi ráða.</p>
       </div>
-    </section>
+    </section>`}
 
   </body>
 </html>`;
@@ -260,6 +260,7 @@ const makeRegulationPdf = (
     | Regulation
     | RegulationDiff
     | RegulationRedirect,
+    draft?: boolean
 ): Promise<Buffer | false> => {
   if (!regulation || 'redirectUrl' in regulation) {
     return Promise.resolve(false);
@@ -269,7 +270,7 @@ const makeRegulationPdf = (
 
   const htmlFile = tmpFileName + '.html';
 
-  return writeFile(htmlFile, pdfTmplate(regulation))
+  return writeFile(htmlFile, pdfTmplate(regulation, draft))
     .then(
       () =>
         new Promise<Buffer>((resolve, reject) => {
@@ -449,7 +450,7 @@ export const makeDraftPdf = async (body: unknown): Promise<PDFGenResults> => {
   const unpublishedReg = cleanUpRegulationBodyInput(body);
   if (unpublishedReg) {
     const fileName = getDraftPdfFilename(unpublishedReg);
-    const pdfContents = await makeRegulationPdf(unpublishedReg);
+    const pdfContents = await makeRegulationPdf(unpublishedReg, true);
     return { fileName, pdfContents };
   }
   return {};
