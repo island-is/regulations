@@ -98,18 +98,23 @@ fastify.register(proxy, {
 serveRobotsTxt(fastify, 'static/robots-proxy.txt');
 
 const proxyArray = PROXY_CORS_ORIGIN?.split(',').map((i) => i.trim());
-
-const proxyOrigin =
-  proxyArray && proxyArray.length > 0
-    ? proxyArray
-    : ['https://beta.staging01.devland.is/', 'https://island.is/'];
+const corsOptions = {
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
 fastify.register((instance, opts, done) => {
-  instance.register(cors, {
-    origin: proxyOrigin,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  });
+  if (proxyArray && proxyArray.length > 0) {
+    instance.register(cors, {
+      origin: proxyArray,
+      ...corsOptions,
+    });
+  } else {
+    instance.register(cors, {
+      origin: false,
+      ...corsOptions,
+    });
+  }
 
   instance.register(proxy, {
     upstream: `https://${AWS_BUCKET_NAME}.s3.${AWS_REGION_NAME}.amazonaws.com`,
