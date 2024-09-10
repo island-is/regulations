@@ -1,5 +1,6 @@
 import { DAY, HOUR, SECOND } from '@hugsmidjan/qj/time';
 import { fastify as fast } from 'fastify';
+import cors from 'fastify-cors';
 import proxy, { FastifyHttpProxyOptions } from 'fastify-http-proxy';
 import fastifyRateLimiter from 'fastify-rate-limit';
 import { Writable } from 'stream';
@@ -8,7 +9,7 @@ import { cacheControl } from './utils/misc';
 import { serveRobotsTxt } from './utils/server-utils';
 import { API_URL, AWS_BUCKET_NAME, AWS_REGION_NAME } from './constants';
 
-const { PORT, PROXY_PORT, FORCE_HTTPS } = process.env;
+const { PORT, PROXY_PORT, FORCE_HTTPS, PROXY_CORS_ORIGIN } = process.env;
 
 const IMAGE_TTL = (0.03 * DAY) / HOUR; // Seconds
 
@@ -96,10 +97,27 @@ fastify.register(proxy, {
 
 serveRobotsTxt(fastify, 'static/robots-proxy.txt');
 
-fastify.register(proxy, {
-  upstream: `https://${AWS_BUCKET_NAME}.s3.${AWS_REGION_NAME}.amazonaws.com`,
-  prefix: '/',
-  ...proxyProps({ ttl: IMAGE_TTL }),
+const proxyArray = PROXY_CORS_ORIGIN?.split(',').map((i) => i.trim());
+
+const proxyOrigin =
+  proxyArray && proxyArray.length > 0
+    ? proxyArray
+    : ['https://beta.staging01.devland.is/', 'https://island.is/'];
+
+fastify.register((instance, opts, done) => {
+  instance.register(cors, {
+    origin: proxyOrigin,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+
+  instance.register(proxy, {
+    upstream: `https://${AWS_BUCKET_NAME}.s3.${AWS_REGION_NAME}.amazonaws.com`,
+    prefix: '/',
+    ...proxyProps({ ttl: IMAGE_TTL }),
+  });
+
+  done();
 });
 
 const start = async () => {

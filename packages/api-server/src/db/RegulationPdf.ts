@@ -50,6 +50,7 @@ export type InputRegulation = Pick<
   timelineDate?: undefined;
   repealedDate?: undefined;
   repealed?: undefined;
+  ministry?: string;
   publishedDate?: Regulation['publishedDate'];
   // signatureDate?: Regulation['signatureDate'];
   // effectiveDate?: Regulation['effectiveDate'];
@@ -157,7 +158,10 @@ const getStatusText = (regulation: RegulationMaybeDiff): string => {
 // ---------------------------------------------------------------------------
 const CSS = fs.readFileSync('./dist/RegulationPdf.css');
 
-const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation, draft?: boolean) => {
+const pdfTmplate = (
+  regulation: RegulationMaybeDiff | InputRegulation,
+  draft?: boolean,
+) => {
   const {
     name,
     text,
@@ -237,13 +241,21 @@ const pdfTmplate = (regulation: RegulationMaybeDiff | InputRegulation, draft?: b
     `
     }
 
-    ${draft ? '' : `<section class="disclaimer">
+    ${
+      draft
+        ? `${
+            regulation.ministry
+              ? `<section class="signature"><p>${regulation.ministry},<pre>                              </pre></p></section>`
+              : ''
+          }`
+        : `<section class="disclaimer">
       <h2 class="disclaimer__title">Fyrirvari</h2>
       <div class="disclaimer__text">
         <p>Reglugerðir eru birtar í B-deild Stjórnartíðinda skv. 3. gr. laga um Stjórnartíðindi og Lögbirtingablað, nr. 15/2005, sbr. reglugerð um útgáfu Stjórnartíðinda nr. 958/2005.</p>
         <p>Sé misræmi milli þess texta sem birtist hér í safninu og þess sem birtur er í útgáfu B-deildar Stjórnartíðinda skal sá síðarnefndi ráða.</p>
       </div>
-    </section>`}
+    </section>`
+    }
 
   </body>
 </html>`;
@@ -260,7 +272,7 @@ const makeRegulationPdf = (
     | Regulation
     | RegulationDiff
     | RegulationRedirect,
-    draft?: boolean
+  draft?: boolean,
 ): Promise<Buffer | false> => {
   if (!regulation || 'redirectUrl' in regulation) {
     return Promise.resolve(false);
@@ -319,6 +331,7 @@ const cleanUpRegulationBodyInput = (
   // const effectiveDate = ensureISODate(String(body.effectiveDate));
 
   const dirtyTitle = String(body.title);
+  const ministry = String(body.ministry ?? '');
   const dirtyText = String(body.text) as HTMLText;
   const dirtyCommments = String(body.comments || '') as HTMLText;
   const dirtyAppendixes = (
@@ -351,6 +364,7 @@ const cleanUpRegulationBodyInput = (
       comments,
       name,
       publishedDate,
+      ministry,
       // signatureDate,
       // effectiveDate,
     };
