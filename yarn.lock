@@ -1711,7 +1711,6 @@ __metadata:
     "@hugsmidjan/qj": ^4.10.2
     "@island.is/regulations-tools": ^0.7.14
     "@types/express": ^4.17.13
-    "@types/fastify-cors": ^2.1.0
     "@types/ioredis": ^4.28.1
     "@types/multer-s3-transform": "npm:@types/multer-s3@^2.7.10"
     "@types/node": ^20.11.24
@@ -1727,7 +1726,6 @@ __metadata:
     fastify: ^3.11.0
     fastify-basic-auth: ^2.2.0
     fastify-compress: ^3.4.2
-    fastify-cors: ^6.1.0
     fastify-elasticsearch: ^2.0.0
     fastify-http-proxy: ^6.2.1
     fastify-multer: ^2.0.2
@@ -2911,15 +2909,6 @@ __metadata:
     "@types/qs": "*"
     "@types/serve-static": "*"
   checksum: fb238298630370a7392c7abdc80f495ae6c716723e114705d7e3fb67e3850b3859bbfd29391463a3fb8c0b32051847935933d99e719c0478710f8098ee7091c5
-  languageName: node
-  linkType: hard
-
-"@types/fastify-cors@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "@types/fastify-cors@npm:2.1.0"
-  dependencies:
-    fastify-cors: "*"
-  checksum: b4e4270216f0f6c4e5700e6f7f3f4868614d03b35c746ca6336c4a51964c9be484b26d80d7f0423fd5432a4ef5d81d4cce98c5b39a4ccb47252f271d22fd4391
   languageName: node
   linkType: hard
 
@@ -6237,26 +6226,6 @@ __metadata:
     string-to-stream: ^3.0.1
     unzipper: ^0.10.11
   checksum: 0d8c50ae2d892709db236b5147d76713c3854a30b1138c70ee2a41c0d850fe8799ce6b390965088805826b0f5de5400d0fc3d739128a5f3ca5004f48e3abb6b3
-  languageName: node
-  linkType: hard
-
-"fastify-cors-deprecated@npm:fastify-cors@6.0.3, fastify-cors@npm:*":
-  version: 6.0.3
-  resolution: "fastify-cors@npm:6.0.3"
-  dependencies:
-    fastify-plugin: ^3.0.0
-    vary: ^1.1.2
-  checksum: 054cf4e1cf0b20778ac24d9995a99f44e9b026ca9a028db0cbb6093922bcc931dff5f5bb185d19e881014392bb5886a8b5f9da6af3d3ab5e62b7a68f4eca33c4
-  languageName: node
-  linkType: hard
-
-"fastify-cors@npm:^6.1.0":
-  version: 6.1.0
-  resolution: "fastify-cors@npm:6.1.0"
-  dependencies:
-    fastify-cors-deprecated: "npm:fastify-cors@6.0.3"
-    process-warning: ^1.0.0
-  checksum: dca7c39b4e515ea896aa07ad5c05c70100f427e4c92e3e0fae7cab7d8ccfc824c946723a7e90b4859a5802244932d0af5ee70d753f686092e8c47fca6700e370
   languageName: node
   linkType: hard
 
@@ -11965,7 +11934,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vary@npm:^1.1.2, vary@npm:~1.1.2":
+"vary@npm:~1.1.2":
   version: 1.1.2
   resolution: "vary@npm:1.1.2"
   checksum: ae0123222c6df65b437669d63dfa8c36cee20a504101b2fcd97b8bf76f91259c17f9f2b4d70a1e3c6bbcee7f51b28392833adb6b2770b23b01abec84e369660b
