@@ -97,11 +97,11 @@
     @bottom-left {
       content: element(footerInfo);
     }
-    @bottom-right {
+    /* @bottom-right {
       content: 'Bls. ' counter(page) ' af ' counter(pages);
       font-size: 10pt;
       font-style: italic;
-    }
+    } */
   }
 
   * {
