@@ -512,7 +512,9 @@
     margin-top: 2em;
     page-break-inside: avoid;
     padding: 0.75em 1em;
-    font-size: 1.1em;
+    font-size: 1em;
+    font-style: italic;
+    page-break-before: avoid;
   }
 
   /* ======================================================================= */

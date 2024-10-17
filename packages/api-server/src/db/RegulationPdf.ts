@@ -178,15 +178,23 @@ const pdfTmplate = (
 
   let statusText: string | undefined;
 
-  if (!regulation.history) {
-    statusText = publishedDate && `${fmt(publishedDate)}`;
-  } else {
-    statusText = getStatusText(regulation);
+  if (!draft) {
+    if (!regulation.history) {
+      statusText = publishedDate && `${fmt(publishedDate)}`;
+    } else {
+      statusText = getStatusText(regulation);
+    }
   }
 
   const footerStr = pdfVersion
     ? `<a class="pdfurl" href="${pdfVersion}">${pdfVersion}</a>`
     : '';
+
+  const ministrySignature = `${
+    regulation.ministry
+      ? `<section class="signature"><p>${regulation.ministry},<pre>                          </pre></p></section>`
+      : ''
+  }`;
 
   const titleSub = title.replace(/^Reglugerð /, '');
 
@@ -212,6 +220,7 @@ const pdfTmplate = (
 
     <div class="regulation__text">
       ${text}
+      ${!appendixes.length && draft ? ministrySignature : ''}
     </div>
 
     ${appendixes.length ? '<div class="appendixes">' : ''}
@@ -229,6 +238,8 @@ const pdfTmplate = (
     `,
       )
       .join('')}
+      
+    ${appendixes.length && draft ? ministrySignature : ''}
     ${appendixes.length ? '</div>' : ''}
 
     ${
@@ -243,11 +254,7 @@ const pdfTmplate = (
 
     ${
       draft
-        ? `${
-            regulation.ministry
-              ? `<section class="signature"><p>${regulation.ministry},<pre>                              </pre></p></section>`
-              : ''
-          }`
+        ? ''
         : `<section class="disclaimer">
       <h2 class="disclaimer__title">Fyrirvari</h2>
       <div class="disclaimer__text">
