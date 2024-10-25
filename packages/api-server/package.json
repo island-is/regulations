@@ -10,7 +10,7 @@
   "private": true,
   "scripts": {
     "build": "tsc --noEmit  &&  NODE_ENV=production node build.js",
-    "heroku-postbuild": "mv /app/.cache ../../ && tsc --noEmit && NODE_ENV=production node build.js",
+    "heroku-postbuild": "node node_modules/puppeteer/install.js && mkdir -p ./.cache && mv /app/.cache/puppeteer ./.cache && tsc --noEmit && NODE_ENV=production node build.js",
     "dev-watch": "yarn  &&  yarn concurrently \"tsc --noEmit --watch --preserveWatchOutput\"  \"node build.js --watch\"",
     "dev-api-server": "yarn nodemon -r dotenv/config dist/server.js --ignore 'backup-json/*'",
     "dev-proxy-server": "yarn nodemon -r dotenv/config dist/proxyServer.js --ignore 'backup-json/*'",
