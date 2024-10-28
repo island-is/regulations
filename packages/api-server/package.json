@@ -39,7 +39,6 @@
     "@types/node-fetch": "^2.6.11",
     "@types/sharp": "^0.32.0",
     "@types/validator": "^13.7.0",
-    "aws-sdk": "^2.1018.0",
     "date-fns": "^2.29.3",
     "dotenv": "^16.0.3",
     "elastic-builder": "^2.26.0",
