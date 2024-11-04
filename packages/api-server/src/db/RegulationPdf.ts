@@ -63,6 +63,16 @@ export type InputRegulation = Pick<
 const sanitizeTextContent = (text: PlainText): HTMLText =>
   text.replace(/&/, '&amp;').replace(/</g, '&lt;') as HTMLText;
 
+const fylgiskjalClass = (txt: string) => {
+  const hasFylgiskjal = /^Fylgiskjal(\s|$)/i.test(txt);
+  let fylgiskjalClass = '';
+
+  if (hasFylgiskjal) {
+    fylgiskjalClass = ' fylgiskjal__title';
+  }
+  return fylgiskjalClass;
+};
+
 // ---------------------------------------------------------------------------
 
 const getStatusText = (regulation: RegulationMaybeDiff): string => {
@@ -220,26 +230,27 @@ const pdfTmplate = (
 
     <div class="regulation__text">
       ${text}
-      ${!appendixes.length && draft ? ministrySignature : ''}
+      ${draft ? ministrySignature : ''}
     </div>
 
     ${appendixes.length ? '<div class="appendixes">' : ''}
     ${appendixes
       .map(
-        ({ title, text }) => `
+        ({ title, text: aptext }) => `
     <section class="appendix">
-      <h2 class="appendix__title">${
-        regulation.showingDiff ? title : sanitizeTextContent(title as PlainText)
-      }</h2>
+      <h2 class="appendix__title${fylgiskjalClass(title)}">${
+          regulation.showingDiff
+            ? title
+            : sanitizeTextContent(title as PlainText)
+        }</h2>
       <div class="appendix__text">
-        ${text}
+        ${aptext}
       </div>
     </section>
     `,
       )
       .join('')}
       
-    ${appendixes.length && draft ? ministrySignature : ''}
     ${appendixes.length ? '</div>' : ''}
 
     ${
