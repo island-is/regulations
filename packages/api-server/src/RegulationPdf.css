@@ -348,7 +348,16 @@
     text-align: center;
     font-size: 1em;
     font-weight: var(--font-weight--normal);
+    break-after: avoid;
   }
+
+  .subchapter__title {
+    text-align: center;
+    font-size: 1em;
+    font-weight: var(--font-weight--normal);
+    break-after: avoid;
+  }
+
   .chapter__title:first-child,
   .section__title + .chapter__title {
     margin-top: 0 !important; /* Workaround for https://gitlab.pagedmedia.org/tools/pagedjs/issues/352 */
@@ -393,20 +402,20 @@
   .appendix__title {
     margin-top: 0;
     margin-bottom: var(--paragraph-space);
+    font-weight: var(--font-weight--normal);
     font-size: 1em;
     text-transform: uppercase;
     text-align: center;
   }
 
-  .appendix__text > p:not([align]) {
-    text-indent: 2em;
-    text-align: justify;
+  .appendix__title.fylgiskjal__title {
+    text-align: left;
+    text-decoration: underline;
+    font-weight: var(--font-weight--bold);
+    font-size: 1em;
+    margin-bottom: 0;
   }
-  .appendix__text > ul,
-  .appendix__text > ol {
-    padding-left: 1em;
-    text-align: justify;
-  }
+
 
   /* ======================================================================= */
 
@@ -479,16 +488,20 @@
     margin-bottom: 1.5em;
   }
 
-  .regulation__text > p:not([align]) {
+  .regulation__text > p:not([align]), .appendix__text > p:not([align]) {
     text-indent: 2em;
     text-align: justify;
   }
   .regulation__text > ul,
-  .regulation__text > ol {
+  .regulation__text > ol,
+  .appendix__text > ul,
+  .appendix__text > ol {
     padding-left: 1em;
   }
   .regulation__text > ul > li,
-  .regulation__text > ol > li {
+  .regulation__text > ol > li,
+  .appendix__text > ul > li,
+  .appendix__text > ol > li {
     text-align: justify;
   }
 
